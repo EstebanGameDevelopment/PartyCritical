@@ -52,7 +52,7 @@ namespace PartyCritical
         protected float m_timeoutToMove = 0;
 
         protected bool m_twoFingersHasBeenPressedOnce = false;
-
+        
         protected bool m_activateMovement = false;
 
 #if ENABLE_WORLDSENSE || ENABLE_OCULUS
@@ -96,6 +96,10 @@ namespace PartyCritical
         {
             get { return false; }
         }
+        public virtual bool EnableBackgroundVR
+        {
+            get { return false; }
+        }        
         public virtual string EVENT_GAMECONTROLLER_MARKER_BALL
         {
             get { return ""; }
@@ -192,7 +196,7 @@ namespace PartyCritical
 			{
 				m_enableGyroscope = false;
 #if ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS
-                if (GameController.Instance.EnableBackgroundVR)
+                if (EnableBackgroundVR)
                 {
                     if (this.gameObject.GetComponentInChildren<ARCoreBackgroundRenderer>() != null)
                     {
@@ -293,7 +297,7 @@ namespace PartyCritical
         /* 
          * Daydream logic
          */
-        protected void LogicDaydream6DOF()
+        protected virtual void LogicDaydream6DOF()
         {
 #if ENABLE_WORLDSENSE && !UNITY_EDITOR
             this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
@@ -331,7 +335,7 @@ namespace PartyCritical
         /* 
          * SetAMarkerSignal
          */
-        protected void SetAMarkerSignal()
+        protected virtual void SetAMarkerSignal()
         {
             Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
             Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
@@ -410,19 +414,20 @@ namespace PartyCritical
                 UIEventController.Instance.DispatchUIEvent(GameLevelData.EVENT_GAMELEVELDATA_OPEN_INVENTORY);
             }
 #else
+#if ENABLE_MULTIPLAYER_TIMELINE
             if (!EnableARCore)
             {
                 BasicSystemEventController.Instance.DispatchBasicSystemEvent(GameLevelData.EVENT_GAMELEVELDATA_REQUEST_COLLISION_RAY, this);
             }
             else
             {
-#if ENABLE_MULTIPLAYER_TIMELINE
+
                 if (GameObject.FindObjectOfType<ScreenInventoryView>() == null)
                 {
                     UIEventController.Instance.DispatchUIEvent(GameLevelData.EVENT_GAMELEVELDATA_OPEN_INVENTORY);
                 }              
-#endif                
             }
+#endif
 #endif
         }
 
@@ -797,6 +802,7 @@ namespace PartyCritical
 			}
 		}
 
+
 		// -------------------------------------------
 		/* 
 		 * OnBasicSystemEvent
@@ -818,7 +824,7 @@ namespace PartyCritical
 			if (_nameEvent == CloudGameAnchorController.EVENT_CLOUDGAMEANCHOR_UPDATE_CAMERA)
 			{
                 bool ignoreUpdateARCoreInCamera = false;
-                if ((GameController.Instance.DirectorMode) && (m_playerCameraActivated != null))
+                if ((DirectorMode) && (m_playerCameraActivated != null))
                 {
                     ignoreUpdateARCoreInCamera = true;
                 }
@@ -978,27 +984,26 @@ namespace PartyCritical
 #endif			
 */
 		}
-		
-		// -------------------------------------------
+
+        // -------------------------------------------
         /* 
-         * UpdateDaydream
+         * UpdateDefaultLogic
          */
-		protected virtual void UpdateDaydream()
+        protected virtual void UpdateDefaultLogic()
 		{
 /*
-#if ENABLE_WORLDSENSE			
-			if (m_avatar != null)
-			{
-				m_avatar.transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z);
-				// m_avatar.transform.forward = CameraLocal.forward;
-				m_avatar.transform.forward = new Vector3(CameraLocal.forward.x, 0, CameraLocal.forward.z);
-				m_avatar.GetComponent<GamePlayer>().ForwardPlayer = CameraLocal.forward;
-			}
+            if (m_avatar != null)
+            {
+                m_avatar.transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z);
+                // m_avatar.transform.forward = CameraLocal.forward;
+                m_avatar.transform.forward = new Vector3(CameraLocal.forward.x, 0, CameraLocal.forward.z);
+                m_avatar.GetComponent<GamePlayer>().ForwardPlayer = CameraLocal.forward;
+            }
 
-			LogicDaydream6DOF();
-#endif								
+
+            LogicDaydream6DOF();
 */
-		}
+        }
 
         // -------------------------------------------
         /* 
@@ -1057,7 +1062,7 @@ namespace PartyCritical
                     }
 
 					UpdateOculus();
-					UpdateDaydream();
+                    UpdateDefaultLogic();
                 }
             }
         }

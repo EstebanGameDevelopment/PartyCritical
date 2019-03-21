@@ -52,6 +52,18 @@ namespace PartyCritical
         {
             get { return 300; }
         }
+        protected virtual string BASE_URL_PARTY_VALIDATION
+        {
+            get { return ""; }
+        }
+        protected virtual string ACCESS_SENTENCE
+        {
+            get { return ""; }
+        }
+        protected virtual string ENCRYPTION_KEY
+        {
+            get { return ""; }
+        }
 
         // -------------------------------------------
         /* 
@@ -102,7 +114,7 @@ namespace PartyCritical
             {
                 m_container.Find("Button_Store").gameObject.SetActive(false);
             }
-            VRPartyValidationController.Instance.Initialitzation(OPERATION_VRPARTY_MODE.MODE_GAME, SixDOFConfiguration.BASE_URL_PARTY_VALIDATION, BitCoinController.OPTION_NETWORK_MAIN, SixDOFConfiguration.ACCESS_SENTENCE, SixDOFConfiguration.ENCRYPTION_KEY);
+            VRPartyValidationController.Instance.Initialitzation(OPERATION_VRPARTY_MODE.MODE_GAME, BASE_URL_PARTY_VALIDATION, BitCoinController.OPTION_NETWORK_MAIN, ACCESS_SENTENCE, ENCRYPTION_KEY);
 #else
             InitializeWithShortcut();
 #endif

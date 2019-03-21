@@ -132,6 +132,10 @@ namespace PartyCritical
         {
             get { return null; }
         }
+        public virtual bool EnableVR
+        {
+            get { return false; }
+        }
 
 
         // -------------------------------------------
@@ -302,14 +306,14 @@ namespace PartyCritical
 		{
 #if ENABLE_GOOGLE_ARCORE
             UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_DESTROY_ALL_SCREEN);
-            if (!CameraController.Instance.EnableVR)
+            if (!EnableVR)
             {
                 YourVRUIScreenController.Instance.GameCamera = CloudGameAnchorController.Instance.FirstPersonCamera;
             }
                 
 			List<PageInformation> pages = new List<PageInformation>();
 			pages.Add(new PageInformation(LanguageController.Instance.GetText("message.loading"), LanguageController.Instance.GetText("arcore.message.to.synchronize"), null, null));
-            if (!CameraController.Instance.EnableVR)
+            if (!EnableVR)
             {
                 YourVRUIScreenController.Instance.CreateScreenLinkedToCamera(ScreenInformationView.SCREEN_FIT_SCAN, pages, 1.5f, -1, true, 1f);
                 YourVRUIScreenController.Instance.GameCamera = CloudGameAnchorController.Instance.GameCamera;
@@ -317,11 +321,11 @@ namespace PartyCritical
 #endif
         }
 
-		// -------------------------------------------
-		/* 
+        // -------------------------------------------
+        /* 
 		 * Create the welcome screen
 		 */
-		protected void CreateWelcomeScreen()
+        protected void CreateWelcomeScreen()
 		{
             UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_INFORMATION_SCREEN, ScreenInformationView.SCREEN_INFORMATION, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, LanguageController.Instance.GetText("message.info"), LanguageController.Instance.GetText("message.welcome.deadmatch.example"), null, "");
         }
@@ -411,27 +415,58 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+        * OnNetworkEventEnemy
+        */
+        protected virtual void OnNetworkEventEnemy(string _nameEvent, bool _isLocalEvent, int _networkOriginID, int _networkTargetID, params object[] _list)
+        {
+            if (_nameEvent == EVENT_GAMECONTROLLER_ENEMIES_DISABLE_AUTO_SPAWN)
+            {
+                m_enableEnemyAutoGeneration = bool.Parse((string)_list[0]);
+            }
+            if (_nameEvent == EVENT_GAMECONTROLLER_CREATE_NEW_ENEMY)
+            {
+                if (YourNetworkTools.Instance.IsServer)
+                {
+                    float x = float.Parse((string)_list[0]);
+                    float y = float.Parse((string)_list[1]);
+                    float z = float.Parse((string)_list[2]);
+                    CreateNewEnemy(new Vector3(x, y, z));
+                }
+            }
+        }
+
+        // -------------------------------------------
+        /* 
+        * OnNetworkEventInitialConnection
+        */
+        protected virtual void OnNetworkEventInitialConnection()
+        {
+#if ENABLE_PLAYER_WORLDSENSE || ENABLE_PLAYER_ARCORE || ENABLE_PLAYER_NOARCORE || ENABLE_DIRECTOR_JOIN || ENABLE_SPECTATOR
+            m_isCreatorGame = YourNetworkTools.Instance.IsServer;
+            if (m_isCreatorGame)
+            {
+                m_characterSelected = 0;
+            }
+            else
+            {
+                m_characterSelected = 1;
+            }
+#endif
+            if (m_isCreatorGame)
+            {
+                LoadCurrentGameLevel();
+            }
+        }
+
+        // -------------------------------------------
+        /* 
         * Manager of global events
         */
         protected virtual void OnNetworkEvent(string _nameEvent, bool _isLocalEvent, int _networkOriginID, int _networkTargetID, params object[] _list)
 		{
 			if (_nameEvent == NetworkEventController.EVENT_SYSTEM_INITIALITZATION_LOCAL_COMPLETED)
 			{
-#if ENABLE_PLAYER_WORLDSENSE || ENABLE_PLAYER_ARCORE || ENABLE_PLAYER_NOARCORE || ENABLE_DIRECTOR_JOIN || ENABLE_SPECTATOR
-                m_isCreatorGame = YourNetworkTools.Instance.IsServer;
-                if (m_isCreatorGame)
-                {
-                    m_characterSelected = 0;
-                }
-                else
-                {
-                    m_characterSelected = 1;
-                }
-#endif
-                if (m_isCreatorGame)
-                {
-                    LoadCurrentGameLevel();
-                }
+                OnNetworkEventInitialConnection();
             }
             if (_nameEvent == NetworkEventController.EVENT_SYSTEM_INITIALITZATION_REMOTE_COMPLETED)
             {
@@ -528,20 +563,6 @@ namespace PartyCritical
             {
                 SetState(int.Parse((string)_list[0]));
             }
-            if (_nameEvent == EVENT_GAMECONTROLLER_ENEMIES_DISABLE_AUTO_SPAWN)
-            {
-                m_enableEnemyAutoGeneration = bool.Parse((string)_list[0]);
-            }
-            if (_nameEvent == EVENT_GAMECONTROLLER_CREATE_NEW_ENEMY)
-            {
-                if (YourNetworkTools.Instance.IsServer)
-                {
-                    float x = float.Parse((string)_list[0]);
-                    float y = float.Parse((string)_list[1]);
-                    float z = float.Parse((string)_list[2]);
-                    CreateNewEnemy(new Vector3(x, y, z));
-                }
-            }
             if (_nameEvent == EVENT_GAMECONTROLLER_MARKER_BALL)
             {
                 bool isDirector = bool.Parse((string)_list[0]);
@@ -549,6 +570,7 @@ namespace PartyCritical
                 GameObject markerBall = Instantiate(isDirector ? MarkerDirector : MarkerPlayer);
                 markerBall.transform.position = posMarker;
             }
+            OnNetworkEventEnemy(_nameEvent, _isLocalEvent, _networkOriginID, _networkTargetID, _list);
         }
 
         // -------------------------------------------
