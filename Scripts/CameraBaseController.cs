@@ -55,6 +55,9 @@ namespace PartyCritical
         
         protected bool m_activateMovement = false;
 
+        protected bool m_enableShootAction = true;
+        protected bool m_ignoreNextShootAction = false;
+
 #if ENABLE_WORLDSENSE || ENABLE_OCULUS
         protected GameObject m_armModel;
         protected GameObject m_laserPointer;
@@ -176,6 +179,7 @@ namespace PartyCritical
 
             BasicSystemEventController.Instance.BasicSystemEvent += new BasicSystemEventHandler(OnBasicSystemEvent);
             NetworkEventController.Instance.NetworkEvent += new NetworkEventHandler(OnNetworkEvent);
+            UIEventController.Instance.UIEvent += new UIEventHandler(OnUIEvent);
 
 #if !UNITY_EDITOR && !ENABLE_OCULUS
 		if (!CardboardLoaderVR.LoadEnableCardboard())
@@ -253,6 +257,7 @@ namespace PartyCritical
 		{
 			BasicSystemEventController.Instance.BasicSystemEvent -= OnBasicSystemEvent;
             NetworkEventController.Instance.NetworkEvent -= OnNetworkEvent;
+            UIEventController.Instance.UIEvent -= OnUIEvent;
         }
 
         // -------------------------------------------
@@ -604,7 +609,7 @@ namespace PartyCritical
         /* 
          * ProcessInputDirector
          */
-        protected void ProcessInputDirector()
+        protected virtual void ProcessInputDirector()
         {
             Vector3 normalForward = CameraLocal.forward.normalized * PLAYER_SPEED * 4 * Time.deltaTime;
 
@@ -931,6 +936,23 @@ namespace PartyCritical
             if (_nameEvent == CloudGameAnchorController.EVENT_6DOF_REQUEST_SCALE_MOVEMENT_XZ)
             {
                 NetworkEventController.Instance.DispatchLocalEvent(CloudGameAnchorController.EVENT_6DOF_UPDATE_SCALE_MOVEMENT_XZ, ScaleMovementXZ.ToString());
+            }
+        }
+
+        // -------------------------------------------
+        /* 
+		 * OnUIEvent
+		 */
+        private void OnUIEvent(string _nameEvent, object[] _list)
+        {
+            if (_nameEvent == ScreenInformationView.EVENT_SCREEN_INFORMATION_DISPLAYED)
+            {
+                m_enableShootAction = false;
+            }
+            if (_nameEvent == ScreenInformationView.EVENT_SCREEN_INFORMATION_CLOSED)
+            {
+                m_enableShootAction = true;
+                m_ignoreNextShootAction = true;
             }
         }
 

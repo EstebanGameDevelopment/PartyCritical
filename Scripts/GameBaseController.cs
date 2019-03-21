@@ -415,6 +415,65 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		 * ProcessCustomUIScreenEvent
+		 */
+        protected virtual void ProcessCustomUIScreenEvent(string _nameEvent, object[] _list)
+        {
+            if (_nameEvent == UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN)
+            {
+                EnableLaserVR(true);
+
+                if (_list.Length > 2)
+                {
+                    if ((bool)_list[2])
+                    {
+                        YourVRUIScreenController.Instance.DestroyScreens();
+                    }
+                    else
+                    {
+                        YourVRUIScreenController.Instance.EnableScreens = true;
+                    }
+                }
+                object pages = null;
+                if (_list.Length > 3)
+                {
+                    pages = _list[3];
+                }
+                YourVRUIScreenController.Instance.CreateScreenLinkedToCamera(GetScreenPrefabByName((string)_list[0]), pages, 1.5f, -1, false, -1, (UIScreenTypePreviousAction)_list[1]);
+                // AUTO-DESTROY THE POP UP WHEN YOU ARE NOT INTERESTED TO OFFER INTERACTION
+                // UIEventController.Instance.DelayUIEvent(ScreenController.EVENT_FORCE_TRIGGER_OK_BUTTON, 5);
+                if ((string)_list[0] == ScreenCreateRoomView.SCREEN_NAME)
+                {
+                    UIEventController.Instance.DispatchUIEvent(ScreenCreateRoomView.EVENT_SCREENCREATEROOM_CREATE_RANDOM_NAME);
+                }
+            }
+            if (_nameEvent == UIEventController.EVENT_SCREENMANAGER_OPEN_INFORMATION_SCREEN)
+            {
+                EnableLaserVR(true);
+
+                string nameScreen = (string)_list[0];
+                UIScreenTypePreviousAction previousAction = (UIScreenTypePreviousAction)_list[1];
+                string title = (string)_list[2];
+                string description = (string)_list[3];
+                Sprite image = (Sprite)_list[4];
+                string eventData = (string)_list[5];
+                List<PageInformation> pages = new List<PageInformation>();
+                pages.Add(new PageInformation(title, description, image, eventData, "", ""));
+                YourVRUIScreenController.Instance.CreateScreenLinkedToCamera(GetScreenPrefabByName((string)_list[0]), pages, 1.5f, -1, false, -1, previousAction);
+                // AUTO-DESTROY THE POP UP WHEN YOU ARE NOT INTERESTED TO OFFER INTERACTION
+                // UIEventController.Instance.DelayUIEvent(ScreenController.EVENT_FORCE_TRIGGER_OK_BUTTON, 5);
+            }
+            if (_nameEvent == UIEventController.EVENT_SCREENMANAGER_LOAD_NEW_SCENE)
+            {
+                if (YourVRUIScreenController.Instance != null)
+                {
+                    YourVRUIScreenController.Instance.Destroy();
+                }
+            }
+        }
+
+        // -------------------------------------------
+        /* 
         * OnNetworkEventEnemy
         */
         protected virtual void OnNetworkEventEnemy(string _nameEvent, bool _isLocalEvent, int _networkOriginID, int _networkTargetID, params object[] _list)
@@ -643,57 +702,7 @@ namespace PartyCritical
             }
             else
             {
-                if (_nameEvent == UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN)
-                {
-                    EnableLaserVR(true);
-
-                    if (_list.Length > 2)
-                    {
-                        if ((bool)_list[2])
-                        {
-                            YourVRUIScreenController.Instance.DestroyScreens();
-                        }
-                        else
-                        {
-                            YourVRUIScreenController.Instance.EnableScreens = true;
-                        }
-                    }
-                    object pages = null;
-                    if (_list.Length > 3)
-                    {
-                        pages = _list[3];
-                    }
-                    YourVRUIScreenController.Instance.CreateScreenLinkedToCamera(GetScreenPrefabByName((string)_list[0]), pages, 1.5f, -1, false, -1, (UIScreenTypePreviousAction)_list[1]);
-                    // AUTO-DESTROY THE POP UP WHEN YOU ARE NOT INTERESTED TO OFFER INTERACTION
-                    // UIEventController.Instance.DelayUIEvent(ScreenController.EVENT_FORCE_TRIGGER_OK_BUTTON, 5);
-                    if ((string)_list[0] == ScreenCreateRoomView.SCREEN_NAME)
-                    {
-                        UIEventController.Instance.DispatchUIEvent(ScreenCreateRoomView.EVENT_SCREENCREATEROOM_CREATE_RANDOM_NAME);
-                    }
-                }
-                if (_nameEvent == UIEventController.EVENT_SCREENMANAGER_OPEN_INFORMATION_SCREEN)
-                {
-                    EnableLaserVR(true);
-
-                    string nameScreen = (string)_list[0];
-                    UIScreenTypePreviousAction previousAction = (UIScreenTypePreviousAction)_list[1];
-                    string title = (string)_list[2];
-                    string description = (string)_list[3];
-                    Sprite image = (Sprite)_list[4];
-                    string eventData = (string)_list[5];
-                    List<PageInformation> pages = new List<PageInformation>();
-                    pages.Add(new PageInformation(title, description, image, eventData, "", ""));
-                    YourVRUIScreenController.Instance.CreateScreenLinkedToCamera(GetScreenPrefabByName((string)_list[0]), pages, 1.5f, -1, false, -1, previousAction);
-                    // AUTO-DESTROY THE POP UP WHEN YOU ARE NOT INTERESTED TO OFFER INTERACTION
-                    // UIEventController.Instance.DelayUIEvent(ScreenController.EVENT_FORCE_TRIGGER_OK_BUTTON, 5);
-                }
-                if (_nameEvent == UIEventController.EVENT_SCREENMANAGER_LOAD_NEW_SCENE)
-                {
-                    if (YourVRUIScreenController.Instance != null)
-                    {
-                        YourVRUIScreenController.Instance.Destroy();
-                    }
-                }
+                ProcessCustomUIScreenEvent(_nameEvent, _list);
             }
             if (_nameEvent == ScreenController.EVENT_CONFIRMATION_POPUP)
             {
@@ -777,6 +786,137 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		 * SetUpStateLoading
+		 */
+        protected virtual void SetUpStateLoading()
+        {
+            m_playersReady.Clear();
+
+            int timelineID = YourNetworkTools.Instance.GetUniversalNetworkID();
+            if (YourNetworkTools.Instance.IsLocalGame)
+            {
+                timelineID = (timelineID - (int)(CommunicationsController.Instance.NetworkID / 2));
+            }
+
+            if (m_directorMode)
+            {
+                m_namePlayer = MultiplayerConfiguration.DIRECTOR_NAME + timelineID;
+                if (!m_enableARCore)
+                {
+                    NetworkEventController.Instance.DelayNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, 0.2f, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), m_directorMode.ToString());
+                    YourNetworkTools.Instance.ActivateTransformUpdate = true;
+                }
+                else
+                {
+#if ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS
+                    CloudGameAnchorController.Instance.EnableARCore();
+                    if (CardboardLoaderVR.LoadEnableCardboard())
+                    {
+                        CreateFitScanImageScreen();
+                    }
+#endif
+                }
+#if FORCE_GAME
+                        SetState(STATE_RUNNING);
+#endif
+            }
+            else
+            {
+                m_namePlayer = MultiplayerConfiguration.HUMAN_NAME + timelineID;
+
+                Debug.LogError("+++++++++++++++++m_positionsSpawn=" + m_positionsSpawn.Count);
+
+                Vector3 initialPosition = m_positionsSpawn[YourNetworkTools.Instance.GetUniversalNetworkID() % m_positionsSpawn.Count];
+                string initialData = initialPosition.x + "," + initialPosition.y + "," + initialPosition.z;
+#if ENABLE_WORLDSENSE && !UNITY_EDITOR
+                        initialData = 0 + "," + initialPosition.y + "," + 0;
+#elif ENABLE_GOOGLE_ARCORE && !UNITY_EDITOR
+                        if (m_enableARCore)
+                        {
+                            initialData = 0 + "," + initialPosition.y + "," + 0;
+                        }
+#endif
+
+                initialData = m_namePlayer + "," + NameModelPrefab[m_characterSelected] + "," + initialData;
+
+                // TO FORCE REPOSITION ON EDITOR
+                // initialData = m_namePlayer + "," + NameModelPrefab[m_characterSelected] + "," + 0 + "," + initialPosition.y + "," + 0;
+
+                YourNetworkTools.Instance.CreateLocalNetworkObject(PlayerPrefab[m_characterSelected].name, initialData, false);
+                YourNetworkTools.Instance.ActivateTransformUpdate = true;
+                YourVRUIScreenController.Instance.DestroyScreens();
+                if (!m_enableARCore)
+                {
+                    CreateLoadingScreen();
+                    NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), m_directorMode.ToString());
+#if FORCE_GAME
+                            SetState(STATE_RUNNING);
+#endif
+
+                }
+                else
+                {
+#if UNITY_EDITOR
+                    CreateLoadingScreen();
+                    NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), m_directorMode.ToString());
+
+#if FORCE_GAME
+                            SetState(STATE_RUNNING);
+#endif
+
+#elif ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS
+                            CloudGameAnchorController.Instance.EnableARCore();
+                            if (CardboardLoaderVR.LoadEnableCardboard())
+                            {
+                                CreateFitScanImageScreen();
+                            }
+#endif
+                }
+            }
+        }
+
+        // -------------------------------------------
+        /* 
+		 * SetUpStateReposition
+		 */
+        protected virtual void SetUpStateReposition()
+        {
+            if (m_directorMode)
+            {
+                BasicSystemEventController.Instance.DelayBasicSystemEvent(EVENT_GAMECONTROLLER_COLLIDED_REPOSITION_BALL, 0.2f);
+            }
+            else
+            {
+                bool createRepositionBall = false;
+#if ENABLE_WORLDSENSE
+                        createRepositionBall = true;
+#else
+                // TO FORCE REPOSITION ON EDITOR (COMMENT AND createRepositionBall = true;)
+                // createRepositionBall = true;
+                if (!m_enableARCore)
+                {
+                    BasicSystemEventController.Instance.DelayBasicSystemEvent(EVENT_GAMECONTROLLER_COLLIDED_REPOSITION_BALL, 0.2f);
+                }
+                else
+                {
+                    createRepositionBall = true;
+                }
+#endif
+
+                if (createRepositionBall)
+                {
+                    Vector3 positionReposition = m_positionsSpawn[YourNetworkTools.Instance.GetUniversalNetworkID() % m_positionsSpawn.Count];
+                    GameObject repositionBall = Instantiate(RepositionBall, positionReposition, Quaternion.identity);
+                    repositionBall.GetComponent<CollisionTriggerEvent>().TargetObject = CurrentGameCamera;
+                    repositionBall.GetComponent<Collider>().enabled = true;
+                    UIEventController.Instance.DispatchUIEvent(MenuScreenController.EVENT_FORCE_DESTRUCTION_POPUP);
+                    UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_INFORMATION_SCREEN, ScreenInformationView.SCREEN_INFORMATION, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, LanguageController.Instance.GetText("message.info"), LanguageController.Instance.GetText("message.please.reposition"), null, "");
+                }
+            }
+        }
+
+        // -------------------------------------------
+        /* 
 		 * SetUpStateRunning
 		 */
         protected virtual void SetUpStateRunning()
@@ -833,125 +973,12 @@ namespace PartyCritical
                     
                 ///////////////////////////////////////
                 case STATE_LOADING:
-                    m_playersReady.Clear();
-
-                    int timelineID = YourNetworkTools.Instance.GetUniversalNetworkID();
-                    if (YourNetworkTools.Instance.IsLocalGame)
-                    {
-                        timelineID = (timelineID - (int)(CommunicationsController.Instance.NetworkID / 2));
-                    }
-
-                    if (m_directorMode)
-                    {
-                        m_namePlayer = MultiplayerConfiguration.DIRECTOR_NAME + timelineID;
-                        if (!m_enableARCore)
-                        {
-                            NetworkEventController.Instance.DelayNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, 0.2f, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), m_directorMode.ToString());
-                            YourNetworkTools.Instance.ActivateTransformUpdate = true;
-                        }
-                        else
-                        {
-#if ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS
-                            CloudGameAnchorController.Instance.EnableARCore();
-                            if (CardboardLoaderVR.LoadEnableCardboard())
-                            {
-                                CreateFitScanImageScreen();
-                            }
-#endif
-                        }
-#if FORCE_GAME
-                        SetState(STATE_RUNNING);
-#endif
-                    }
-                    else
-                    {
-                        m_namePlayer = MultiplayerConfiguration.HUMAN_NAME + timelineID;
-
-                        Debug.LogError("+++++++++++++++++m_positionsSpawn=" + m_positionsSpawn.Count);
-
-                        Vector3 initialPosition = m_positionsSpawn[YourNetworkTools.Instance.GetUniversalNetworkID() % m_positionsSpawn.Count];
-                        string initialData = initialPosition.x + "," + initialPosition.y + "," + initialPosition.z;
-#if ENABLE_WORLDSENSE && !UNITY_EDITOR
-                        initialData = 0 + "," + initialPosition.y + "," + 0;
-#elif ENABLE_GOOGLE_ARCORE && !UNITY_EDITOR
-                        if (m_enableARCore)
-                        {
-                            initialData = 0 + "," + initialPosition.y + "," + 0;
-                        }
-#endif
-
-                        initialData = m_namePlayer + "," + NameModelPrefab[m_characterSelected] + "," + initialData;
-
-                        // TO FORCE REPOSITION ON EDITOR
-                        // initialData = m_namePlayer + "," + NameModelPrefab[m_characterSelected] + "," + 0 + "," + initialPosition.y + "," + 0;
-
-                        YourNetworkTools.Instance.CreateLocalNetworkObject(PlayerPrefab[m_characterSelected].name, initialData, false);
-                        YourNetworkTools.Instance.ActivateTransformUpdate = true;
-                        YourVRUIScreenController.Instance.DestroyScreens();
-                        if (!m_enableARCore)
-                        {
-                            CreateLoadingScreen();
-                            NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), m_directorMode.ToString());
-#if FORCE_GAME
-                            SetState(STATE_RUNNING);
-#endif
-
-                        }
-                        else
-                        {
-#if UNITY_EDITOR
-                            CreateLoadingScreen();
-                            NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), m_directorMode.ToString());
-
-#if FORCE_GAME
-                            SetState(STATE_RUNNING);
-#endif
-
-#elif ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS
-                            CloudGameAnchorController.Instance.EnableARCore();
-                            if (CardboardLoaderVR.LoadEnableCardboard())
-                            {
-                                CreateFitScanImageScreen();
-                            }
-#endif
-                        }
-                    }
+                    SetUpStateLoading();
                     break;
 
                 ///////////////////////////////////////
                 case STATE_REPOSITION:
-                    if (m_directorMode)
-                    {
-                        BasicSystemEventController.Instance.DelayBasicSystemEvent(EVENT_GAMECONTROLLER_COLLIDED_REPOSITION_BALL, 0.2f);
-                    }
-                    else
-                    {
-                        bool createRepositionBall = false;
-#if ENABLE_WORLDSENSE
-                        createRepositionBall = true;
-#else
-                        // TO FORCE REPOSITION ON EDITOR (COMMENT AND createRepositionBall = true;)
-                        // createRepositionBall = true;
-                        if (!m_enableARCore)
-                        {
-                            BasicSystemEventController.Instance.DelayBasicSystemEvent(EVENT_GAMECONTROLLER_COLLIDED_REPOSITION_BALL, 0.2f);
-                        }
-                        else
-                        {
-                            createRepositionBall = true;
-                        }
-#endif
-
-                        if (createRepositionBall)
-                        {
-                            Vector3 positionReposition = m_positionsSpawn[YourNetworkTools.Instance.GetUniversalNetworkID() % m_positionsSpawn.Count];
-                            GameObject repositionBall = Instantiate(RepositionBall, positionReposition, Quaternion.identity);
-                            repositionBall.GetComponent<CollisionTriggerEvent>().TargetObject = CurrentGameCamera;
-                            repositionBall.GetComponent<Collider>().enabled = true;
-                            UIEventController.Instance.DispatchUIEvent(MenuScreenController.EVENT_FORCE_DESTRUCTION_POPUP);
-                            UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_INFORMATION_SCREEN, ScreenInformationView.SCREEN_INFORMATION, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, LanguageController.Instance.GetText("message.info"), LanguageController.Instance.GetText("message.please.reposition"), null, "");
-                        }
-                    }
+                    SetUpStateReposition();
                     break;
 
                 ///////////////////////////////////////
@@ -997,11 +1024,12 @@ namespace PartyCritical
         /* 
 		* CreateNewEnemy
 		*/
-        protected void CreateNewEnemy(Vector3 _position)
+        protected virtual bool CreateNewEnemy(Vector3 _position)
         {
             int indexEnemy = UnityEngine.Random.Range(0, 5);
             string initialData = "ENEMY" + "," + "ZOMBIE" + "," + EnemyModelPrefab[indexEnemy] + "," + _position.x + "," + _position.y + "," + _position.z;
             YourNetworkTools.Instance.CreateLocalNetworkObject(EnemyPrefab[0].name, initialData, true);
+            return true;
         }
 
         // -------------------------------------------
