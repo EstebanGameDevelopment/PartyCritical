@@ -547,7 +547,7 @@ namespace PartyCritical
 #if !UNITY_EDITOR && !ENABLE_OCULUS && !ENABLE_WORLDSENSE
                 if ((m_timeoutPressed >= TIMEOUT_TO_MOVE) || (m_timeoutToMove >= TIMEOUT_TO_MOVE))
 				{
-                    if (!GameController.Instance.EnableARCore)
+                    if (!EnableARCore)
 					{
 						Vector3 normalForward = CameraLocal.forward.normalized;
                         normalForward = new Vector3(normalForward.x, 0, normalForward.z);
@@ -633,7 +633,7 @@ namespace PartyCritical
                 float deltaMagnitudeDiff = prevTouchDeltaMag - touchDeltaMag;
 
                 // If the camera is orthographic...
-                if (!GameController.Instance.EnableARCore)
+                if (!EnableARCore)
                 {
                     if (deltaMagnitudeDiff > 0)
                     {
