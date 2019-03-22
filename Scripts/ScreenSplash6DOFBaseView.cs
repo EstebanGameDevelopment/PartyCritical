@@ -45,6 +45,8 @@ namespace PartyCritical
 		
 		protected string m_debugRoomName = "m_debugRoomName";
 
+        protected bool m_isCreatingGame = true;
+
         // ----------------------------------------------
         // SETTERS/GETTERS
         // ----------------------------------------------	
@@ -126,6 +128,8 @@ namespace PartyCritical
 		 */
         protected void InitializeWithShortcut()
         {
+            MenuScreenController.Instance.MaxPlayers = TotalNumberOfPlayers + 1;
+
 #if ENABLE_PLAYER_WORLDSENSE
             Invoke("Direct2PlayerGame", 0.1f);
 #elif ENABLE_PLAYER_ARCORE
@@ -179,7 +183,14 @@ namespace PartyCritical
         {
             MultiplayerConfiguration.SaveEnableBackground(true);
             CardboardLoaderVR.SaveEnableCardboard(true);
-            NetworkEventController.Instance.MenuController_SaveNumberOfPlayers(TotalNumberOfPlayers);
+            if (m_isCreatingGame)
+            {
+                MenuScreenController.Instance.LoadCustomGameScreenOrCreateGame(false, TotalNumberOfPlayers, null, null, false);
+            }
+            else
+            {
+                MenuScreenController.Instance.LoadCustomGameScreenOrCreateGame(false, MultiplayerConfiguration.VALUE_FOR_JOINING, null, null, false);
+            }
             MultiplayerConfiguration.SaveGoogleARCore(MultiplayerConfiguration.GOOGLE_ARCORE_DISABLED);
             MultiplayerConfiguration.SaveDirectorMode(MultiplayerConfiguration.DIRECTOR_MODE_DISABLED);
             MultiplayerConfiguration.SaveSpectatorMode(MultiplayerConfiguration.SPECTATOR_MODE_DISABLED);
@@ -218,7 +229,14 @@ namespace PartyCritical
         {
             MultiplayerConfiguration.SaveEnableBackground(true);
             CardboardLoaderVR.SaveEnableCardboard(true);
-            NetworkEventController.Instance.MenuController_SaveNumberOfPlayers(TotalNumberOfPlayers);
+            if (m_isCreatingGame)
+            {
+                MenuScreenController.Instance.LoadCustomGameScreenOrCreateGame(false, TotalNumberOfPlayers, null, null, false);
+            }
+            else
+            {
+                MenuScreenController.Instance.LoadCustomGameScreenOrCreateGame(false, MultiplayerConfiguration.VALUE_FOR_JOINING, null, null, false);
+            }
             MultiplayerConfiguration.SaveGoogleARCore(MultiplayerConfiguration.GOOGLE_ARCORE_ENABLED);
             MultiplayerConfiguration.SaveDirectorMode(MultiplayerConfiguration.DIRECTOR_MODE_DISABLED);
             MultiplayerConfiguration.SaveSpectatorMode(MultiplayerConfiguration.SPECTATOR_MODE_DISABLED);
@@ -257,7 +275,14 @@ namespace PartyCritical
         {
             MultiplayerConfiguration.SaveEnableBackground(true);
             CardboardLoaderVR.SaveEnableCardboard(true);
-            NetworkEventController.Instance.MenuController_SaveNumberOfPlayers(TotalNumberOfPlayers);
+            if (m_isCreatingGame)
+            {
+                MenuScreenController.Instance.LoadCustomGameScreenOrCreateGame(false, TotalNumberOfPlayers, null, null, false);
+            }
+            else
+            {
+                MenuScreenController.Instance.LoadCustomGameScreenOrCreateGame(false, MultiplayerConfiguration.VALUE_FOR_JOINING, null, null, false);
+            }
             MultiplayerConfiguration.SaveGoogleARCore(MultiplayerConfiguration.GOOGLE_ARCORE_DISABLED);
             MultiplayerConfiguration.SaveDirectorMode(MultiplayerConfiguration.DIRECTOR_MODE_DISABLED);
             MultiplayerConfiguration.SaveSpectatorMode(MultiplayerConfiguration.SPECTATOR_MODE_DISABLED);
@@ -418,6 +443,8 @@ namespace PartyCritical
                 if (ClientTCPEventsController.Instance.RoomsLobby.Count == 0)
                 {
                     NetworkEventController.Instance.MenuController_SetNameRoomLobby(m_debugRoomName);
+
+                    m_isCreatingGame = true;
                 }
                 else
                 {
@@ -428,6 +455,8 @@ namespace PartyCritical
 
                     NetworkEventController.Instance.MenuController_SaveRoomNumberInServer(roomNumber);
                     MultiplayerConfiguration.SaveExtraData(extraData);
+
+                    m_isCreatingGame = false;
                 }
 
                 switch (m_shortcut)
@@ -448,8 +477,6 @@ namespace PartyCritical
                         Invoke("JoinAsDirectorGameConfirmation", 1);
                         break;
                 }
-
-                // MenuScreenController.Instance.JoinARoomInServer();
             }
         }
 

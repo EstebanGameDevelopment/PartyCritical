@@ -592,10 +592,14 @@ namespace PartyCritical
                     int networkID = int.Parse((string)_list[0]);
                     bool isDirector = bool.Parse((string)_list[1]);
                     if (m_playersReady.IndexOf(networkID) == -1) m_playersReady.Add(networkID);
-                    // Debug.LogError("EVENT_SYSTEM_INITIALITZATION_REMOTE_COMPLETED::CONNECTED CLIENT[" + networkID + "] OF TOTAL["+ m_playersReady.Count + "]");
+                    // Debug.LogError("EVENT_SYSTEM_INITIALITZATION_REMOTE_COMPLETED::CONNECTED CLIENT[" + networkID + "] OF TOTAL["+ m_playersReady.Count + "] of EXPECTED[" + m_totalNumberPlayers +"]");
                     if ((isDirector) || (m_totalNumberPlayers <= m_playersReady.Count))
                     {
                         m_totalNumberPlayers = m_playersReady.Count;
+#if ENABLE_SOCKET
+                        NetworkEventController.Instance.PriorityDelayNetworkEvent(ClientTCPEventsController.EVENT_CLIENT_TCP_CLOSE_CURRENT_ROOM, 0.2f);
+#endif
+
                         // Debug.LogError("EVENT_SYSTEM_INITIALITZATION_REMOTE_COMPLETED::START RUNNING***********************************");
 #if FORCE_REPOSITION
                         ChangeState(STATE_REPOSITION);
