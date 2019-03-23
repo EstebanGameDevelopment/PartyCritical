@@ -14,13 +14,15 @@ using MultiplayerTimeline;
 
 namespace PartyCritical
 {
-	public class CameraBaseController : MonoBehaviour
-	{
-		// ----------------------------------------------
-		// EVENTS
-		// ----------------------------------------------	
-		public const string EVENT_CAMERACONTROLLER_SETUP_AVATAR = "EVENT_CAMERACONTROLLER_SETUP_AVATAR";
+    public class CameraBaseController : MonoBehaviour
+    {
+        // ----------------------------------------------
+        // EVENTS
+        // ----------------------------------------------	
+        public const string EVENT_CAMERACONTROLLER_SETUP_AVATAR = "EVENT_CAMERACONTROLLER_SETUP_AVATAR";
         public const string EVENT_CAMERACONTROLLER_DATA_SHOTGUN = "EVENT_CAMERACONTROLLER_DATA_SHOTGUN";
+
+        public const string EVENT_GAMECAMERA_REAL_PLAYER_FORWARD = "EVENT_GAMECAMERA_REAL_PLAYER_FORWARD";
 
         // ----------------------------------------------
         // PUBLIC VARIABLES
@@ -37,22 +39,22 @@ namespace PartyCritical
         // protected VARIABLES
         // ----------------------------------------------	
         protected enum RotationAxes { None = 0, MouseXAndY = 1, MouseX = 2, MouseY = 3, Controller = 4 }
-		protected float m_sensitivityX = 7F;
-		protected float m_sensitivityY = 7F;
-		protected float m_minimumY = -60F;
-		protected float m_maximumY = 60F;
-		protected float m_rotationY = 0F;
+        protected float m_sensitivityX = 7F;
+        protected float m_sensitivityY = 7F;
+        protected float m_minimumY = -60F;
+        protected float m_maximumY = 60F;
+        protected float m_rotationY = 0F;
 
-		protected GameObject m_avatar;
+        protected GameObject m_avatar;
 
-		protected bool m_enableGyroscope = false;
-		protected bool m_enableVR = false;
-		protected bool m_rotatedTo90 = false;
-		protected float m_timeoutPressed = 0;
+        protected bool m_enableGyroscope = false;
+        protected bool m_enableVR = false;
+        protected bool m_rotatedTo90 = false;
+        protected float m_timeoutPressed = 0;
         protected float m_timeoutToMove = 0;
 
         protected bool m_twoFingersHasBeenPressedOnce = false;
-        
+
         protected bool m_activateMovement = false;
 
         protected bool m_enableShootAction = true;
@@ -77,14 +79,14 @@ namespace PartyCritical
         // GETTERS/SETTERS
         // ----------------------------------------------	
         public GameObject Avatar
-		{
-			get { return m_avatar; }
-			set
-			{
+        {
+            get { return m_avatar; }
+            set
+            {
                 m_avatar = value;
-				this.transform.position = m_avatar.transform.position;
-			}
-		}
+                this.transform.position = m_avatar.transform.position;
+            }
+        }
 
         public bool EnableVR
         {
@@ -102,7 +104,7 @@ namespace PartyCritical
         public virtual bool EnableBackgroundVR
         {
             get { return false; }
-        }        
+        }
         public virtual string EVENT_GAMECONTROLLER_MARKER_BALL
         {
             get { return ""; }
@@ -126,6 +128,34 @@ namespace PartyCritical
         public virtual string EVENT_DIRECTOR_RESET_CAMERA_TO_DIRECTOR
         {
             get { return ""; }
+        }
+        public virtual float CAMERA_SHIFT_HEIGHT_ARCORE
+        {
+            get { return 1.8f; }
+        }
+        public virtual float CAMERA_SHIFT_HEIGHT_WORLDSENSE
+        {
+            get { return -1; }
+        }
+        public virtual float CAMERA_SHIFT_HEIGHT_OCULUS
+        {
+            get { return -1; }
+        }
+        public virtual float AVATAR_SHIFT_HEIGHT
+        {
+            get { return 1.5f; }
+        }
+        public virtual float AVATAR_SHIFT_HEIGHT_ARCORE
+        {
+            get { return -0.5f; }
+        }
+        public virtual float AVATAR_SHIFT_HEIGHT_WORLDSENSE
+        {
+            get { return 0; }
+        }
+        public virtual float AVATAR_SHIFT_HEIGHT_OCULUS
+        {
+            get { return 1; }
         }
         public virtual List<GameObject> Players
         {
@@ -153,7 +183,7 @@ namespace PartyCritical
 		 * Initialize
 		 */
         public virtual void Initialize()
-		{
+        {
 #if ENABLE_OCULUS
             m_enableVR = true;
             CameraLocal.gameObject.SetActive(false);
@@ -172,10 +202,12 @@ namespace PartyCritical
             if (ShotgunContainer != null) ShotgunContainer.SetActive(false);
 #endif
 
+            if (YourVRUIScreenController.Instance.LaserPointer != null) YourVRUIScreenController.Instance.LaserPointer.SetActive(false);
+
             if (DirectorMode)
             {
                 if (ShotgunContainer != null) ShotgunContainer.SetActive(false);
-            }            
+            }
 
             BasicSystemEventController.Instance.BasicSystemEvent += new BasicSystemEventHandler(OnBasicSystemEvent);
             NetworkEventController.Instance.NetworkEvent += new NetworkEventHandler(OnNetworkEvent);
@@ -197,8 +229,8 @@ namespace PartyCritical
 #endif
 
             if (EnableARCore)
-			{
-				m_enableGyroscope = false;
+            {
+                m_enableGyroscope = false;
 #if ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS
                 if (EnableBackgroundVR)
                 {
@@ -241,7 +273,7 @@ namespace PartyCritical
                 if (EnableARCore)
                 {
                     this.transform.position = new Vector3(0, 1, 0);
-                }                
+                }
             }
 
 #if !ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS
@@ -254,8 +286,8 @@ namespace PartyCritical
 		 * OnDestroy
 		 */
         void OnDestroy()
-		{
-			BasicSystemEventController.Instance.BasicSystemEvent -= OnBasicSystemEvent;
+        {
+            BasicSystemEventController.Instance.BasicSystemEvent -= OnBasicSystemEvent;
             NetworkEventController.Instance.NetworkEvent -= OnNetworkEvent;
             UIEventController.Instance.UIEvent -= OnUIEvent;
         }
@@ -265,38 +297,38 @@ namespace PartyCritical
 		 * RotateCamera
 		 */
         protected void RotateCamera()
-		{
-			RotationAxes axes = RotationAxes.None;
+        {
+            RotationAxes axes = RotationAxes.None;
 
-			if ((Input.GetAxis("Mouse X") != 0) || (Input.GetAxis("Mouse Y") != 0))
-			{
-				axes = RotationAxes.MouseXAndY;
-			}
+            if ((Input.GetAxis("Mouse X") != 0) || (Input.GetAxis("Mouse Y") != 0))
+            {
+                axes = RotationAxes.MouseXAndY;
+            }
 
-			if ((axes != RotationAxes.Controller) && (axes != RotationAxes.None))
-			{
-				if (axes == RotationAxes.MouseXAndY)
-				{
-					float rotationX = CameraLocal.localEulerAngles.y + Input.GetAxis("Mouse X") * m_sensitivityX;
+            if ((axes != RotationAxes.Controller) && (axes != RotationAxes.None))
+            {
+                if (axes == RotationAxes.MouseXAndY)
+                {
+                    float rotationX = CameraLocal.localEulerAngles.y + Input.GetAxis("Mouse X") * m_sensitivityX;
 
-					m_rotationY += Input.GetAxis("Mouse Y") * m_sensitivityY;
-					m_rotationY = Mathf.Clamp(m_rotationY, m_minimumY, m_maximumY);
+                    m_rotationY += Input.GetAxis("Mouse Y") * m_sensitivityY;
+                    m_rotationY = Mathf.Clamp(m_rotationY, m_minimumY, m_maximumY);
 
-					CameraLocal.localEulerAngles = new Vector3(-m_rotationY, rotationX, 0);
-				}
-				else if (axes == RotationAxes.MouseX)
-				{
-					CameraLocal.Rotate(0, Input.GetAxis("Mouse X") * m_sensitivityX, 0);
-				}
-				else
-				{
-					m_rotationY += Input.GetAxis("Mouse Y") * m_sensitivityY;
-					m_rotationY = Mathf.Clamp(m_rotationY, m_minimumY, m_maximumY);
+                    CameraLocal.localEulerAngles = new Vector3(-m_rotationY, rotationX, 0);
+                }
+                else if (axes == RotationAxes.MouseX)
+                {
+                    CameraLocal.Rotate(0, Input.GetAxis("Mouse X") * m_sensitivityX, 0);
+                }
+                else
+                {
+                    m_rotationY += Input.GetAxis("Mouse Y") * m_sensitivityY;
+                    m_rotationY = Mathf.Clamp(m_rotationY, m_minimumY, m_maximumY);
 
-					CameraLocal.localEulerAngles = new Vector3(-m_rotationY, transform.localEulerAngles.y, 0);					
-				}
-			}
-		}
+                    CameraLocal.localEulerAngles = new Vector3(-m_rotationY, transform.localEulerAngles.y, 0);
+                }
+            }
+        }
 
         // -------------------------------------------
         /* 
@@ -314,7 +346,7 @@ namespace PartyCritical
             transform.position = centerLevel + new Vector3(posWorld.x * ScaleMovementXZ,
 												0,
                                                 posWorld.z * ScaleMovementXZ);
-            CameraLocal.transform.parent.localPosition = -new Vector3(CameraLocal.transform.localPosition.x, -1-(posWorld.y * ScaleMovementY), CameraLocal.transform.localPosition.z);
+            CameraLocal.transform.parent.localPosition = -new Vector3(CameraLocal.transform.localPosition.x, (1.5f * CAMERA_SHIFT_HEIGHT_WORLDSENSE) - (posWorld.y * ScaleMovementY), CameraLocal.transform.localPosition.z);
 #endif
         }
 
@@ -323,18 +355,18 @@ namespace PartyCritical
          * MoveCamera
          */
         protected void MoveCamera()
-		{
+        {
             this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
             this.gameObject.GetComponent<Rigidbody>().useGravity = true;
             this.gameObject.GetComponent<Collider>().isTrigger = false;
 
             Vector3 forward = Input.GetAxis("Vertical") * CameraLocal.forward * PLAYER_SPEED * Time.deltaTime;
-			Vector3 lateral = Input.GetAxis("Horizontal") * CameraLocal.right * PLAYER_SPEED * Time.deltaTime;
+            Vector3 lateral = Input.GetAxis("Horizontal") * CameraLocal.right * PLAYER_SPEED * Time.deltaTime;
 
-			Vector3 increment = forward + lateral;
-			increment.y = 0;
-			transform.GetComponent<Rigidbody>().MovePosition(transform.position + increment);
-		}
+            Vector3 increment = forward + lateral;
+            increment.y = 0;
+            transform.GetComponent<Rigidbody>().MovePosition(transform.position + increment);
+        }
 
         // -------------------------------------------
         /* 
@@ -370,11 +402,11 @@ namespace PartyCritical
         /* 
          * ActionShootPlayer
          */
-		protected virtual void ActionShootPlayer()
-		{
-			string position = "";
-			string forward = "";
-			bool shootDone = false;
+        protected virtual void ActionShootPlayer()
+        {
+            string position = "";
+            string forward = "";
+            bool shootDone = false;
 #if ENABLE_OCULUS && !UNITY_EDITOR
 			if ((m_armModel != null) && (m_laserPointer != null))
 			{
@@ -390,17 +422,17 @@ namespace PartyCritical
 				shootDone = true;
 			}
 #else
-			position = transform.position.x + "," + transform.position.y + "," + transform.position.z;
-			forward = CameraLocal.forward.x + "," + CameraLocal.forward.y + "," + CameraLocal.forward.z;
-			shootDone = true;
+            position = transform.position.x + "," + transform.position.y + "," + transform.position.z;
+            forward = CameraLocal.forward.x + "," + CameraLocal.forward.y + "," + CameraLocal.forward.z;
+            shootDone = true;
 #endif
 
-			if (shootDone)
-			{
-				// SixDOFConfiguration.PlayFxShoot();
-				NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMESHOOT_NEW, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), position, forward);
-			}
-		}
+            if (shootDone)
+            {
+                // SixDOFConfiguration.PlayFxShoot();
+                NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMESHOOT_NEW, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), position, forward);
+            }
+        }
 
         // -------------------------------------------
         /* 
@@ -441,7 +473,7 @@ namespace PartyCritical
         * ProcessInputCustomer
         */
         protected void ProcessInputCustomer()
-		{
+        {
             // ENABLE DEFAULT INPUTS WHEN THERE ARE SCREEN ACTIVATED
             if (YourVRUIScreenController.Instance.ScreensTemporal.Count > 0)
             {
@@ -456,7 +488,7 @@ namespace PartyCritical
             {
                 KeysEventInputController.Instance.EnableActionButton = false;
             }
-            
+
             // INPUTS FOR THE IN-GAME, NOT THE SCREENS
             if (false
 #if ENABLE_OCULUS && !UNITY_EDITOR
@@ -468,9 +500,9 @@ namespace PartyCritical
 #endif
                 )
             {
-				ActionShootPlayer();
-				
-				m_timeoutPressed = 0;
+                ActionShootPlayer();
+
+                m_timeoutPressed = 0;
 
                 // Debug.LogError("KEY UP+++++++++++++++");
                 UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_UP);
@@ -495,13 +527,10 @@ namespace PartyCritical
                 m_timeoutToMove += Time.deltaTime;
                 if (m_timeoutToMove >= TIMEOUT_TO_MOVE)
                 {
-                    if (!GameController.Instance.EnableARCore)
-                    {
-                        Vector3 normalForward = CameraLocal.forward.normalized;
-                        normalForward = CenterEyeAnchor.transform.forward.normalized;
-                        normalForward = new Vector3(normalForward.x, 0, normalForward.z);
-                        transform.GetComponent<Rigidbody>().MovePosition(transform.position + normalForward * PLAYER_SPEED * Time.deltaTime);
-                    }
+                    Vector3 normalForward = CameraLocal.forward.normalized;
+                    normalForward = CenterEyeAnchor.transform.forward.normalized;
+                    normalForward = new Vector3(normalForward.x, 0, normalForward.z);
+                    transform.GetComponent<Rigidbody>().MovePosition(transform.position + normalForward * PLAYER_SPEED * Time.deltaTime);
                 }
             }
 #else
@@ -707,18 +736,18 @@ namespace PartyCritical
 
                         SetAMarkerSignal();
 
-						ActionDownForDirector();
+                        ActionDownForDirector();
                     }
                 }
             }
         }
 
-		// -------------------------------------------
+        // -------------------------------------------
         /* 
 		 * ActionDownForDirector
 		 */
-		protected virtual void ActionDownForDirector()
-		{
+        protected virtual void ActionDownForDirector()
+        {
             /*
 			if (!SpectatorMode)
 			{
@@ -740,28 +769,28 @@ namespace PartyCritical
 				}
 			}
             */
-		}
+        }
 
         // -------------------------------------------
         /* 
 		 * OnGUI
 		 */
         public virtual void OnGUI()
-		{
+        {
             /*
 			if (m_avatar != null)
 			{
 				GUI.Label(new Rect(Screen.width - 100, 0, 100, 20), "LIFE [" + m_avatar.GetComponent<GamePlayer>().Life + "]");
 			}
             */
-		}
+        }
 
-		// -------------------------------------------
-		/* 
+        // -------------------------------------------
+        /* 
 		 * OnCollisionEnter
 		 */
-		public virtual void OnCollisionEnter(Collision collision)
-		{
+        public virtual void OnCollisionEnter(Collision collision)
+        {
             /*
 			GameEnemy enemy = collision.gameObject.GetComponent<GameEnemy>();
 			if (enemy != null)
@@ -770,7 +799,7 @@ namespace PartyCritical
 				NetworkEventController.Instance.DispatchNetworkEvent(GameShoot.EVENT_GAMESHOOT_DAMAGE, m_avatar.GetComponent<GamePlayer>().NetworkID.GetID(), GameEnemy.DAMAGE.ToString());
 			}
             */
-		}
+        }
 
         // -------------------------------------------
         /* 
@@ -793,41 +822,41 @@ namespace PartyCritical
 		 * We rotate with the gyroscope
 		 */
         protected void GyroModifyCamera()
-		{
-			if (m_enableGyroscope)
-			{
-				if (!m_rotatedTo90)
-				{
-					m_rotatedTo90 = true;
-					transform.Rotate(Vector3.right, 90);
-				}
+        {
+            if (m_enableGyroscope)
+            {
+                if (!m_rotatedTo90)
+                {
+                    m_rotatedTo90 = true;
+                    transform.Rotate(Vector3.right, 90);
+                }
 
-				Quaternion rotFix = new Quaternion(Input.gyro.attitude.x, Input.gyro.attitude.y, -Input.gyro.attitude.z, -Input.gyro.attitude.w);
-				CameraLocal.localRotation = rotFix;
-			}
-		}
+                Quaternion rotFix = new Quaternion(Input.gyro.attitude.x, Input.gyro.attitude.y, -Input.gyro.attitude.z, -Input.gyro.attitude.w);
+                CameraLocal.localRotation = rotFix;
+            }
+        }
 
 
-		// -------------------------------------------
-		/* 
+        // -------------------------------------------
+        /* 
 		 * OnBasicSystemEvent
 		 */
-		protected virtual void OnBasicSystemEvent(string _nameEvent, object[] _list)
-		{
+        protected virtual void OnBasicSystemEvent(string _nameEvent, object[] _list)
+        {
 #if ENABLE_GOOGLE_ARCORE
             if (_nameEvent == CloudGameAnchorController.EVENT_CLOUDGAMEANCHOR_SETUP_ANCHOR)
-			{
-				if ((bool)_list[0])
-				{
-					CameraLocal.GetComponent<Camera>().enabled = true;
-				}
-				else
-				{
-					Debug.LogError("FAILED TO SET UP CLOUD ANCHOR");
-				}
-			}
-			if (_nameEvent == CloudGameAnchorController.EVENT_CLOUDGAMEANCHOR_UPDATE_CAMERA)
-			{
+            {
+                if ((bool)_list[0])
+                {
+                    CameraLocal.GetComponent<Camera>().enabled = true;
+                }
+                else
+                {
+                    Debug.LogError("FAILED TO SET UP CLOUD ANCHOR");
+                }
+            }
+            if (_nameEvent == CloudGameAnchorController.EVENT_CLOUDGAMEANCHOR_UPDATE_CAMERA)
+            {
                 bool ignoreUpdateARCoreInCamera = false;
                 if ((DirectorMode) && (m_playerCameraActivated != null))
                 {
@@ -840,12 +869,12 @@ namespace PartyCritical
                     CameraLocal.forward = forward;
                     CloudGameAnchorController.Instance.ScaleVRWorldXZ = ScaleMovementXZ;
                     CloudGameAnchorController.Instance.ScaleVRWorldY = ScaleMovementY;
-                    transform.position = new Vector3(position.x, transform.position.y, position.z);
+                    transform.position = new Vector3(position.x, position.y + CAMERA_SHIFT_HEIGHT_ARCORE, position.z);
                 }
             }
 #endif
             if (_nameEvent == EVENT_CAMERACONTROLLER_SETUP_AVATAR)
-			{
+            {
                 if (!DirectorMode)
                 {
                     Avatar = (GameObject)_list[0];
@@ -948,83 +977,86 @@ namespace PartyCritical
             if (_nameEvent == ScreenInformationView.EVENT_SCREEN_INFORMATION_DISPLAYED)
             {
                 m_enableShootAction = false;
+#if ENABLE_WORLDSENSE || ENABLE_OCULUS
+                if (YourVRUIScreenController.Instance.LaserPointer!=null) YourVRUIScreenController.Instance.LaserPointer.SetActive(true);
+#endif
             }
             if (_nameEvent == ScreenInformationView.EVENT_SCREEN_INFORMATION_CLOSED)
             {
                 m_enableShootAction = true;
                 m_ignoreNextShootAction = true;
+#if ENABLE_WORLDSENSE || ENABLE_OCULUS
+                if (YourVRUIScreenController.Instance.LaserPointer!=null) YourVRUIScreenController.Instance.LaserPointer.SetActive(false);
+#endif
             }
         }
 
         protected GameObject m_playerCameraActivated = null;
         protected Vector3 m_backupCameraPosition = new Vector3();
         protected Vector3 m_backupCameraForward = new Vector3();
-        
+
         // -------------------------------------------
         /* 
          * IsCameraEnabled
          */
         public bool IsCameraEnabled()
-		{
-			return CameraLocal.GetComponent<Camera>().enabled;
-		}
-
-		// -------------------------------------------
-        /* 
-         * SetCameraPlayerToDirector
-         */
-		protected virtual bool SetCameraPlayerToDirector()
-		{
-            /*
-			if (m_playerCameraActivated != null)
-			{
-				YourVRUIScreenController.Instance.GameCamera.transform.position = m_playerCameraActivated.transform.position + new Vector3(0, 0.4f,0);
-				YourVRUIScreenController.Instance.GameCamera.transform.forward = m_playerCameraActivated.GetComponent<GamePlayer>().RealForward;
-				return true;
-			}
-            */
-            return false;            
-		}
+        {
+            return CameraLocal.GetComponent<Camera>().enabled;
+        }
 
         // -------------------------------------------
         /* 
-         * UpdateOculus
+         * SetCameraPlayerToDirector
          */
-		protected virtual void UpdateOculus()
-		{
-            /*
-#if ENABLE_OCULUS
-			OVRInput.Update();
-
-			if (m_avatar != null)
-			{
-				m_avatar.transform.position = new Vector3(transform.position.x, transform.position.y + 1, transform.position.z);
-				// m_avatar.transform.forward = CenterEyeAnchor.transform.forward;
-				m_avatar.transform.forward = new Vector3(CenterEyeAnchor.transform.forward.x, 0, CenterEyeAnchor.transform.forward.z);
-				m_avatar.GetComponent<GamePlayer>().ForwardPlayer = CenterEyeAnchor.transform.forward;
-			}
-#endif			
-*/
-		}
+        protected virtual bool SetCameraPlayerToDirector()
+        {
+            if (m_playerCameraActivated != null)
+            {
+                YourVRUIScreenController.Instance.GameCamera.transform.position = m_playerCameraActivated.GetComponent<Actor>().RealPosition;
+                YourVRUIScreenController.Instance.GameCamera.transform.forward = m_playerCameraActivated.GetComponent<Actor>().RealForward;
+                return true;
+            }
+            return false;
+        }
 
         // -------------------------------------------
         /* 
          * UpdateDefaultLogic
          */
         protected virtual void UpdateDefaultLogic()
-		{
-/*
+        {
+#if ENABLE_OCULUS
+			OVRInput.Update();
+
+			if (m_avatar != null)
+			{
+				m_avatar.transform.position = new Vector3(transform.position.x, AVATAR_SHIFT_HEIGHT, transform.position.z);
+				m_avatar.transform.forward = new Vector3(CenterEyeAnchor.transform.forward.x, 0, CenterEyeAnchor.transform.forward.z);
+				m_avatar.GetComponent<Actor>().ForwardPlayer = CenterEyeAnchor.transform.forward;
+                m_avatar.GetComponent<Actor>().PositionPlayer = CenterEyeAnchor.transform.position;
+			}
+#else
             if (m_avatar != null)
             {
-                m_avatar.transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z);
-                // m_avatar.transform.forward = CameraLocal.forward;
+                m_avatar.transform.position = new Vector3(transform.position.x, AVATAR_SHIFT_HEIGHT, transform.position.z);
                 m_avatar.transform.forward = new Vector3(CameraLocal.forward.x, 0, CameraLocal.forward.z);
-                m_avatar.GetComponent<GamePlayer>().ForwardPlayer = CameraLocal.forward;
+                m_avatar.GetComponent<Actor>().ForwardPlayer = CameraLocal.forward;
+                m_avatar.GetComponent<Actor>().PositionPlayer = CameraLocal.transform.position;
             }
 
-
             LogicDaydream6DOF();
-*/
+#endif
+        }
+
+        // -------------------------------------------
+        /* 
+		 * DispathPositionForDirector
+		 */
+        public void DispatchPositionForDirector(int _netID, int _uid, Vector3 _positionPlayer, Vector3 _forwardPlayer)
+        {
+            NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECAMERA_REAL_PLAYER_FORWARD, _netID.ToString(), _uid.ToString(),
+                _positionPlayer.x.ToString(), _positionPlayer.y.ToString(), _positionPlayer.z.ToString(),
+                _forwardPlayer.x.ToString(), _forwardPlayer.y.ToString(), _forwardPlayer.z.ToString());
         }
 
         // -------------------------------------------
@@ -1050,7 +1082,7 @@ namespace PartyCritical
 		 * Update
 		 */
         void Update()
-		{
+        {
             if (IsGameFakeRunning()
 #if ENABLE_WORLDSENSE || ENABLE_GOOGLE_ARCORE
                 || IsGameLoading()
@@ -1059,10 +1091,10 @@ namespace PartyCritical
             {
                 if (YourNetworkTools.Instance.GetUniversalNetworkID() != -1)
                 {
-					if (SetCameraPlayerToDirector())
-					{
-						return;
-					}
+                    if (SetCameraPlayerToDirector())
+                    {
+                        return;
+                    }
 
 #if UNITY_EDITOR
                     MoveCamera();
@@ -1083,10 +1115,9 @@ namespace PartyCritical
                         }
                     }
 
-					UpdateOculus();
                     UpdateDefaultLogic();
                 }
             }
         }
-	}
+    }
 }
