@@ -19,7 +19,6 @@ namespace PartyCritical
         // ----------------------------------------------
         // EVENTS
         // ----------------------------------------------	
-        public const string EVENT_CAMERACONTROLLER_SETUP_AVATAR = "EVENT_CAMERACONTROLLER_SETUP_AVATAR";
         public const string EVENT_CAMERACONTROLLER_DATA_SHOTGUN = "EVENT_CAMERACONTROLLER_DATA_SHOTGUN";
 
         public const string EVENT_GAMECAMERA_REAL_PLAYER_FORWARD = "EVENT_GAMECAMERA_REAL_PLAYER_FORWARD";
@@ -873,7 +872,7 @@ namespace PartyCritical
                 }
             }
 #endif
-            if (_nameEvent == EVENT_CAMERACONTROLLER_SETUP_AVATAR)
+            if (_nameEvent == ActorTimeline.EVENT_GAMEPLAYER_SETUP_AVATAR)
             {
                 if (!DirectorMode)
                 {
@@ -911,6 +910,18 @@ namespace PartyCritical
                     YourVRUIScreenController.Instance.GameCamera.transform.forward = m_backupCameraForward;
                 }
             }
+
+            if (_nameEvent == ActorTimeline.EVENT_GAMEPLAYER_DATA_POSITION_PLAYER)
+            {
+                int netID = (int)_list[0];
+                int uid = (int)_list[0];
+                Vector3 positionPlayer = (Vector3)_list[2];
+                Vector3 forwardPlayer = (Vector3)_list[3];
+                NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECAMERA_REAL_PLAYER_FORWARD, netID.ToString(), uid.ToString(),
+                    positionPlayer.x.ToString(), positionPlayer.y.ToString(), positionPlayer.z.ToString(),
+                    forwardPlayer.x.ToString(), forwardPlayer.y.ToString(), forwardPlayer.z.ToString());
+            }
+
 #if ENABLE_MULTIPLAYER_TIMELINE
             if (_nameEvent == GameLevelData.EVENT_GAMELEVELDATA_REQUEST_COLLISION_RAY)
             {
@@ -1046,17 +1057,6 @@ namespace PartyCritical
 
             LogicDaydream6DOF();
 #endif
-        }
-
-        // -------------------------------------------
-        /* 
-		 * DispathPositionForDirector
-		 */
-        public void DispatchPositionForDirector(int _netID, int _uid, Vector3 _positionPlayer, Vector3 _forwardPlayer)
-        {
-            NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECAMERA_REAL_PLAYER_FORWARD, _netID.ToString(), _uid.ToString(),
-                _positionPlayer.x.ToString(), _positionPlayer.y.ToString(), _positionPlayer.z.ToString(),
-                _forwardPlayer.x.ToString(), _forwardPlayer.y.ToString(), _forwardPlayer.z.ToString());
         }
 
         // -------------------------------------------
