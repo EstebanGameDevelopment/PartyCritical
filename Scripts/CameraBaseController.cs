@@ -914,7 +914,7 @@ namespace PartyCritical
             if (_nameEvent == ActorTimeline.EVENT_GAMEPLAYER_DATA_POSITION_PLAYER)
             {
                 int netID = (int)_list[0];
-                int uid = (int)_list[0];
+                int uid = (int)_list[1];
                 Vector3 positionPlayer = (Vector3)_list[2];
                 Vector3 forwardPlayer = (Vector3)_list[3];
                 NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECAMERA_REAL_PLAYER_FORWARD, netID.ToString(), uid.ToString(),
