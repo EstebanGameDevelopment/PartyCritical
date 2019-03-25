@@ -134,7 +134,7 @@ namespace PartyCritical
         }
         public virtual float CAMERA_SHIFT_HEIGHT_WORLDSENSE
         {
-            get { return -1; }
+            get { return -1.5f; }
         }
         public virtual float CAMERA_SHIFT_HEIGHT_OCULUS
         {
@@ -345,7 +345,11 @@ namespace PartyCritical
             transform.position = centerLevel + new Vector3(posWorld.x * ScaleMovementXZ,
 												0,
                                                 posWorld.z * ScaleMovementXZ);
-            CameraLocal.transform.parent.localPosition = -new Vector3(CameraLocal.transform.localPosition.x, (1.5f * CAMERA_SHIFT_HEIGHT_WORLDSENSE) - (posWorld.y * ScaleMovementY), CameraLocal.transform.localPosition.z);
+            CameraLocal.transform.parent.localPosition = -new Vector3(CameraLocal.transform.localPosition.x, CAMERA_SHIFT_HEIGHT_WORLDSENSE - (posWorld.y * ScaleMovementY), CameraLocal.transform.localPosition.z);
+#else
+            this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
+            this.gameObject.GetComponent<Rigidbody>().useGravity = true;
+            this.gameObject.GetComponent<Collider>().isTrigger = false;
 #endif
         }
 
@@ -870,7 +874,8 @@ namespace PartyCritical
                     CameraLocal.forward = forward;
                     CloudGameAnchorController.Instance.ScaleVRWorldXZ = ScaleMovementXZ;
                     CloudGameAnchorController.Instance.ScaleVRWorldY = ScaleMovementY;
-                    transform.position = new Vector3(position.x, position.y + CAMERA_SHIFT_HEIGHT_ARCORE, position.z);
+                    transform.position = new Vector3(position.x, transform.position.y, position.z);
+                    CameraLocal.transform.parent.localPosition = -new Vector3(CameraLocal.transform.localPosition.x, CAMERA_SHIFT_HEIGHT_WORLDSENSE - position.y, CameraLocal.transform.localPosition.z);
                 }
             }
 #endif
