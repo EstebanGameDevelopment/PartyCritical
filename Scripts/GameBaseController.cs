@@ -500,7 +500,7 @@ namespace PartyCritical
         */
         protected virtual void OnNetworkEventInitialConnection()
         {
-#if ENABLE_PLAYER_WORLDSENSE || ENABLE_PLAYER_ARCORE || ENABLE_PLAYER_NOARCORE || ENABLE_DIRECTOR_JOIN || ENABLE_SPECTATOR
+#if ENABLE_PLAYER_WORLDSENSE || ENABLE_PLAYER_ARCORE || ENABLE_PLAYER_NOARCORE || ENABLE_DIRECTOR_JOIN || ENABLE_SPECTATOR || ENABLE_PLAYER_GYRO
             m_isCreatorGame = YourNetworkTools.Instance.IsServer;
             if (m_isCreatorGame)
             {

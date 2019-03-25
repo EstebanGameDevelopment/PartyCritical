@@ -27,10 +27,11 @@ namespace PartyCritical
         // ----------------------------------------------
         // CONSTANTS
         // ----------------------------------------------	
-        public const int SHORTCUT_CREATE_GAME_AS_WORLDSENSE_PLAYER = 0;
-        public const int SHORTCUT_JOIN_GAME_AS_ARCORE_PLAYER = 1;
-        public const int SHORTCUT_JOIN_GAME_AS_NO_ARCORE_PLAYER = 2;
-        public const int SHORTCUT_JOIN_GAME_AS_DIRECTOR = 3;
+        public const int SHORTCUT_CREATE_GAME_AS_WORLDSENSE_PLAYER  = 0;
+        public const int SHORTCUT_JOIN_GAME_AS_ARCORE_PLAYER        = 1;
+        public const int SHORTCUT_JOIN_GAME_AS_GYRO_PLAYER          = 2;
+        public const int SHORTCUT_JOIN_GAME_AS_NO_ARCORE_PLAYER     = 3;
+        public const int SHORTCUT_JOIN_GAME_AS_DIRECTOR             = 4;
 
         // ----------------------------------------------
         // PROTECTED MEMBERS
@@ -134,6 +135,8 @@ namespace PartyCritical
             Invoke("Direct2PlayerGame", 0.1f);
 #elif ENABLE_PLAYER_ARCORE
             Invoke("JoinAsOtherPlayerGame_ARCore", 0.1f);
+#elif ENABLE_PLAYER_GYRO
+            Invoke("JoinAsOtherPlayerGame_Gyro", 0.1f);
 #elif ENABLE_PLAYER_NOARCORE
             Invoke("JoinAsOtherPlayerGame_NoARCore", 0.1f);
 #elif ENABLE_DIRECTOR_JOIN || ENABLE_SPECTATOR
@@ -229,6 +232,52 @@ namespace PartyCritical
         {
             MultiplayerConfiguration.SaveEnableBackground(true);
             CardboardLoaderVR.SaveEnableCardboard(true);
+            if (m_isCreatingGame)
+            {
+                MenuScreenController.Instance.LoadCustomGameScreenOrCreateGame(false, TotalNumberOfPlayers, null, null, false);
+            }
+            else
+            {
+                MenuScreenController.Instance.LoadCustomGameScreenOrCreateGame(false, MultiplayerConfiguration.VALUE_FOR_JOINING, null, null, false);
+            }
+            MultiplayerConfiguration.SaveGoogleARCore(MultiplayerConfiguration.GOOGLE_ARCORE_ENABLED);
+            MultiplayerConfiguration.SaveDirectorMode(MultiplayerConfiguration.DIRECTOR_MODE_DISABLED);
+            MultiplayerConfiguration.SaveSpectatorMode(MultiplayerConfiguration.SPECTATOR_MODE_DISABLED);
+            PlayerPrefs.SetInt(YourVRUI.YourVRUIScreenController.DEFAULT_YOURVUI_CONFIGURATION, (int)YourVRUI.CONFIGURATIONS_YOURVRUI.NONE);
+            UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN, ScreenLoadingView.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false, null);
+        }
+
+        // -------------------------------------------
+        /* 
+		 * JoinAsOtherPlayerGame_Gyro
+		 */
+        public void JoinAsOtherPlayerGame_Gyro()
+        {
+            PlayerPrefs.DeleteAll();
+#if ENABLE_SOCKET
+            MultiplayerConfiguration.SaveIPAddressServer(MenuScreenController.Instance.ServerIPAdress);
+            MultiplayerConfiguration.SavePortServer(MenuScreenController.Instance.ServerPortNumber);
+
+            m_shortcut = SHORTCUT_JOIN_GAME_AS_GYRO_PLAYER;
+            YourNetworkTools.SetLocalGame(false);
+            NetworkEventController.Instance.MenuController_SetLobbyMode(true);
+            NetworkEventController.Instance.MenuController_InitialitzationSocket(-1, 0);            
+#else
+            YourNetworkTools.SetLocalGame(true);
+            NetworkEventController.Instance.MenuController_SetLobbyMode(false);
+            NetworkEventController.Instance.MenuController_SetNameRoomLobby("");
+            JoinAsOtherPlayerGame_GyroConfirmation();
+#endif
+        }
+
+        // -------------------------------------------
+        /* 
+		 * JoinAsOtherPlayerGame_ARCoreConfirmation
+		 */
+        protected virtual void JoinAsOtherPlayerGame_GyroConfirmation()
+        {
+            MultiplayerConfiguration.SaveEnableBackground(true);
+            CardboardLoaderVR.SaveEnableCardboard(false);
             if (m_isCreatingGame)
             {
                 MenuScreenController.Instance.LoadCustomGameScreenOrCreateGame(false, TotalNumberOfPlayers, null, null, false);
@@ -467,6 +516,10 @@ namespace PartyCritical
 
                     case SHORTCUT_JOIN_GAME_AS_ARCORE_PLAYER:
                         Invoke("JoinAsOtherPlayerGame_ARCoreConfirmation", 1);
+                        break;
+
+                    case SHORTCUT_JOIN_GAME_AS_GYRO_PLAYER:
+                        Invoke("JoinAsOtherPlayerGame_GyroConfirmation", 1);
                         break;
 
                     case SHORTCUT_JOIN_GAME_AS_NO_ARCORE_PLAYER:

@@ -421,8 +421,10 @@ namespace PartyCritical
 				shootDone = true;
 			}
 #else
-            position = transform.position.x + "," + transform.position.y + "," + transform.position.z;
-            forward = CameraLocal.forward.x + "," + CameraLocal.forward.y + "," + CameraLocal.forward.z;
+            Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
+            Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
+            position = pos.x + "," + pos.y + "," + pos.z;
+            forward = fwd.x + "," + fwd.y + "," + fwd.z;
             shootDone = true;
 #endif
 
