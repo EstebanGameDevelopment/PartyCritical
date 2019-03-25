@@ -1043,7 +1043,7 @@ namespace PartyCritical
 
 			if (m_avatar != null)
 			{
-				m_avatar.transform.position = new Vector3(transform.position.x, AVATAR_SHIFT_HEIGHT, transform.position.z);
+				m_avatar.transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z);
 				m_avatar.transform.forward = new Vector3(CenterEyeAnchor.transform.forward.x, 0, CenterEyeAnchor.transform.forward.z);
 				m_avatar.GetComponent<Actor>().ForwardPlayer = CenterEyeAnchor.transform.forward;
                 m_avatar.GetComponent<Actor>().PositionPlayer = CenterEyeAnchor.transform.position;
@@ -1051,7 +1051,7 @@ namespace PartyCritical
 #else
             if (m_avatar != null)
             {
-                m_avatar.transform.position = new Vector3(transform.position.x, AVATAR_SHIFT_HEIGHT, transform.position.z);
+                m_avatar.transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z);
                 m_avatar.transform.forward = new Vector3(CameraLocal.forward.x, 0, CameraLocal.forward.z);
                 m_avatar.GetComponent<Actor>().ForwardPlayer = CameraLocal.forward;
                 m_avatar.GetComponent<Actor>().PositionPlayer = CameraLocal.transform.position;
