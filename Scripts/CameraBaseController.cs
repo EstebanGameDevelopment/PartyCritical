@@ -841,6 +841,15 @@ namespace PartyCritical
             }
         }
 
+        // -------------------------------------------
+        /* 
+		 * SetUpCloudAnchorPosition
+		 */
+        protected virtual void SetUpCloudAnchorPosition(Vector3 _position)
+        {
+            transform.position = new Vector3(_position.x, transform.position.y, _position.z);
+            CameraLocal.transform.parent.localPosition = -new Vector3(CameraLocal.transform.localPosition.x, CAMERA_SHIFT_HEIGHT_WORLDSENSE - _position.y, CameraLocal.transform.localPosition.z);
+        }
 
         // -------------------------------------------
         /* 
@@ -874,8 +883,7 @@ namespace PartyCritical
                     CameraLocal.forward = forward;
                     CloudGameAnchorController.Instance.ScaleVRWorldXZ = ScaleMovementXZ;
                     CloudGameAnchorController.Instance.ScaleVRWorldY = ScaleMovementY;
-                    transform.position = new Vector3(position.x, transform.position.y, position.z);
-                    CameraLocal.transform.parent.localPosition = -new Vector3(CameraLocal.transform.localPosition.x, CAMERA_SHIFT_HEIGHT_WORLDSENSE - position.y, CameraLocal.transform.localPosition.z);
+                    SetUpCloudAnchorPosition(position);
                 }
             }
 #endif
@@ -978,7 +986,7 @@ namespace PartyCritical
             if (_nameEvent == CloudGameAnchorController.EVENT_6DOF_UPDATE_SCALE_MOVEMENT_XZ)
             {
                 ScaleMovementXZ = float.Parse((string)_list[0]);
-                Debug.LogError("NEW GAME CAMERA SCALE[" + ScaleMovementXZ + "]");
+                // Debug.LogError("NEW GAME CAMERA SCALE[" + ScaleMovementXZ + "]");
             }
             if (_nameEvent == CloudGameAnchorController.EVENT_6DOF_REQUEST_SCALE_MOVEMENT_XZ)
             {

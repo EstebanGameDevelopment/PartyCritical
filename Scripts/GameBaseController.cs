@@ -10,6 +10,8 @@ namespace PartyCritical
 {
 	public class GameBaseController : ScreenController
 	{
+        public const bool DEBUG = false;
+
         // ----------------------------------------------
         // EVENTS
         // ----------------------------------------------	
@@ -972,26 +974,31 @@ namespace PartyCritical
             switch (m_stateManager.State)
             {
                 ///////////////////////////////////////
-                case STATE_CONNECTING:                    
+                case STATE_CONNECTING:
+                    if (DEBUG) Debug.LogError("STATE_CONNECTING+++++++++++++++++++++++++++++++++++++++++++++++++");
                     break;
                     
                 ///////////////////////////////////////
                 case STATE_LOADING:
+                    if (DEBUG) Debug.LogError("STATE_LOADING+++++++++++++++++++++++++++++++++++++++++++++++++");
                     SetUpStateLoading();
                     break;
 
                 ///////////////////////////////////////
                 case STATE_REPOSITION:
+                    if (DEBUG) Debug.LogError("STATE_REPOSITION+++++++++++++++++++++++++++++++++++++++++++++++++");
                     SetUpStateReposition();
                     break;
 
                 ///////////////////////////////////////
                 case STATE_RUNNING:
+                    if (DEBUG) Debug.LogError("STATE_RUNNING+++++++++++++++++++++++++++++++++++++++++++++++++");
                     SetUpStateRunning();
                     break;
 
                 ///////////////////////////////////////
                 case STATE_LEVEL_END:
+                    if (DEBUG) Debug.LogError("STATE_LEVEL_END+++++++++++++++++++++++++++++++++++++++++++++++++");
                     UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_INFORMATION_SCREEN, ScreenInformationView.SCREEN_INFORMATION, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, LanguageController.Instance.GetText("message.info"), LanguageController.Instance.GetText("message.level.end.completed"), null, "");
                     break;
             }
