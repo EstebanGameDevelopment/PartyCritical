@@ -651,6 +651,9 @@ namespace PartyCritical
                 {
                     NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), m_directorMode.ToString());
                 }
+#if FORCE_GAME
+                SetState(STATE_RUNNING);
+#endif
             }
 #endif
             if (_nameEvent == CardboardLoaderVR.EVENT_VRLOADER_LOADED_DEVICE_NAME)
@@ -866,10 +869,6 @@ namespace PartyCritical
                     CreateLoadingScreen();
                     NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), m_directorMode.ToString());
 
-#if FORCE_GAME
-                            SetState(STATE_RUNNING);
-#endif
-
 #elif ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS
                             CloudGameAnchorController.Instance.EnableARCore();
                             if (CardboardLoaderVR.LoadEnableCardboard())
@@ -1037,7 +1036,7 @@ namespace PartyCritical
 		*/
         protected virtual bool CreateNewEnemy(Vector3 _position)
         {
-            int indexEnemy = UnityEngine.Random.Range(0, 5);
+            int indexEnemy = UnityEngine.Random.Range(0, EnemyModelPrefab.Length);
             string initialData = "ENEMY" + "," + "ZOMBIE" + "," + EnemyModelPrefab[indexEnemy] + "," + _position.x + "," + _position.y + "," + _position.z;
             YourNetworkTools.Instance.CreateLocalNetworkObject(EnemyPrefab[0].name, initialData, true);
             return true;
