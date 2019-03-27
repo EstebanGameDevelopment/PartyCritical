@@ -128,33 +128,17 @@ namespace PartyCritical
         {
             get { return ""; }
         }
-        public virtual float CAMERA_SHIFT_HEIGHT_ARCORE
+        public virtual float CAMERA_SHIFT_HEIGHT_ARCORE // NOT USED
         {
             get { return 1.8f; }
         }
-        public virtual float CAMERA_SHIFT_HEIGHT_WORLDSENSE
+        public virtual float CAMERA_SHIFT_HEIGHT_WORLDSENSE // YES, IT'S USED
         {
             get { return -1.5f; }
         }
-        public virtual float CAMERA_SHIFT_HEIGHT_OCULUS
+        public virtual float CAMERA_SHIFT_HEIGHT_OCULUS  // NOT USED
         {
             get { return -1; }
-        }
-        public virtual float AVATAR_SHIFT_HEIGHT
-        {
-            get { return 1.5f; }
-        }
-        public virtual float AVATAR_SHIFT_HEIGHT_ARCORE
-        {
-            get { return -0.5f; }
-        }
-        public virtual float AVATAR_SHIFT_HEIGHT_WORLDSENSE
-        {
-            get { return 0; }
-        }
-        public virtual float AVATAR_SHIFT_HEIGHT_OCULUS
-        {
-            get { return 1; }
         }
         public virtual List<GameObject> Players
         {
