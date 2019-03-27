@@ -1040,7 +1040,7 @@ namespace PartyCritical
 
 			if (m_avatar != null)
 			{
-				m_avatar.transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z);
+				m_avatar.transform.position = new Vector3(transform.position.x, -CAMERA_SHIFT_HEIGHT_WORLDSENSE + transform.position.y, transform.position.z);
 				m_avatar.transform.forward = new Vector3(CenterEyeAnchor.transform.forward.x, 0, CenterEyeAnchor.transform.forward.z);
 				m_avatar.GetComponent<Actor>().ForwardPlayer = CenterEyeAnchor.transform.forward;
                 m_avatar.GetComponent<Actor>().PositionPlayer = CenterEyeAnchor.transform.position;
