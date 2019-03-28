@@ -134,7 +134,13 @@ namespace PartyCritical
         }
         public virtual float CAMERA_SHIFT_HEIGHT_WORLDSENSE // YES, IT'S USED
         {
-            get { return -1.5f; }
+            get {
+#if ENABLE_OCULUS
+                return 0;
+#else
+                return -1.5f;
+#endif
+            }
         }
         public virtual float CAMERA_SHIFT_HEIGHT_OCULUS  // NOT USED
         {
@@ -958,7 +964,7 @@ namespace PartyCritical
                     }
                 }
             }
-#endif			
+#endif
         }
 
         // -------------------------------------------
@@ -1037,6 +1043,10 @@ namespace PartyCritical
         {
 #if ENABLE_OCULUS
 			OVRInput.Update();
+
+            this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
+            this.gameObject.GetComponent<Rigidbody>().useGravity = true;
+            this.gameObject.GetComponent<Collider>().isTrigger = false;
 
 			if (m_avatar != null)
 			{
