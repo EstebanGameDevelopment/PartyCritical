@@ -33,16 +33,16 @@ namespace PartyCritical
         // ----------------------------------------------
         // PRIVATE MEMBERS
         // ----------------------------------------------	
-        private GameObject m_root;
-		private Transform m_container;
+        protected GameObject m_root;
+        protected Transform m_container;
 
-        private Text m_textCamera;
-        private GameObject m_iconPlayer;
-        private GameObject m_iconDirector;
+        protected Text m_textCamera;
+        protected GameObject m_iconPlayer;
+        protected GameObject m_iconDirector;
 
-        private int m_playerIndexSelected = -1;
+        protected int m_playerIndexSelected = -1;
 
-        private List<GameObject> m_players;
+        protected List<GameObject> m_players;
 
         // -------------------------------------------
         /* 
