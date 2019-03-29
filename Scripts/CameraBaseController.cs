@@ -926,6 +926,12 @@ namespace PartyCritical
                     positionPlayer.x.ToString(), positionPlayer.y.ToString(), positionPlayer.z.ToString(),
                     forwardPlayer.x.ToString(), forwardPlayer.y.ToString(), forwardPlayer.z.ToString());
             }
+            if (_nameEvent == GameBaseController.EVENT_GAMECONTROLLER_LEVEL_LOAD_COMPLETED)
+            {
+                this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
+                this.gameObject.GetComponent<Rigidbody>().useGravity = true;
+                this.gameObject.GetComponent<Collider>().isTrigger = false;
+            }
 
 #if ENABLE_MULTIPLAYER_TIMELINE
             if (_nameEvent == GameLevelData.EVENT_GAMELEVELDATA_REQUEST_COLLISION_RAY)
@@ -981,6 +987,12 @@ namespace PartyCritical
             if (_nameEvent == CloudGameAnchorController.EVENT_6DOF_REQUEST_SCALE_MOVEMENT_XZ)
             {
                 NetworkEventController.Instance.DispatchLocalEvent(CloudGameAnchorController.EVENT_6DOF_UPDATE_SCALE_MOVEMENT_XZ, ScaleMovementXZ.ToString());
+            }
+            if (_nameEvent == GameBaseController.EVENT_GAMECONTROLLER_NUMBER_LEVEL_TO_LOAD)
+            {
+                this.gameObject.GetComponent<Rigidbody>().isKinematic = true;
+                this.gameObject.GetComponent<Rigidbody>().useGravity = false;
+                this.gameObject.GetComponent<Collider>().isTrigger = true;
             }
         }
 

@@ -366,7 +366,7 @@ namespace PartyCritical
         /* 
          * JoinAsDirectorGameConfirmation
          */
-        protected void JoinAsDirectorGameConfirmation()
+        protected virtual void JoinAsDirectorGameConfirmation()
         {
             MultiplayerConfiguration.SaveEnableBackground(true);
             CardboardLoaderVR.SaveEnableCardboard(false);

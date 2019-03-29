@@ -73,6 +73,7 @@ namespace PartyCritical
         protected List<int> m_repositionedPlayers = new List<int>();
         protected List<int> m_endLevelConfirmedPlayers = new List<int>();
         protected int m_totalNumberPlayers = -1;
+        protected int m_totalNumberOfLevels = -1;
 
         protected List<Vector3> m_positionsSpawn = new List<Vector3>();
 
@@ -89,6 +90,8 @@ namespace PartyCritical
         protected bool m_spectatorMode = false;
         protected bool m_enableEnemyAutoGeneration = false;
         protected bool m_enableBackgroundVR = true;
+
+        protected bool m_isFirstTimeRun = true;
 
         // ----------------------------------------------
         // GETTERS/SETTERS
@@ -175,6 +178,7 @@ namespace PartyCritical
 			NetworkEventController.Instance.NetworkEvent += new NetworkEventHandler(OnNetworkEvent);
 
             m_totalNumberPlayers = MultiplayerConfiguration.LoadNumberOfPlayers();
+            m_totalNumberOfLevels = MultiplayerConfiguration.LoadTotalNumberOfLevels();
             m_directorMode = (MultiplayerConfiguration.LoadDirectorMode(-1) == MultiplayerConfiguration.DIRECTOR_MODE_ENABLED);
             m_spectatorMode = (MultiplayerConfiguration.LoadSpectatorMode(-1) == MultiplayerConfiguration.SPECTATOR_MODE_ENABLED);
             m_isCreatorGame = (NetworkEventController.Instance.MenuController_LoadNumberOfPlayers() != MultiplayerConfiguration.VALUE_FOR_JOINING);
@@ -375,6 +379,7 @@ namespace PartyCritical
                     // Debug.LogError("NEW LEVEL LOADED[" + m_level.name + "]!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                     // WE SEND A MESSAGE THAT THE LEVEL HAS BEEN LOADED WHEN EVERYTHING HAS BEEN INITIALIZED WITH "START"
                     BasicSystemEventController.Instance.DelayBasicSystemEvent(EVENT_GAMECONTROLLER_LEVEL_LOAD_COMPLETED, 0.2f, m_currentLevel, _nextState);
+                    BasicSystemEventController.Instance.DelayBasicSystemEvent(CloudGameAnchorController.EVENT_6DOF_CHANGED_LEVEL_COMPLETED, 0.2f);
                 }
             }
         }
@@ -525,7 +530,27 @@ namespace PartyCritical
         */
         protected virtual void OnNetworkEvent(string _nameEvent, bool _isLocalEvent, int _networkOriginID, int _networkTargetID, params object[] _list)
 		{
-			if (_nameEvent == NetworkEventController.EVENT_SYSTEM_INITIALITZATION_LOCAL_COMPLETED)
+            if (_nameEvent == CloudGameAnchorController.EVENT_6DOF_REQUEST_LEVEL_NUMBER)
+            {
+                NetworkEventController.Instance.PriorityDelayNetworkEvent(CloudGameAnchorController.EVENT_6DOF_RESPONSE_LEVEL_NUMBER, 0.1f, m_currentLevel.ToString(), m_totalNumberOfLevels.ToString());
+            }
+            if (_nameEvent == CloudGameAnchorController.EVENT_6DOF_CHANGE_LEVEL)
+            {
+                int nextLevelToLoad = int.Parse((string)_list[0]);
+                if (m_currentLevel != nextLevelToLoad)
+                {
+                    if (YourNetworkTools.Instance.IsServer)
+                    {
+                        m_currentLevel = nextLevelToLoad;
+                        NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_NUMBER_LEVEL_TO_LOAD, m_currentLevel.ToString());
+                    }
+                }
+                else
+                {
+                    BasicSystemEventController.Instance.DelayBasicSystemEvent(CloudGameAnchorController.EVENT_6DOF_CHANGED_LEVEL_COMPLETED, 0.2f);
+                }
+            }
+            if (_nameEvent == NetworkEventController.EVENT_SYSTEM_INITIALITZATION_LOCAL_COMPLETED)
 			{
                 OnNetworkEventInitialConnection();
             }
@@ -924,33 +949,36 @@ namespace PartyCritical
         /* 
 		 * SetUpStateRunning
 		 */
-        protected virtual void SetUpStateRunning()
+        protected virtual bool SetUpStateRunning()
         {
-            /*
+            UIEventController.Instance.DispatchUIEvent(MenuScreenController.EVENT_FORCE_DESTRUCTION_POPUP);
             m_endLevelConfirmedPlayers.Clear();
-            if (GameObject.FindObjectOfType<InstructionsController>() == null)
-            {
-                YourVRUIScreenController.Instance.DestroyScreens();
-                UIEventController.Instance.DispatchUIEvent(EVENT_FORCE_DESTRUCTION_POPUP);
-            }
             if (m_directorMode)
             {
                 if (m_spectatorMode)
                 {
-                    Instantiate(SpectatorScreen);
-                    BasicSystemEventController.Instance.DelayBasicSystemEvent(ScreenSpectatorView.EVENT_SPECTATOR_SET_UP_PLAYERS, 1f, m_players);
-                    UIEventController.Instance.DelayUIEvent(EventSystemController.EVENT_ACTIVATION_INPUT_STANDALONE, 1f, true);
-                    NetworkEventController.Instance.DispatchNetworkEvent(GamePlayer.EVENT_GAMEPLAYER_HUMAN_SPECTATOR_NAME, GameController.Instance.NamePlayer);
+                    if (GameObject.FindObjectOfType<ScreenBaseSpectatorView>() == null)
+                    {
+                        Instantiate(SpectatorScreen);
+                        BasicSystemEventController.Instance.DelayBasicSystemEvent(ScreenBaseSpectatorView.EVENT_SPECTATOR_SET_UP_PLAYERS, 1f, m_players);
+                        UIEventController.Instance.DelayUIEvent(EventSystemController.EVENT_ACTIVATION_INPUT_STANDALONE, 1f, true);
+                        NetworkEventController.Instance.DispatchNetworkEvent(ActorTimeline.EVENT_GAMEPLAYER_HUMAN_SPECTATOR_NAME, m_namePlayer);
+                    }
                 }
                 else
                 {
-                    Instantiate(DirectorScreen);
-                    BasicSystemEventController.Instance.DelayBasicSystemEvent(ScreenDirectorView.EVENT_DIRECTOR_SET_UP_PLAYERS, 1f, m_players);
-                    UIEventController.Instance.DelayUIEvent(EventSystemController.EVENT_ACTIVATION_INPUT_STANDALONE, 1f, true);
-                    NetworkEventController.Instance.DispatchNetworkEvent(GamePlayer.EVENT_GAMEPLAYER_HUMAN_DIRECTOR_NAME, GameController.Instance.NamePlayer);
+                    if (GameObject.FindObjectOfType<ScreenBaseDirectorView>() == null)
+                    {
+                        Instantiate(DirectorScreen);
+                        BasicSystemEventController.Instance.DelayBasicSystemEvent(ScreenBaseDirectorView.EVENT_DIRECTOR_SET_UP_PLAYERS, 1f, m_players);
+                        UIEventController.Instance.DelayUIEvent(EventSystemController.EVENT_ACTIVATION_INPUT_STANDALONE, 1f, true);
+                        NetworkEventController.Instance.DispatchNetworkEvent(ActorTimeline.EVENT_GAMEPLAYER_HUMAN_DIRECTOR_NAME, m_namePlayer);
+                    }
                 }
             }
-            */
+            bool previousStateIsFirstTimeRun = m_isFirstTimeRun;
+            m_isFirstTimeRun = false;
+            return previousStateIsFirstTimeRun;
         }
 
         // -------------------------------------------
