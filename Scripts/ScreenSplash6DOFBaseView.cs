@@ -37,6 +37,7 @@ namespace PartyCritical
         // PROTECTED MEMBERS
         // ----------------------------------------------	
         protected Transform m_container;
+        protected Transform m_poweredBy;
 
         protected float m_timerToVRMenus = 5.9f;
 
@@ -85,19 +86,17 @@ namespace PartyCritical
                 m_container.Find("Text").GetComponent<Text>().text = LanguageController.Instance.GetText("screen.splash.presentation.text");
             }
 
-            if (m_container.Find("Button_Play") != null)
+            m_poweredBy = m_container.Find("PoweredBy");
+            if (m_poweredBy != null)
             {
-                m_isThereButtons = true;
-                m_container.Find("Button_Play/Text").GetComponent<Text>().text = LanguageController.Instance.GetText("screen.splash.play.game");
-                m_container.Find("Button_Play").GetComponent<Button>().onClick.AddListener(PlayGame);
+                m_poweredBy.Find("Text").GetComponent<Text>().text = LanguageController.Instance.GetText("screen.splash.powered.by");
             }
-
-            if (m_container.Find("Button_Store") != null)
+#if DISABLE_POWERED_BY
+            if (m_poweredBy != null)
             {
-                m_isThereButtons = true;
-                m_container.Find("Button_Store/Text").GetComponent<Text>().text = LanguageController.Instance.GetText("screen.splash.go.to.store");
-                m_container.Find("Button_Store").GetComponent<Button>().onClick.AddListener(GoToStore);
+                m_poweredBy.gameObject.SetActive(false);
             }
+#endif
 
             BasicSystemEventController.Instance.BasicSystemEvent += new BasicSystemEventHandler(OnBasicSystemEvent);
             UIEventController.Instance.UIEvent += new UIEventHandler(OnMenuEvent);
@@ -106,16 +105,6 @@ namespace PartyCritical
             if (m_container.Find("Text") != null)
             {
                 m_container.Find("Text").GetComponent<Text>().text = LanguageController.Instance.GetText("screen.splash.connecting.multiplayer.server");
-            }
-
-            if (m_container.Find("Button_Play") != null)
-            {
-                m_container.Find("Button_Play").gameObject.SetActive(false);
-            }
-
-            if (m_container.Find("Button_Store") != null)
-            {
-                m_container.Find("Button_Store").gameObject.SetActive(false);
             }
             VRPartyValidationController.Instance.Initialitzation(OPERATION_VRPARTY_MODE.MODE_GAME, BASE_URL_PARTY_VALIDATION, BitCoinController.OPTION_NETWORK_MAIN, ACCESS_SENTENCE, ENCRYPTION_KEY);
 #else
@@ -131,16 +120,23 @@ namespace PartyCritical
         {
             MenuScreenController.Instance.MaxPlayers = TotalNumberOfPlayers + 1;
 
+            float delayShortcutSplash = 4;
+#if UNITY_EDITOR
+            delayShortcutSplash = 0.1f;
+#else
+            delayShortcutSplash = 4;
+#endif
+
 #if ENABLE_PLAYER_WORLDSENSE
-            Invoke("Direct2PlayerGame", 0.1f);
+            Invoke("Direct2PlayerGame", delayShortcutSplash);
 #elif ENABLE_PLAYER_ARCORE
-            Invoke("JoinAsOtherPlayerGame_ARCore", 0.1f);
+            Invoke("JoinAsOtherPlayerGame_ARCore", delayShortcutSplash);
 #elif ENABLE_PLAYER_GYRO
-            Invoke("JoinAsOtherPlayerGame_Gyro", 0.1f);
+            Invoke("JoinAsOtherPlayerGame_Gyro", delayShortcutSplash);
 #elif ENABLE_PLAYER_NOARCORE
-            Invoke("JoinAsOtherPlayerGame_NoARCore", 0.1f);
+            Invoke("JoinAsOtherPlayerGame_NoARCore", delayShortcutSplash);
 #elif ENABLE_DIRECTOR_JOIN || ENABLE_SPECTATOR
-            Invoke("JoinAsDirectorGame", 0.1f);
+            Invoke("JoinAsDirectorGame", delayShortcutSplash);
 #else
             m_runUpdate = true;
             if (!m_isThereButtons)
