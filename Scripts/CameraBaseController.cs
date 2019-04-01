@@ -22,7 +22,7 @@ namespace PartyCritical
         public const string EVENT_CAMERACONTROLLER_DATA_SHOTGUN = "EVENT_CAMERACONTROLLER_DATA_SHOTGUN";
 
         public const string EVENT_GAMECAMERA_REAL_PLAYER_FORWARD = "EVENT_GAMECAMERA_REAL_PLAYER_FORWARD";
-
+        
         // ----------------------------------------------
         // PUBLIC VARIABLES
         // ----------------------------------------------	
@@ -250,7 +250,10 @@ namespace PartyCritical
 
             if (DirectorMode)
             {
-                m_enableGyroscope = true;
+                if (!EnableARCore)
+                {
+                    m_enableGyroscope = true;
+                }                    
                 m_enableVR = false;
 #if ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS
                 if (this.gameObject.GetComponentInChildren<Skybox>() != null) this.gameObject.GetComponentInChildren<Skybox>().enabled = true;
@@ -258,11 +261,6 @@ namespace PartyCritical
 #else
                 if (this.gameObject.GetComponentInChildren<Skybox>() != null) this.gameObject.GetComponentInChildren<Skybox>().enabled = true;
 #endif
-
-                if (EnableARCore)
-                {
-                    this.transform.position = new Vector3(0, 1, 0);
-                }
             }
 
 #if !ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS
@@ -337,9 +335,12 @@ namespace PartyCritical
                                                 posWorld.z * ScaleMovementXZ);
             CameraLocal.transform.parent.localPosition = -new Vector3(CameraLocal.transform.localPosition.x, CAMERA_SHIFT_HEIGHT_WORLDSENSE - (posWorld.y * ScaleMovementY), CameraLocal.transform.localPosition.z);
 #else
-            this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
-            this.gameObject.GetComponent<Rigidbody>().useGravity = true;
-            this.gameObject.GetComponent<Collider>().isTrigger = false;
+            if (!DirectorMode)
+            {
+                this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
+                this.gameObject.GetComponent<Rigidbody>().useGravity = true;
+                this.gameObject.GetComponent<Collider>().isTrigger = false;
+            }
 #endif
         }
 
@@ -384,7 +385,7 @@ namespace PartyCritical
 #endif
 
             RaycastHit raycastHit = new RaycastHit();
-            if (Utilities.GetCollidedInfoByRay(pos, fwd, ref raycastHit))
+            if (Utilities.GetRaycastHitInfoByRay(pos, fwd, ref raycastHit, ActorTimeline.LAYER_PLAYERS))
             {
                 Vector3 pc = Utilities.Clone(raycastHit.point);
                 NetworkEventController.Instance.PriorityDelayNetworkEvent(EVENT_GAMECONTROLLER_MARKER_BALL, 0.1f, DirectorMode.ToString(), pc.x.ToString(), pc.y.ToString(), pc.z.ToString());

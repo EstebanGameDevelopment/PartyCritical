@@ -141,6 +141,20 @@ namespace PartyCritical
         {
             get { return false; }
         }
+        public bool IsRealDirectorMode
+        {
+            get
+            {
+                if (m_spectatorMode)
+                {
+                    return false;
+                }
+                else
+                {
+                    return m_directorMode;
+                }
+            }
+        }
 
 
         // -------------------------------------------
@@ -507,17 +521,6 @@ namespace PartyCritical
         */
         protected virtual void OnNetworkEventInitialConnection()
         {
-#if ENABLE_PLAYER_WORLDSENSE || ENABLE_PLAYER_ARCORE || ENABLE_PLAYER_NOARCORE || ENABLE_DIRECTOR_JOIN || ENABLE_SPECTATOR || ENABLE_PLAYER_GYRO
-            m_isCreatorGame = YourNetworkTools.Instance.IsServer;
-            if (m_isCreatorGame)
-            {
-                m_characterSelected = 0;
-            }
-            else
-            {
-                m_characterSelected = 1;
-            }
-#endif
             if (m_isCreatorGame)
             {
                 LoadCurrentGameLevel();
@@ -623,9 +626,7 @@ namespace PartyCritical
                     if ((isDirector) || (m_totalNumberPlayers <= m_playersReady.Count))
                     {
                         m_totalNumberPlayers = m_playersReady.Count;
-#if ENABLE_SOCKET
                         NetworkEventController.Instance.PriorityDelayNetworkEvent(ClientTCPEventsController.EVENT_CLIENT_TCP_CLOSE_CURRENT_ROOM, 0.2f);
-#endif
 
                         // Debug.LogError("EVENT_SYSTEM_INITIALITZATION_REMOTE_COMPLETED::START RUNNING***********************************");
 #if FORCE_REPOSITION
@@ -674,7 +675,8 @@ namespace PartyCritical
             {
                 if ((bool)_list[0])
                 {
-                    NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), m_directorMode.ToString());
+
+                    NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), IsRealDirectorMode.ToString());
                 }
 #if FORCE_GAME
                 SetState(STATE_RUNNING);
@@ -837,7 +839,7 @@ namespace PartyCritical
                 m_namePlayer = MultiplayerConfiguration.DIRECTOR_NAME + timelineID;
                 if (!m_enableARCore)
                 {
-                    NetworkEventController.Instance.DelayNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, 0.2f, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), m_directorMode.ToString());
+                    NetworkEventController.Instance.DelayNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, 0.2f, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), IsRealDirectorMode.ToString());
                     YourNetworkTools.Instance.ActivateTransformUpdate = true;
                 }
                 else
@@ -882,7 +884,7 @@ namespace PartyCritical
                 if (!m_enableARCore)
                 {
                     CreateLoadingScreen();
-                    NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), m_directorMode.ToString());
+                    NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), IsRealDirectorMode.ToString());
 #if FORCE_GAME
                             SetState(STATE_RUNNING);
 #endif
@@ -892,7 +894,7 @@ namespace PartyCritical
                 {
 #if UNITY_EDITOR
                     CreateLoadingScreen();
-                    NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), m_directorMode.ToString());
+                    NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), IsRealDirectorMode.ToString());
 
 #elif ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS
                             CloudGameAnchorController.Instance.EnableARCore();

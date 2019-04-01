@@ -33,6 +33,17 @@ namespace PartyCritical
         public const int SHORTCUT_JOIN_GAME_AS_NO_ARCORE_PLAYER     = 3;
         public const int SHORTCUT_JOIN_GAME_AS_DIRECTOR             = 4;
 
+        protected const string CTE_ENABLE_PLAYER_WORLDSENSE     = "#ENABLE_PLAYER_WORLDSENSE";
+        protected const string CTE_ENABLE_PLAYER_ARCORE         = "#ENABLE_PLAYER_ARCORE";
+        protected const string CTE_ENABLE_PLAYER_GYRO           = "#ENABLE_PLAYER_GYRO";
+        protected const string CTE_ENABLE_PLAYER_NOARCORE       = "#ENABLE_PLAYER_NOARCORE";
+        protected const string CTE_ENABLE_DIRECTOR_JOIN         = "#ENABLE_DIRECTOR_JOIN";
+        protected const string CTE_ENABLE_SPECTATOR             = "#ENABLE_SPECTATOR";
+
+        protected const string CTE_ENABLE_SOCKET                = "#ENABLE_SOCKET";
+        protected const string CTE_LEVEL_                       = "#LEVEL_";
+        protected const string CTE_PLAYER_                      = "#PLAYER_";
+
         // ----------------------------------------------
         // PROTECTED MEMBERS
         // ----------------------------------------------	
@@ -48,6 +59,15 @@ namespace PartyCritical
 		protected string m_debugRoomName = "m_debugRoomName";
 
         protected bool m_isCreatingGame = true;
+
+        protected bool m_enablePlayerWorldsense = false;
+        protected bool m_enablePlayerARCore = false;
+        protected bool m_enablePlayerGyro = false;
+        protected bool m_enablePlayerNoARCore = false;
+        protected bool m_enableDirectorJoin = false;
+        protected bool m_enableSpectator = false;
+
+        protected bool m_enableSocket = false;
 
         // ----------------------------------------------
         // SETTERS/GETTERS
@@ -114,10 +134,70 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
-		 * InitializeWithShortcut
+		 * ParseConfigData
 		 */
-        protected void InitializeWithShortcut()
+        protected virtual void ParseConfigData(string _configData)
         {
+            m_enablePlayerWorldsense = (_configData.IndexOf(CTE_ENABLE_PLAYER_WORLDSENSE) != -1);
+            m_enablePlayerARCore = (_configData.IndexOf(CTE_ENABLE_PLAYER_ARCORE) != -1);
+            m_enablePlayerGyro = (_configData.IndexOf(CTE_ENABLE_PLAYER_GYRO) != -1);
+            m_enablePlayerNoARCore = (_configData.IndexOf(CTE_ENABLE_PLAYER_NOARCORE) != -1);
+            m_enableDirectorJoin = (_configData.IndexOf(CTE_ENABLE_DIRECTOR_JOIN) != -1);
+            m_enableSpectator = (_configData.IndexOf(CTE_ENABLE_SPECTATOR) != -1);
+
+            m_enableSocket = (_configData.IndexOf(CTE_ENABLE_SOCKET) != -1);
+        }
+
+        // -------------------------------------------
+        /* 
+		 * ParseConfigLevel
+		 */
+        protected int ParseConfigLevel(string _configData)
+        {
+            if (_configData.IndexOf(CTE_LEVEL_) != -1)
+            {
+                string levelSelected = _configData.Substring(_configData.IndexOf(CTE_LEVEL_) + CTE_LEVEL_.Length, 2);
+                if (levelSelected.IndexOf("0") == 0)
+                {
+                    levelSelected = _configData.Substring(_configData.IndexOf(CTE_LEVEL_) + CTE_LEVEL_.Length + 1, 1);
+                }
+                return int.Parse(levelSelected);
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        // -------------------------------------------
+        /* 
+		 * ParseConfigPlayer
+		 */
+        protected int ParseConfigPlayer(string _configData)
+        {
+            if (_configData.IndexOf(CTE_PLAYER_) != -1)
+            {
+                string playerSelected = _configData.Substring(_configData.IndexOf(CTE_PLAYER_) + CTE_PLAYER_.Length, 2);
+                if (playerSelected.IndexOf("0") == 0)
+                {
+                    playerSelected = _configData.Substring(_configData.IndexOf(CTE_PLAYER_) + CTE_PLAYER_.Length + 1, 1);
+                }
+                return int.Parse(playerSelected);
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        // -------------------------------------------
+        /* 
+         * InitializeWithShortcut
+         */
+        protected void InitializeWithShortcut(string _configData)
+        {
+            ParseConfigData(_configData);
+
             MenuScreenController.Instance.MaxPlayers = TotalNumberOfPlayers + 1;
 
             float delayShortcutSplash = 4;
@@ -127,23 +207,38 @@ namespace PartyCritical
             delayShortcutSplash = 4;
 #endif
 
-#if ENABLE_PLAYER_WORLDSENSE
-            Invoke("Direct2PlayerGame", delayShortcutSplash);
-#elif ENABLE_PLAYER_ARCORE
-            Invoke("JoinAsOtherPlayerGame_ARCore", delayShortcutSplash);
-#elif ENABLE_PLAYER_GYRO
-            Invoke("JoinAsOtherPlayerGame_Gyro", delayShortcutSplash);
-#elif ENABLE_PLAYER_NOARCORE
-            Invoke("JoinAsOtherPlayerGame_NoARCore", delayShortcutSplash);
-#elif ENABLE_DIRECTOR_JOIN || ENABLE_SPECTATOR
-            Invoke("JoinAsDirectorGame", delayShortcutSplash);
-#else
-            m_runUpdate = true;
-            if (!m_isThereButtons)
+            if (m_enablePlayerWorldsense)
             {
-                StartCoroutine(ShowSplashDelay());
+                Invoke("Direct2PlayerGame", delayShortcutSplash);
             }
-#endif
+            else
+            if (m_enablePlayerARCore)
+            {
+                Invoke("JoinAsOtherPlayerGame_ARCore", delayShortcutSplash);
+            }
+            else
+            if (m_enablePlayerGyro)
+            {
+                Invoke("JoinAsOtherPlayerGame_Gyro", delayShortcutSplash);
+            }
+            else
+            if (m_enablePlayerNoARCore)
+            {
+                Invoke("JoinAsOtherPlayerGame_NoARCore", delayShortcutSplash);
+            }
+            else
+            if (m_enableDirectorJoin || m_enableSpectator)
+            {
+                Invoke("JoinAsDirectorGame", delayShortcutSplash);
+            }
+            else
+            {
+                m_runUpdate = true;
+                if (!m_isThereButtons)
+                {
+                    StartCoroutine(ShowSplashDelay());
+                }
+            }
 
 #if ENABLE_OCULUS || ENABLE_WORLDSENSE
             KeysEventInputController.Instance.EnableActionOnMouseDown = false;
@@ -158,20 +253,23 @@ namespace PartyCritical
         public void Direct2PlayerGame()
         {
             PlayerPrefs.DeleteAll();
-#if ENABLE_SOCKET
-            MultiplayerConfiguration.SaveIPAddressServer(MenuScreenController.Instance.ServerIPAdress);
-            MultiplayerConfiguration.SavePortServer(MenuScreenController.Instance.ServerPortNumber);
+            if (m_enableSocket)
+            {
+                MultiplayerConfiguration.SaveIPAddressServer(MenuScreenController.Instance.ServerIPAdress);
+                MultiplayerConfiguration.SavePortServer(MenuScreenController.Instance.ServerPortNumber);
 
-            m_shortcut = SHORTCUT_CREATE_GAME_AS_WORLDSENSE_PLAYER;
-            YourNetworkTools.SetLocalGame(false);
-            NetworkEventController.Instance.MenuController_SetLobbyMode(true);
-            NetworkEventController.Instance.MenuController_InitialitzationSocket(-1, 0);
-#else
-            YourNetworkTools.SetLocalGame(true);
-            NetworkEventController.Instance.MenuController_SetLobbyMode(false);
-            NetworkEventController.Instance.MenuController_SetNameRoomLobby("");
-            Direct2PlayerGameConfirmation();
-#endif
+                m_shortcut = SHORTCUT_CREATE_GAME_AS_WORLDSENSE_PLAYER;
+                YourNetworkTools.SetLocalGame(false);
+                NetworkEventController.Instance.MenuController_SetLobbyMode(true);
+                NetworkEventController.Instance.MenuController_InitialitzationSocket(-1, 0);
+            }
+            else
+            {
+                YourNetworkTools.SetLocalGame(true);
+                NetworkEventController.Instance.MenuController_SetLobbyMode(false);
+                NetworkEventController.Instance.MenuController_SetNameRoomLobby("");
+                Direct2PlayerGameConfirmation();
+            }
         }
 
         // -------------------------------------------
@@ -204,20 +302,23 @@ namespace PartyCritical
         public void JoinAsOtherPlayerGame_ARCore()
         {
             PlayerPrefs.DeleteAll();
-#if ENABLE_SOCKET
-            MultiplayerConfiguration.SaveIPAddressServer(MenuScreenController.Instance.ServerIPAdress);
-            MultiplayerConfiguration.SavePortServer(MenuScreenController.Instance.ServerPortNumber);
+            if (m_enableSocket)
+            {
+                MultiplayerConfiguration.SaveIPAddressServer(MenuScreenController.Instance.ServerIPAdress);
+                MultiplayerConfiguration.SavePortServer(MenuScreenController.Instance.ServerPortNumber);
 
-            m_shortcut = SHORTCUT_JOIN_GAME_AS_ARCORE_PLAYER;
-            YourNetworkTools.SetLocalGame(false);
-            NetworkEventController.Instance.MenuController_SetLobbyMode(true);
-            NetworkEventController.Instance.MenuController_InitialitzationSocket(-1, 0);            
-#else
-            YourNetworkTools.SetLocalGame(true);
-            NetworkEventController.Instance.MenuController_SetLobbyMode(false);
-            NetworkEventController.Instance.MenuController_SetNameRoomLobby("");
-            JoinAsOtherPlayerGame_ARCoreConfirmation();
-#endif
+                m_shortcut = SHORTCUT_JOIN_GAME_AS_ARCORE_PLAYER;
+                YourNetworkTools.SetLocalGame(false);
+                NetworkEventController.Instance.MenuController_SetLobbyMode(true);
+                NetworkEventController.Instance.MenuController_InitialitzationSocket(-1, 0);
+            }
+            else
+            {
+                YourNetworkTools.SetLocalGame(true);
+                NetworkEventController.Instance.MenuController_SetLobbyMode(false);
+                NetworkEventController.Instance.MenuController_SetNameRoomLobby("");
+                JoinAsOtherPlayerGame_ARCoreConfirmation();
+            }
         }
 
         // -------------------------------------------
@@ -250,20 +351,23 @@ namespace PartyCritical
         public void JoinAsOtherPlayerGame_Gyro()
         {
             PlayerPrefs.DeleteAll();
-#if ENABLE_SOCKET
-            MultiplayerConfiguration.SaveIPAddressServer(MenuScreenController.Instance.ServerIPAdress);
-            MultiplayerConfiguration.SavePortServer(MenuScreenController.Instance.ServerPortNumber);
+            if (m_enableSocket)
+            {
+                MultiplayerConfiguration.SaveIPAddressServer(MenuScreenController.Instance.ServerIPAdress);
+                MultiplayerConfiguration.SavePortServer(MenuScreenController.Instance.ServerPortNumber);
 
-            m_shortcut = SHORTCUT_JOIN_GAME_AS_GYRO_PLAYER;
-            YourNetworkTools.SetLocalGame(false);
-            NetworkEventController.Instance.MenuController_SetLobbyMode(true);
-            NetworkEventController.Instance.MenuController_InitialitzationSocket(-1, 0);            
-#else
-            YourNetworkTools.SetLocalGame(true);
-            NetworkEventController.Instance.MenuController_SetLobbyMode(false);
-            NetworkEventController.Instance.MenuController_SetNameRoomLobby("");
-            JoinAsOtherPlayerGame_GyroConfirmation();
-#endif
+                m_shortcut = SHORTCUT_JOIN_GAME_AS_GYRO_PLAYER;
+                YourNetworkTools.SetLocalGame(false);
+                NetworkEventController.Instance.MenuController_SetLobbyMode(true);
+                NetworkEventController.Instance.MenuController_InitialitzationSocket(-1, 0);
+            }
+            else
+            {
+                YourNetworkTools.SetLocalGame(true);
+                NetworkEventController.Instance.MenuController_SetLobbyMode(false);
+                NetworkEventController.Instance.MenuController_SetNameRoomLobby("");
+                JoinAsOtherPlayerGame_GyroConfirmation();
+            }
         }
 
         // -------------------------------------------
@@ -296,20 +400,23 @@ namespace PartyCritical
         public void JoinAsOtherPlayerGame_NoARCore()
         {
             PlayerPrefs.DeleteAll();
-#if ENABLE_SOCKET
-            MultiplayerConfiguration.SaveIPAddressServer(MenuScreenController.Instance.ServerIPAdress);
-            MultiplayerConfiguration.SavePortServer(MenuScreenController.Instance.ServerPortNumber);
+            if (m_enableSocket)
+            {
+                MultiplayerConfiguration.SaveIPAddressServer(MenuScreenController.Instance.ServerIPAdress);
+                MultiplayerConfiguration.SavePortServer(MenuScreenController.Instance.ServerPortNumber);
 
-            m_shortcut = SHORTCUT_JOIN_GAME_AS_NO_ARCORE_PLAYER;
-            YourNetworkTools.SetLocalGame(false);
-            NetworkEventController.Instance.MenuController_SetLobbyMode(true);
-            NetworkEventController.Instance.MenuController_InitialitzationSocket(-1, 0);            
-#else
-            YourNetworkTools.SetLocalGame(true);
-            NetworkEventController.Instance.MenuController_SetLobbyMode(false);
-            NetworkEventController.Instance.MenuController_SetNameRoomLobby("");
-            JoinAsOtherPlayerGame_NoARCoreConfirmation();
-#endif
+                m_shortcut = SHORTCUT_JOIN_GAME_AS_NO_ARCORE_PLAYER;
+                YourNetworkTools.SetLocalGame(false);
+                NetworkEventController.Instance.MenuController_SetLobbyMode(true);
+                NetworkEventController.Instance.MenuController_InitialitzationSocket(-1, 0);
+            }
+            else
+            {
+                YourNetworkTools.SetLocalGame(true);
+                NetworkEventController.Instance.MenuController_SetLobbyMode(false);
+                NetworkEventController.Instance.MenuController_SetNameRoomLobby("");
+                JoinAsOtherPlayerGame_NoARCoreConfirmation();
+            }
         }
 
         // -------------------------------------------
@@ -342,20 +449,23 @@ namespace PartyCritical
         public void JoinAsDirectorGame()
         {
             PlayerPrefs.DeleteAll();
-#if ENABLE_SOCKET
-            MultiplayerConfiguration.SaveIPAddressServer(MenuScreenController.Instance.ServerIPAdress);
-            MultiplayerConfiguration.SavePortServer(MenuScreenController.Instance.ServerPortNumber);
+            if (m_enableSocket)
+            {
+                MultiplayerConfiguration.SaveIPAddressServer(MenuScreenController.Instance.ServerIPAdress);
+                MultiplayerConfiguration.SavePortServer(MenuScreenController.Instance.ServerPortNumber);
 
-            m_shortcut = SHORTCUT_JOIN_GAME_AS_DIRECTOR;
-            YourNetworkTools.SetLocalGame(false);
-            NetworkEventController.Instance.MenuController_SetLobbyMode(true);
-            NetworkEventController.Instance.MenuController_InitialitzationSocket(-1, 0);            
-#else
-            YourNetworkTools.SetLocalGame(true);
-            NetworkEventController.Instance.MenuController_SetLobbyMode(false);
-            NetworkEventController.Instance.MenuController_SetNameRoomLobby("");
-            JoinAsDirectorGameConfirmation();
-#endif
+                m_shortcut = SHORTCUT_JOIN_GAME_AS_DIRECTOR;
+                YourNetworkTools.SetLocalGame(false);
+                NetworkEventController.Instance.MenuController_SetLobbyMode(true);
+                NetworkEventController.Instance.MenuController_InitialitzationSocket(-1, 0);
+            }
+            else
+            {
+                YourNetworkTools.SetLocalGame(true);
+                NetworkEventController.Instance.MenuController_SetLobbyMode(false);
+                NetworkEventController.Instance.MenuController_SetNameRoomLobby("");
+                JoinAsDirectorGameConfirmation();
+            }
         }
 
         // -------------------------------------------
@@ -367,13 +477,20 @@ namespace PartyCritical
             MultiplayerConfiguration.SaveEnableBackground(true);
             CardboardLoaderVR.SaveEnableCardboard(false);
             NetworkEventController.Instance.MenuController_SaveNumberOfPlayers(MultiplayerConfiguration.VALUE_FOR_JOINING);
-            MultiplayerConfiguration.SaveGoogleARCore(MultiplayerConfiguration.GOOGLE_ARCORE_DISABLED);
-            MultiplayerConfiguration.SaveDirectorMode(MultiplayerConfiguration.DIRECTOR_MODE_ENABLED);
-#if ENABLE_SPECTATOR
-            MultiplayerConfiguration.SaveSpectatorMode(MultiplayerConfiguration.SPECTATOR_MODE_ENABLED);
+#if ENABLE_GOOGLE_ARCORE
+            MultiplayerConfiguration.SaveGoogleARCore(MultiplayerConfiguration.GOOGLE_ARCORE_ENABLED);
 #else
-            MultiplayerConfiguration.SaveSpectatorMode(MultiplayerConfiguration.SPECTATOR_MODE_DISABLED);
+            MultiplayerConfiguration.SaveGoogleARCore(MultiplayerConfiguration.GOOGLE_ARCORE_DISABLED);
 #endif
+            MultiplayerConfiguration.SaveDirectorMode(MultiplayerConfiguration.DIRECTOR_MODE_ENABLED);
+            if (m_enableSpectator)
+            {
+                MultiplayerConfiguration.SaveSpectatorMode(MultiplayerConfiguration.SPECTATOR_MODE_ENABLED);
+            }
+            else
+            {
+                MultiplayerConfiguration.SaveSpectatorMode(MultiplayerConfiguration.SPECTATOR_MODE_DISABLED);
+            }
             PlayerPrefs.SetInt(YourVRUI.YourVRUIScreenController.DEFAULT_YOURVUI_CONFIGURATION, (int)YourVRUI.CONFIGURATIONS_YOURVRUI.NONE);
             UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN, ScreenLoadingView.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false, null);
         }
@@ -542,7 +659,7 @@ namespace PartyCritical
                 {
                     if ((long)_list[1] > 0)
                     {
-                        InitializeWithShortcut();
+                        InitializeWithShortcut((string)_list[2]);
                     }
                 }
             }

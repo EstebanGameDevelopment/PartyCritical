@@ -68,11 +68,7 @@ namespace PartyCritical
 			UIEventController.Instance.UIEvent += new UIEventHandler(OnMenuEvent);
             BasicSystemEventController.Instance.BasicSystemEvent += new BasicSystemEventHandler(OnBasicSystemEvent);
 
-#if ENABLE_DIRECTOR_JOIN || ENABLE_SPECTATOR
-            // UIEventController.Instance.DelayUIEvent(ScreenController.EVENT_FORCE_DESTRUCTION_POPUP, 1);
-            // NetworkEventController.Instance.DelayNetworkEvent(GameController.EVENT_GAMECONTROLLER_ENEMIES_DISABLE_AUTO_SPAWN, 1f, "true");
             Invoke("LoadRightCamera", 2);
-#endif
         }
 
         // -------------------------------------------
