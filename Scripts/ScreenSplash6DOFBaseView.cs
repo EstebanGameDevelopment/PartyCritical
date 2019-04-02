@@ -219,7 +219,7 @@ namespace PartyCritical
             Debug.LogError("++++USING CONFIG::ENABLE_PLAYER_ARCORE");
 #elif ENABLE_PLAYER_GYRO
             Debug.LogError("++++USING CONFIG::ENABLE_PLAYER_GYRO");
-            localConfigData = "#ENABLE_PLAYER_WORLDSENSE#LEVEL_01#PLAYER_00";
+            localConfigData = "#ENABLE_PLAYER_WORLDSENSE#LEVEL_01#PLAYER_00#ENABLE_SOCKET";
 #elif ENABLE_PLAYER_NOARCORE
             Debug.LogError("++++USING CONFIG::ENABLE_PLAYER_NOARCORE");
 #elif ENABLE_DIRECTOR_JOIN
@@ -243,6 +243,10 @@ namespace PartyCritical
             m_enableDirectorJoin = true;
 #elif ENABLE_SPECTATOR
             m_enableSpectator = true;
+#endif
+
+#if ENABLE_SOCKET
+            m_enableSocket = true;
 #endif
 
             if (m_enablePlayerWorldsense)
