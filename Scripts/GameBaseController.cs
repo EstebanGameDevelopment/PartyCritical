@@ -83,6 +83,9 @@ namespace PartyCritical
         protected Vector3 m_positionReference;
         protected int m_characterSelected;
 
+        protected bool m_isInitialConnectionEstablished = false;
+        protected bool m_onNetworkRemoteConnection = false;
+
         protected float m_timeGenerationEnemies = 0;
         protected bool m_isCreatorGame = false;
         protected bool m_enableARCore = false;
@@ -390,6 +393,7 @@ namespace PartyCritical
                     }
                     m_level.transform.position = m_positionReference;
                     
+
                     // Debug.LogError("NEW LEVEL LOADED[" + m_level.name + "]!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                     // WE SEND A MESSAGE THAT THE LEVEL HAS BEEN LOADED WHEN EVERYTHING HAS BEEN INITIALIZED WITH "START"
                     BasicSystemEventController.Instance.DelayBasicSystemEvent(EVENT_GAMECONTROLLER_LEVEL_LOAD_COMPLETED, 0.2f, m_currentLevel, _nextState);
@@ -517,13 +521,54 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+        * FinallyLoadLevel
+        */
+        protected void FinallyLoadLevel()
+        {
+            if (m_onNetworkRemoteConnection && m_isInitialConnectionEstablished)
+            {
+                if (!m_isCreatorGame)
+                {
+                    Debug.LogError("--RECEIVED--::EVENT_GAMECONTROLLER_SELECTED_LEVEL::_level=" + m_currentLevel);
+                    if (m_stateManager.State == STATE_CONNECTING)
+                    {
+                        LoadCurrentGameLevel(m_currentLevel);
+                    }
+                }
+            }
+        }
+
+        // -------------------------------------------
+        /* 
         * OnNetworkEventInitialConnection
         */
         protected virtual void OnNetworkEventInitialConnection()
         {
+            m_isInitialConnectionEstablished = true;
+            m_isCreatorGame = YourNetworkTools.Instance.IsServer;
             if (m_isCreatorGame)
             {
                 LoadCurrentGameLevel();
+            }
+            else
+            {
+                FinallyLoadLevel();
+            }            
+        }
+
+        // -------------------------------------------
+        /* 
+        * OnNetworkEventRemoteConnection
+        */
+        protected virtual void OnNetworkEventRemoteConnection()
+        {
+            if (m_isInitialConnectionEstablished)
+            {
+                if (m_isCreatorGame)
+                {
+                    Debug.LogError("++SENDING++::EVENT_GAMECONTROLLER_SELECTED_LEVEL::m_currentLevel=" + m_currentLevel);
+                    NetworkEventController.Instance.PriorityDelayNetworkEvent(EVENT_GAMECONTROLLER_SELECTED_LEVEL, 0.1f, m_currentLevel.ToString());
+                }
             }
         }
 
@@ -559,10 +604,7 @@ namespace PartyCritical
             }
             if (_nameEvent == NetworkEventController.EVENT_SYSTEM_INITIALITZATION_REMOTE_COMPLETED)
             {
-                if (m_isCreatorGame)
-                {
-                    NetworkEventController.Instance.PriorityDelayNetworkEvent(EVENT_GAMECONTROLLER_SELECTED_LEVEL, 0.1f, m_currentLevel.ToString());
-                }
+                OnNetworkEventRemoteConnection();
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_CONFIRMATION_RELOAD_LEVEL)
             {
@@ -606,12 +648,16 @@ namespace PartyCritical
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_SELECTED_LEVEL)
             {
-                if (!m_isCreatorGame)
+                m_currentLevel = int.Parse((string)_list[0]);
+#if ENABLE_ASSET_BUNDLE
+                m_currentLevel = m_currentLevel % LevelsAssetsNames.Length;
+#else
+                m_currentLevel = m_currentLevel % LevelsPrefab.Length;
+#endif
+                m_onNetworkRemoteConnection = true;
+                if (m_isInitialConnectionEstablished)
                 {
-                    if (m_stateManager.State == STATE_CONNECTING)
-                    {
-                        LoadCurrentGameLevel(int.Parse((string)_list[0]));
-                    }
+                    FinallyLoadLevel();
                 }
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_PLAYER_IS_READY)

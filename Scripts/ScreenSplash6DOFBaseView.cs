@@ -60,6 +60,8 @@ namespace PartyCritical
 
         protected bool m_isCreatingGame = true;
 
+        protected string m_configData = "";
+
         protected bool m_enablePlayerWorldsense = false;
         protected bool m_enablePlayerARCore = false;
         protected bool m_enablePlayerGyro = false;
@@ -126,7 +128,11 @@ namespace PartyCritical
             {
                 m_container.Find("Text").GetComponent<Text>().text = LanguageController.Instance.GetText("screen.splash.connecting.multiplayer.server");
             }
-            VRPartyValidationController.Instance.Initialitzation(OPERATION_VRPARTY_MODE.MODE_GAME, BASE_URL_PARTY_VALIDATION, BitCoinController.OPTION_NETWORK_MAIN, ACCESS_SENTENCE, ENCRYPTION_KEY);
+            string networkBitcoinName = "Fake Net";
+#if ENABLE_BITCOIN
+            networkBitcoinName = BitCoinController.OPTION_NETWORK_MAIN;
+#endif
+            VRPartyValidationController.Instance.Initialitzation(OPERATION_VRPARTY_MODE.MODE_GAME, BASE_URL_PARTY_VALIDATION, networkBitcoinName, ACCESS_SENTENCE, ENCRYPTION_KEY);
 #else
             InitializeWithShortcut();
 #endif
@@ -159,7 +165,7 @@ namespace PartyCritical
                 string levelSelected = _configData.Substring(_configData.IndexOf(CTE_LEVEL_) + CTE_LEVEL_.Length, 2);
                 if (levelSelected.IndexOf("0") == 0)
                 {
-                    levelSelected = _configData.Substring(_configData.IndexOf(CTE_LEVEL_) + CTE_LEVEL_.Length + 1, 1);
+                    levelSelected = levelSelected.Substring(1,1);
                 }
                 return int.Parse(levelSelected);
             }
@@ -180,7 +186,7 @@ namespace PartyCritical
                 string playerSelected = _configData.Substring(_configData.IndexOf(CTE_PLAYER_) + CTE_PLAYER_.Length, 2);
                 if (playerSelected.IndexOf("0") == 0)
                 {
-                    playerSelected = _configData.Substring(_configData.IndexOf(CTE_PLAYER_) + CTE_PLAYER_.Length + 1, 1);
+                    playerSelected = playerSelected.Substring(1,1);
                 }
                 return int.Parse(playerSelected);
             }
@@ -196,7 +202,7 @@ namespace PartyCritical
          */
         protected void InitializeWithShortcut(string _configData)
         {
-            ParseConfigData(_configData);
+            string localConfigData = _configData;
 
             MenuScreenController.Instance.MaxPlayers = TotalNumberOfPlayers + 1;
 
@@ -205,6 +211,38 @@ namespace PartyCritical
             delayShortcutSplash = 0.1f;
 #else
             delayShortcutSplash = 4;
+#endif
+
+#if ENABLE_PLAYER_WORLDSENSE
+            Debug.LogError("++++USING CONFIG::ENABLE_PLAYER_WORLDSENSE");
+#elif ENABLE_PLAYER_ARCORE
+            Debug.LogError("++++USING CONFIG::ENABLE_PLAYER_ARCORE");
+#elif ENABLE_PLAYER_GYRO
+            Debug.LogError("++++USING CONFIG::ENABLE_PLAYER_GYRO");
+            localConfigData = "#ENABLE_PLAYER_WORLDSENSE#LEVEL_01#PLAYER_00";
+#elif ENABLE_PLAYER_NOARCORE
+            Debug.LogError("++++USING CONFIG::ENABLE_PLAYER_NOARCORE");
+#elif ENABLE_DIRECTOR_JOIN
+            Debug.LogError("++++USING CONFIG::ENABLE_DIRECTOR_JOIN");
+#elif ENABLE_SPECTATOR
+            Debug.LogError("++++USING CONFIG::ENABLE_SPECTATOR");
+#endif
+
+            m_configData = localConfigData;
+            ParseConfigData(m_configData);
+
+#if ENABLE_PLAYER_WORLDSENSE
+            m_enablePlayerWorldsense = true;
+#elif ENABLE_PLAYER_ARCORE
+            m_enablePlayerARCore = true;
+#elif ENABLE_PLAYER_GYRO
+            m_enablePlayerGyro = true;
+#elif ENABLE_PLAYER_NOARCORE
+            m_enablePlayerNoARCore = true;
+#elif ENABLE_DIRECTOR_JOIN
+            m_enableDirectorJoin = true;
+#elif ENABLE_SPECTATOR
+            m_enableSpectator = true;
 #endif
 
             if (m_enablePlayerWorldsense)
