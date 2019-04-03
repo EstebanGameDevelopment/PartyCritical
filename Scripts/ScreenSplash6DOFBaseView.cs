@@ -97,6 +97,15 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		 * Ask permissions
+		 */
+        public void DoNotRun()
+        {
+            AndroidRuntimePermissions.Permission result = AndroidRuntimePermissions.RequestPermission("android.permission.WRITE_EXTERNAL_STORAGE");
+        }
+
+        // -------------------------------------------
+        /* 
 		 * Constructor
 		 */
         public override void Initialize(params object[] _list)
@@ -222,22 +231,22 @@ namespace PartyCritical
             // #ENABLE_SOCKET
 #if ENABLE_PLAYER_WORLDSENSE
             Debug.LogError("++++USING CONFIG::ENABLE_PLAYER_WORLDSENSE");
-            localConfigData = "#ENABLE_PLAYER_WORLDSENSE#LEVEL_01#PLAYER_00";
+            localConfigData = "#ENABLE_PLAYER_WORLDSENSE#LEVEL_00#PLAYER_00";
 #elif ENABLE_PLAYER_ARCORE
             Debug.LogError("++++USING CONFIG::ENABLE_PLAYER_ARCORE");
-            localConfigData = "#ENABLE_PLAYER_ARCORE#LEVEL_01#PLAYER_00";
+            localConfigData = "#ENABLE_PLAYER_ARCORE#LEVEL_00#PLAYER_00";
 #elif ENABLE_PLAYER_GYRO
             Debug.LogError("++++USING CONFIG::ENABLE_PLAYER_GYRO");
-            localConfigData = "#ENABLE_PLAYER_ARCORE#LEVEL_01#PLAYER_00";
+            localConfigData = "#ENABLE_PLAYER_ARCORE#LEVEL_00#PLAYER_00";
 #elif ENABLE_PLAYER_NOARCORE
             Debug.LogError("++++USING CONFIG::ENABLE_PLAYER_NOARCORE");
-            localConfigData = "#ENABLE_PLAYER_NOARCORE#LEVEL_01#PLAYER_00";
+            localConfigData = "#ENABLE_PLAYER_NOARCORE#LEVEL_00#PLAYER_00";
 #elif ENABLE_DIRECTOR_JOIN
             Debug.LogError("++++USING CONFIG::ENABLE_DIRECTOR_JOIN");
-            localConfigData = "#ENABLE_DIRECTOR_JOIN#LEVEL_01#PLAYER_00";
+            localConfigData = "#ENABLE_DIRECTOR_JOIN#LEVEL_00#PLAYER_00";
 #elif ENABLE_SPECTATOR
             Debug.LogError("++++USING CONFIG::ENABLE_SPECTATOR");
-            localConfigData = "#ENABLE_SPECTATOR#LEVEL_01#PLAYER_00";
+            localConfigData = "#ENABLE_SPECTATOR#LEVEL_00#PLAYER_00";
 #endif
 
             m_configData = localConfigData;
