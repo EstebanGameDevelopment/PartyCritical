@@ -44,6 +44,8 @@ namespace PartyCritical
         protected const string CTE_LEVEL_                       = "#LEVEL_";
         protected const string CTE_PLAYER_                      = "#PLAYER_";
 
+        protected const string CTE_ENABLE_AUGMENTED             = "#ENABLE_AUGMENTED";
+
         // ----------------------------------------------
         // PROTECTED MEMBERS
         // ----------------------------------------------	
@@ -70,6 +72,8 @@ namespace PartyCritical
         protected bool m_enableSpectator = false;
 
         protected bool m_enableSocket = false;
+
+        protected bool m_enableAugmented = false;
 
         // ----------------------------------------------
         // SETTERS/GETTERS
@@ -152,6 +156,8 @@ namespace PartyCritical
             m_enableSpectator = (_configData.IndexOf(CTE_ENABLE_SPECTATOR) != -1);
 
             m_enableSocket = (_configData.IndexOf(CTE_ENABLE_SOCKET) != -1);
+
+            m_enableAugmented = (_configData.IndexOf(CTE_ENABLE_AUGMENTED) != -1);
         }
 
         // -------------------------------------------
@@ -357,7 +363,7 @@ namespace PartyCritical
 		 */
         protected virtual void JoinAsOtherPlayerGame_ARCoreConfirmation()
         {
-            MultiplayerConfiguration.SaveEnableBackground(true);
+            MultiplayerConfiguration.SaveEnableBackground(!m_enableAugmented);
             CardboardLoaderVR.SaveEnableCardboard(true);
             if (m_isCreatingGame)
             {
@@ -406,7 +412,7 @@ namespace PartyCritical
 		 */
         protected virtual void JoinAsOtherPlayerGame_GyroConfirmation()
         {
-            MultiplayerConfiguration.SaveEnableBackground(true);
+            MultiplayerConfiguration.SaveEnableBackground(!m_enableAugmented);
             CardboardLoaderVR.SaveEnableCardboard(false);
             if (m_isCreatingGame)
             {
