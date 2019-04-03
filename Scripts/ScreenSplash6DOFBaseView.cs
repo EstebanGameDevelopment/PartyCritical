@@ -134,7 +134,7 @@ namespace PartyCritical
 #endif
             VRPartyValidationController.Instance.Initialitzation(OPERATION_VRPARTY_MODE.MODE_GAME, BASE_URL_PARTY_VALIDATION, networkBitcoinName, ACCESS_SENTENCE, ENCRYPTION_KEY);
 #else
-            InitializeWithShortcut();
+            InitializeWithShortcut("");
 #endif
         }
 
@@ -213,41 +213,29 @@ namespace PartyCritical
             delayShortcutSplash = 4;
 #endif
 
+            // #ENABLE_SOCKET
 #if ENABLE_PLAYER_WORLDSENSE
             Debug.LogError("++++USING CONFIG::ENABLE_PLAYER_WORLDSENSE");
+            localConfigData = "#ENABLE_PLAYER_WORLDSENSE#LEVEL_01#PLAYER_00";
 #elif ENABLE_PLAYER_ARCORE
             Debug.LogError("++++USING CONFIG::ENABLE_PLAYER_ARCORE");
+            localConfigData = "#ENABLE_PLAYER_ARCORE#LEVEL_01#PLAYER_00";
 #elif ENABLE_PLAYER_GYRO
             Debug.LogError("++++USING CONFIG::ENABLE_PLAYER_GYRO");
-            localConfigData = "#ENABLE_PLAYER_WORLDSENSE#LEVEL_01#PLAYER_00#ENABLE_SOCKET";
+            localConfigData = "#ENABLE_PLAYER_ARCORE#LEVEL_01#PLAYER_00";
 #elif ENABLE_PLAYER_NOARCORE
             Debug.LogError("++++USING CONFIG::ENABLE_PLAYER_NOARCORE");
+            localConfigData = "#ENABLE_PLAYER_NOARCORE#LEVEL_01#PLAYER_00";
 #elif ENABLE_DIRECTOR_JOIN
             Debug.LogError("++++USING CONFIG::ENABLE_DIRECTOR_JOIN");
+            localConfigData = "#ENABLE_DIRECTOR_JOIN#LEVEL_01#PLAYER_00";
 #elif ENABLE_SPECTATOR
             Debug.LogError("++++USING CONFIG::ENABLE_SPECTATOR");
+            localConfigData = "#ENABLE_SPECTATOR#LEVEL_01#PLAYER_00";
 #endif
 
             m_configData = localConfigData;
             ParseConfigData(m_configData);
-
-#if ENABLE_PLAYER_WORLDSENSE
-            m_enablePlayerWorldsense = true;
-#elif ENABLE_PLAYER_ARCORE
-            m_enablePlayerARCore = true;
-#elif ENABLE_PLAYER_GYRO
-            m_enablePlayerGyro = true;
-#elif ENABLE_PLAYER_NOARCORE
-            m_enablePlayerNoARCore = true;
-#elif ENABLE_DIRECTOR_JOIN
-            m_enableDirectorJoin = true;
-#elif ENABLE_SPECTATOR
-            m_enableSpectator = true;
-#endif
-
-#if ENABLE_SOCKET
-            m_enableSocket = true;
-#endif
 
             if (m_enablePlayerWorldsense)
             {

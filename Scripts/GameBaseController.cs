@@ -906,7 +906,7 @@ namespace PartyCritical
             {
                 m_namePlayer = MultiplayerConfiguration.HUMAN_NAME + timelineID;
 
-                Debug.LogError("+++++++++++++++++m_positionsSpawn=" + m_positionsSpawn.Count);
+                // Debug.LogError("+++++++++++++++++m_positionsSpawn=" + m_positionsSpawn.Count);
 
                 Vector3 initialPosition = m_positionsSpawn[YourNetworkTools.Instance.GetUniversalNetworkID() % m_positionsSpawn.Count];
                 string initialData = initialPosition.x + "," + initialPosition.y + "," + initialPosition.z;
