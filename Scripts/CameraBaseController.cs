@@ -509,6 +509,7 @@ namespace PartyCritical
             {
                 m_timeoutPressed = 0;
                 UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_DOWN);
+                SetAMarkerSignal();
             }
             if (OVRInput.GetDown(OVRInput.Button.PrimaryTouchpad))
             {
@@ -552,7 +553,7 @@ namespace PartyCritical
             }
 #endif
 
-            if (false
+                if (false
 #if ENABLE_OCULUS && !UNITY_EDITOR
                 || (OVRInput.Get(OVRInput.Button.PrimaryIndexTrigger))
 #elif ENABLE_WORLDSENSE && !UNITY_EDITOR

@@ -11,6 +11,9 @@ using VRPartyValidation;
 #if ENABLE_BITCOIN
 using YourBitcoinController;
 #endif
+#if !UNITY_EDITOR
+using PartaGames.Android;
+#endif
 
 namespace PartyCritical
 {
@@ -40,11 +43,13 @@ namespace PartyCritical
         protected const string CTE_ENABLE_DIRECTOR_JOIN         = "#ENABLE_DIRECTOR_JOIN";
         protected const string CTE_ENABLE_SPECTATOR             = "#ENABLE_SPECTATOR";
 
-        protected const string CTE_ENABLE_SOCKET                = "#ENABLE_SOCKET";
+        protected const string CTE_ENABLE_SOCKET                = "#ENABLE_SOCKET_";
         protected const string CTE_LEVEL_                       = "#LEVEL_";
         protected const string CTE_PLAYER_                      = "#PLAYER_";
 
         protected const string CTE_ENABLE_AUGMENTED             = "#ENABLE_AUGMENTED";
+
+        private const string WRITE_EXTERNAL_STORAGE = "android.permission.WRITE_EXTERNAL_STORAGE";
 
         // ----------------------------------------------
         // PROTECTED MEMBERS
@@ -72,8 +77,13 @@ namespace PartyCritical
         protected bool m_enableSpectator = false;
 
         protected bool m_enableSocket = false;
+        protected string m_serverIP = "";
+        protected int m_serverPort = 0;
 
         protected bool m_enableAugmented = false;
+
+        protected bool m_hasBeenCalledInitialitzation = false;
+        protected bool m_hasPermissionsBeenGranted = false;
 
         // ----------------------------------------------
         // SETTERS/GETTERS
@@ -99,9 +109,42 @@ namespace PartyCritical
         /* 
 		 * Ask permissions
 		 */
+        public void Awake()
+        {
+#if !UNITY_EDITOR && !ENABLE_OCULUS
+            if (!PermissionGranterUnity.IsPermissionGranted(WRITE_EXTERNAL_STORAGE))
+            {
+                PermissionGranterUnity.GrantPermission(WRITE_EXTERNAL_STORAGE, PermissionGrantedCallback);
+            }
+            else
+            {
+                m_hasPermissionsBeenGranted = true;
+            }
+#else
+            m_hasPermissionsBeenGranted = true;
+#endif
+        }
+
+        // -------------------------------------------
+        /* 
+		 * Ask permissions
+		 */
+        public void PermissionGrantedCallback(string permission, bool isGranted)
+        {
+            m_hasPermissionsBeenGranted = true;
+            if (m_hasBeenCalledInitialitzation) Initialize();
+        }
+
+        // -------------------------------------------
+        /* 
+		 * Ask permissions
+		 */
         public void DoNotRun()
         {
-            AndroidRuntimePermissions.Permission result = AndroidRuntimePermissions.RequestPermission("android.permission.WRITE_EXTERNAL_STORAGE");
+#if !UNITY_EDITOR
+            PermissionGranterUnity.IsPermissionGranted(WRITE_EXTERNAL_STORAGE);
+            PermissionGranterUnity.GrantPermission(WRITE_EXTERNAL_STORAGE, PermissionGrantedCallback);
+#endif
         }
 
         // -------------------------------------------
@@ -110,6 +153,9 @@ namespace PartyCritical
 		 */
         public override void Initialize(params object[] _list)
         {
+            m_hasBeenCalledInitialitzation = true;
+            if (!m_hasPermissionsBeenGranted) return;
+
             base.Initialize(_list);
 
             m_isThereButtons = false;
@@ -165,6 +211,18 @@ namespace PartyCritical
             m_enableSpectator = (_configData.IndexOf(CTE_ENABLE_SPECTATOR) != -1);
 
             m_enableSocket = (_configData.IndexOf(CTE_ENABLE_SOCKET) != -1);
+            if (m_enableSocket)
+            {
+                int startIndex = _configData.IndexOf(CTE_ENABLE_SOCKET) + CTE_ENABLE_SOCKET.Length;
+                string subConfigSocket = _configData.Substring(startIndex, _configData.Length - startIndex);
+                int indexFinalIP = subConfigSocket.IndexOf("_");
+                m_serverIP = subConfigSocket.Substring(0, indexFinalIP);
+                subConfigSocket = subConfigSocket.Substring(indexFinalIP + 1, subConfigSocket.Length - (indexFinalIP + 1));
+                int indexFinalPort = subConfigSocket.IndexOf("_");
+                m_serverPort = int.Parse(subConfigSocket.Substring(0, indexFinalPort));
+                MenuScreenController.Instance.ServerIPAdress = m_serverIP;
+                MenuScreenController.Instance.ServerPortNumber = m_serverPort;
+            }
 
             m_enableAugmented = (_configData.IndexOf(CTE_ENABLE_AUGMENTED) != -1);
         }
@@ -228,7 +286,7 @@ namespace PartyCritical
             delayShortcutSplash = 4;
 #endif
 
-            // #ENABLE_SOCKET
+            // 
 #if ENABLE_PLAYER_WORLDSENSE
             Debug.LogError("++++USING CONFIG::ENABLE_PLAYER_WORLDSENSE");
             localConfigData = "#ENABLE_PLAYER_WORLDSENSE#LEVEL_00#PLAYER_00";
@@ -247,6 +305,10 @@ namespace PartyCritical
 #elif ENABLE_SPECTATOR
             Debug.LogError("++++USING CONFIG::ENABLE_SPECTATOR");
             localConfigData = "#ENABLE_SPECTATOR#LEVEL_00#PLAYER_00";
+#endif
+
+#if ENABLE_SOCKET
+            localConfigData += "#ENABLE_SOCKET_localhost_7890_";
 #endif
 
             m_configData = localConfigData;

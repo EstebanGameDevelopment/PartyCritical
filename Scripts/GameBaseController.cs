@@ -721,11 +721,12 @@ namespace PartyCritical
             {
                 if ((bool)_list[0])
                 {
-
                     NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), IsRealDirectorMode.ToString());
                 }
 #if FORCE_GAME
                 SetState(STATE_RUNNING);
+#else
+                CreateLoadingScreen();
 #endif
             }
 #endif
