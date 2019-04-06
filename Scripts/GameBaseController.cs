@@ -725,7 +725,7 @@ namespace PartyCritical
                 }
 #if FORCE_GAME
                 SetState(STATE_RUNNING);
-#else
+#elif !UNITY_EDITOR
                 CreateLoadingScreen();
 #endif
             }
