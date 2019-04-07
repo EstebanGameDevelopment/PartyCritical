@@ -5,6 +5,9 @@ using UnityEngine;
 using YourCommonTools;
 using YourNetworkingTools;
 using YourVRUI;
+#if ENABLE_VALIDATION
+using VRPartyValidation;
+#endif
 
 namespace PartyCritical
 {
@@ -548,6 +551,9 @@ namespace PartyCritical
             m_isCreatorGame = YourNetworkTools.Instance.IsServer;
             if (m_isCreatorGame)
             {
+#if ENABLE_VALIDATION
+                VRPartyValidationController.Instance.ResetConnectedMac();
+#endif
                 LoadCurrentGameLevel();
             }
             else
