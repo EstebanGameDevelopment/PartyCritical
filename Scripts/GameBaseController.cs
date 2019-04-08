@@ -360,7 +360,7 @@ namespace PartyCritical
         /* 
 		 * Load level assets and data
 		 */
-        protected void LoadCurrentGameLevel(int _level = -1, int _nextState = -1)
+        protected virtual void LoadCurrentGameLevel(int _level = -1, int _nextState = -1)
         {
             SetState(STATE_LEVEL_LOAD);
 
@@ -674,13 +674,13 @@ namespace PartyCritical
                     int networkID = int.Parse((string)_list[0]);
                     bool isDirector = bool.Parse((string)_list[1]);
                     if (m_playersReady.IndexOf(networkID) == -1) m_playersReady.Add(networkID);
-                    // Debug.LogError("EVENT_SYSTEM_INITIALITZATION_REMOTE_COMPLETED::CONNECTED CLIENT[" + networkID + "] OF TOTAL["+ m_playersReady.Count + "] of EXPECTED[" + m_totalNumberPlayers +"]");
+                    Debug.LogError("EVENT_SYSTEM_INITIALITZATION_REMOTE_COMPLETED::CONNECTED CLIENT[" + networkID + "] OF TOTAL["+ m_playersReady.Count + "] of EXPECTED[" + m_totalNumberPlayers +"]");
                     if ((isDirector) || (m_totalNumberPlayers <= m_playersReady.Count))
                     {
                         m_totalNumberPlayers = m_playersReady.Count;
                         NetworkEventController.Instance.PriorityDelayNetworkEvent(ClientTCPEventsController.EVENT_CLIENT_TCP_CLOSE_CURRENT_ROOM, 0.2f);
 
-                        // Debug.LogError("EVENT_SYSTEM_INITIALITZATION_REMOTE_COMPLETED::START RUNNING***********************************");
+                        Debug.LogError("EVENT_SYSTEM_INITIALITZATION_REMOTE_COMPLETED::START RUNNING***********************************");
 #if FORCE_REPOSITION
                         ChangeState(STATE_REPOSITION);
 #else
@@ -875,6 +875,14 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		 * SetUpStateConnecting
+		 */
+        protected virtual void SetUpStateConnecting()
+        {
+        }
+
+        // -------------------------------------------
+        /* 
 		 * SetUpStateLoading
 		 */
         protected virtual void SetUpStateLoading()
@@ -926,7 +934,11 @@ namespace PartyCritical
                         }
 #endif
 
+#if ENABLE_ASSET_BUNDLE
                 initialData = m_namePlayer + "," + NameModelPrefab[m_characterSelected] + "," + initialData;
+#else
+                initialData = m_namePlayer + "," + "NO_ASSET_BUNDLE" + "," + initialData;
+#endif
 
                 // TO FORCE REPOSITION ON EDITOR
                 // initialData = m_namePlayer + "," + NameModelPrefab[m_characterSelected] + "," + 0 + "," + initialPosition.y + "," + 0;
@@ -1057,6 +1069,7 @@ namespace PartyCritical
             {
                 ///////////////////////////////////////
                 case STATE_CONNECTING:
+                    SetUpStateConnecting();
                     if (DEBUG) Debug.LogError("STATE_CONNECTING+++++++++++++++++++++++++++++++++++++++++++++++++");
                     break;
                     
