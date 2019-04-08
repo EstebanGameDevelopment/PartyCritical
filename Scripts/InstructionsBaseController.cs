@@ -180,7 +180,7 @@ namespace PartyCritical
 #if ENABLE_MULTIPLAYER_TIMELINE
             if (GameLevelData.Instance.Init(YourNetworkTools.Instance.IsServer, NamePlayer))
             {
-                Debug.LogError("START MULTIPLAYER INSTRUCTIONS COLLECTION::NAME PLAYER[" + NamePlayer + "]::IS SERVER[" + YourNetworkTools.Instance.IsServer + "]**********************");
+                // Debug.LogError("START MULTIPLAYER INSTRUCTIONS COLLECTION::NAME PLAYER[" + NamePlayer + "]::IS SERVER[" + YourNetworkTools.Instance.IsServer + "]**********************");
                 RenderSettings.ambientLight = new Color(1f, 1f, 1f, 1f);
                 // PathFindingController.Instance.AllocateMemoryMatrix(25, 25, 1, 4, -53, 0, -50);
                 // PathFindingController.Instance.AllocateMemoryMatrix(40, 40, 1, 2, -40, 0, -40);                
@@ -215,7 +215,7 @@ namespace PartyCritical
                 InitialitzationDirectors();
 
                 // TIMELINE FOR LEVEL 0
-                CreateTimeLineForLevel0(m_mainLayer);
+                CreateTimeLineForLevel0(m_mainLayer, 100, 100 * 1000);
             }
 
             GameLevelData.Instance.Logic();
@@ -226,7 +226,7 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
-		 * CreateTimeLineForLevel0
+		 * CreateTimeLineForLevel0 (**WARNING** THIS IS A BASIC SAMPLE DATA)
 		 */
 #if ENABLE_MULTIPLAYER_TIMELINE
         protected virtual void CreateTimeLineForLevel0(LayerData _layer, int _secondsEndPreviousLevel, int _sencondsEndNextLevel)
@@ -281,12 +281,6 @@ namespace PartyCritical
             // **** TIME MARKER UPDATE ****
             m_timeMarker += (m_timeSegment + 500);
 
-            // JUMP TO NEXT LEVEL
-            ActionLineData jumpToNextLevel1LineData = actionLayerData.CreateActionLine("JUMP_TO_NEXT_LEVEL_1",
-                                                 new List<String>(new String[] { GROUP_PLAYERS }), m_timeMarker, m_timeMarker + 90, false, false, false, false);
-            CMDThrowNetworkEvent jumpToNextLevel1Command = new CMDThrowNetworkEvent("load_next_level_1", GameController.EVENT_GAMECONTROLLER_CONFIRMATION_NEXT_LEVEL, 0.1f, true, YourNetworkTools.Instance.GetUniversalNetworkID().ToString());
-            jumpToNextLevel1LineData.Commands.Add(jumpToNextLevel1Command);
-
             // YourVRUIScreenController.Instance.DestroyScreens();
             UIEventController.Instance.DelayUIEvent(ScreenController.EVENT_FORCE_DESTRUCTION_POPUP, 0.4f);
         }
@@ -294,7 +288,7 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
-         * CreateTimeLineForLevel1
+         * CreateTimeLineForLevel1 (**WARNING** THIS IS A BASIC SAMPLE DATA)
          */
 #if ENABLE_MULTIPLAYER_TIMELINE
         protected virtual void CreateTimeLineForLevel1(LayerData _layer, int _secondsEndPreviousLevel, int _sencondsEndNextLevel)
@@ -339,7 +333,7 @@ namespace PartyCritical
                                                     new List<String>(new String[] { "SYSTEM" }), m_timeMarker, m_timeMarker + m_timeSegment, true, true, false, true,
                                                     "[EVENT_DAY_REACHED:ANYBODY:PARAMS]",
                                                     "INFORM_SUCCESS_ZOMBIE_DEAD");
-            CMDWait waitDayToComeCommand = new CMDWait("just_wait_for_day_to_come", "EVENT_DAY_REACHED", GameController.TOTAL_TIME_TO_NIGHT);
+            CMDWait waitDayToComeCommand = new CMDWait("just_wait_for_day_to_come", "EVENT_DAY_REACHED", 120);
             waitDayToComeActionLineData.Commands.Add(waitDayToComeCommand);
 
             // **** TIME MARKER UPDATE ****
@@ -359,7 +353,7 @@ namespace PartyCritical
             // SHOW RESULT FINAL EVALUATION
             ActionLineData showResultGameInLifeValueLineData = actionLayerData.CreateActionLine("FINAL_RESULTS_GAME",
                                                  new List<String>(new String[] { BaseObjectData.NAME_ACTOR_SYSTEM }), m_timeMarker, m_timeMarker + 200, false, false, false, false);
-            CMDThrowBasicSystemEvent showFinalScoreScreenCMD = new CMDThrowBasicSystemEvent("command_show_final_score_screen", GameController.EVENT_GAMECONTROLLER_SHOW_EVALUATION_END_GAME, 1, false);
+            CMDThrowBasicSystemEvent showFinalScoreScreenCMD = new CMDThrowBasicSystemEvent("command_show_final_score_screen", "EVENT_GAMECONTROLLER_SHOW_EVALUATION_END_GAME", 1, false);
             CMDSoundPlay soundFinalScoreFXCMD = new CMDSoundPlay("sound_play_final_score_fx_cmd", "FINAL_SCORE_FX", -1, CMDSoundPlay.CHANNEL_TWO, false, Vector3.zero, false, true, 1);
             showResultGameInLifeValueLineData.Commands.Add(showFinalScoreScreenCMD);
             showResultGameInLifeValueLineData.Commands.Add(soundFinalScoreFXCMD);
@@ -425,7 +419,7 @@ namespace PartyCritical
         /* 
 		* Manager of global events
 		*/
-        private void OnNetworkEvent(string _nameEvent, bool _isLocalEvent, int _networkOriginID, int _networkTargetID, params object[] _list)
+        protected virtual void OnNetworkEvent(string _nameEvent, bool _isLocalEvent, int _networkOriginID, int _networkTargetID, params object[] _list)
         {
             if (_nameEvent == GameBaseController.EVENT_GAMECONTROLLER_PLAYER_IS_READY)
             {
@@ -466,7 +460,7 @@ namespace PartyCritical
         /* 
         * OnBasicSystemEvent
         */
-        private void OnBasicSystemEvent(string _nameEvent, object[] _list)
+        protected virtual void OnBasicSystemEvent(string _nameEvent, object[] _list)
         {
             if (_nameEvent == EVENT_GAMEPLAYER_HUMAN_PLAYER_NAME)
             {
@@ -517,14 +511,14 @@ namespace PartyCritical
                     case 0:
                         if (m_mainLayer != null)
                         {
-                            CreateTimeLineForLevel0(m_mainLayer);
-                            GameLevelData.Instance.SetCurrentTimePlaying(0, "", 100, SECONDS_END_LEVEL_0);
+                            CreateTimeLineForLevel0(m_mainLayer, 100, SECONDS_END_LEVEL_0);
+                            GameLevelData.Instance.SetCurrentTimePlaying(0, "");
                         }
                         break;
 
                     case 1:
-                        CreateTimeLineForLevel1(m_mainLayer);
-                        GameLevelData.Instance.SetCurrentTimePlaying(SECONDS_END_LEVEL_0, "", SECONDS_END_LEVEL_0, SECONDS_END_LEVEL_1);
+                        CreateTimeLineForLevel1(m_mainLayer, SECONDS_END_LEVEL_0, SECONDS_END_LEVEL_1);
+                        GameLevelData.Instance.SetCurrentTimePlaying(SECONDS_END_LEVEL_0, "");
                         break;
                 }
 #endif
@@ -544,7 +538,7 @@ namespace PartyCritical
         /* 
 		 * Update
 		 */
-        public void Update()
+        public virtual void Update()
         {
             if (IsGameReallyRunning())
             {
@@ -562,7 +556,7 @@ namespace PartyCritical
         /* 
 		 * OnGUI
 		 */
-        private void OnGUI()
+        protected virtual void OnGUI()
         {
 #if ENABLE_MULTIPLAYER_TIMELINE
             string data = "TIME=" + GameLevelData.Instance.CurrentTimePlaying;
