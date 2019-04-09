@@ -295,7 +295,7 @@ namespace PartyCritical
             localConfigData = "#ENABLE_PLAYER_ARCORE#LEVEL_00#PLAYER_00";
 #elif ENABLE_PLAYER_GYRO
             Debug.LogError("++++USING CONFIG::ENABLE_PLAYER_GYRO");
-            localConfigData = "#ENABLE_PLAYER_ARCORE#LEVEL_00#PLAYER_00";
+            localConfigData = "#ENABLE_PLAYER_ARCORE#LEVEL_00#PLAYER_01";
 #elif ENABLE_PLAYER_NOARCORE
             Debug.LogError("++++USING CONFIG::ENABLE_PLAYER_NOARCORE");
             localConfigData = "#ENABLE_PLAYER_NOARCORE#LEVEL_00#PLAYER_00";

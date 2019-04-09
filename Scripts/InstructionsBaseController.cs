@@ -382,7 +382,7 @@ namespace PartyCritical
         }
 #endif
 
-        private bool m_pathfindingInitialized = false;
+        protected bool m_pathfindingInitialized = false;
 
         // -------------------------------------------
         /* 
@@ -399,7 +399,7 @@ namespace PartyCritical
             // CALCULATE THE COLLISIONS OF THE LEVEL
             PathFindingController.Instance.CalculateCollisions(0, new string[3] { "ITEMS", "PLAYERS", "NPCS" });
             PathFindingController.Instance.ClearDotPaths();
-            // PathFindingController.Instance.RenderDebugMatrixConstruction();
+            PathFindingController.Instance.RenderDebugMatrixConstruction();
 
             if (USE_PRECALCULATED_PATHFINDING)
             {
