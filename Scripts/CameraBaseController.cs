@@ -176,7 +176,7 @@ namespace PartyCritical
 #if ENABLE_OCULUS
             m_enableVR = true;
             CameraLocal.gameObject.SetActive(false);
-            OVRPlayer.SetActive(true);
+            if (OVRPlayer!=null) OVRPlayer.SetActive(true);
             this.GetComponent<Rigidbody>().useGravity = false;
             this.GetComponent<Rigidbody>().isKinematic = true;
             this.GetComponent<Collider>().isTrigger = true;

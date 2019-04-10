@@ -212,7 +212,7 @@ namespace PartyCritical
                 m_enableBackgroundVR = true;
             }
 #else
-            CloudAnchorReference.SetActive(false);
+            if (CloudAnchorReference != null) CloudAnchorReference.SetActive(false);
 #endif
 
             // ARCORE ENABLE
