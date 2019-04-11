@@ -64,6 +64,7 @@ namespace PartyCritical
         public GameObject LaserPointer;
         public GameObject MarkerPlayer;
         public GameObject MarkerDirector;
+        public TextAsset PathfindingData;
 
         // ----------------------------------------------
         // protected MEMBERS
