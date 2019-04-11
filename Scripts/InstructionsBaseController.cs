@@ -397,7 +397,7 @@ namespace PartyCritical
             PathFindingController.Instance.SetWaypointHeight(10);
 
             // CALCULATE THE COLLISIONS OF THE LEVEL
-            PathFindingController.Instance.CalculateCollisions(0, new string[3] { "ITEMS", "PLAYERS", "NPCS" });
+            PathFindingController.Instance.CalculateCollisions(0, new string[3] { ActorTimeline.LAYER_ITEMS, ActorTimeline.LAYER_PLAYERS, ActorTimeline.LAYER_NPCS });
             PathFindingController.Instance.ClearDotPaths();
             PathFindingController.Instance.RenderDebugMatrixConstruction();
 
