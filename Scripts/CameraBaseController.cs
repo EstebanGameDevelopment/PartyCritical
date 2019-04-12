@@ -19,10 +19,13 @@ namespace PartyCritical
         // ----------------------------------------------
         // EVENTS
         // ----------------------------------------------	
-        public const string EVENT_CAMERACONTROLLER_DATA_SHOTGUN = "EVENT_CAMERACONTROLLER_DATA_SHOTGUN";
-
-        public const string EVENT_GAMECAMERA_REAL_PLAYER_FORWARD = "EVENT_GAMECAMERA_REAL_PLAYER_FORWARD";
+        public const string EVENT_CAMERACONTROLLER_REQUEST_SELECTOR_DATA    = "EVENT_CAMERACONTROLLER_REQUEST_SELECTOR_DATA";
+        public const string EVENT_CAMERACONTROLLER_RESPONSE_SELECTOR_DATA   = "EVENT_CAMERACONTROLLER_RESPONSE_SELECTOR_DATA";
+        public const string EVENT_CAMERACONTROLLER_DATA_SHOTGUN             = "EVENT_CAMERACONTROLLER_DATA_SHOTGUN";
+        public const string EVENT_GAMECAMERA_REAL_PLAYER_FORWARD            = "EVENT_GAMECAMERA_REAL_PLAYER_FORWARD";
         
+        public const string MARKER_NAME = "MARKER";
+
         // ----------------------------------------------
         // PUBLIC VARIABLES
         // ----------------------------------------------	
@@ -723,6 +726,7 @@ namespace PartyCritical
                 if (Input.GetButtonDown("Fire1") || Input.GetKeyDown(KeyCode.LeftControl) || Input.GetMouseButtonDown(0))
                 {
                     m_timeoutPressed = 0;
+                    SetAMarkerSignal();
                     UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_DOWN);
                 }
                 if (Input.GetButtonUp("Fire1") || Input.GetKeyUp(KeyCode.LeftControl) || Input.GetMouseButtonUp(0))
@@ -730,8 +734,6 @@ namespace PartyCritical
                     if (m_timeoutPressed < TIMEOUT_TO_MOVE)
                     {
                         m_timeoutPressed = 0;
-
-                        SetAMarkerSignal();
 
                         ActionDownForDirector();
                     }
@@ -885,6 +887,25 @@ namespace PartyCritical
                 {
                     Avatar = (GameObject)_list[0];
                 }
+            }
+            if (_nameEvent == EVENT_CAMERACONTROLLER_REQUEST_SELECTOR_DATA)
+            {
+                Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
+                Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
+#if ENABLE_OCULUS && !UNITY_EDITOR
+                if ((m_armModel != null) && (m_laserPointer != null))
+                {
+                    pos = Utilities.Clone(m_originLaser);
+                    fwd = Utilities.Clone(m_forwardLaser);
+                }
+#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+                if ((m_armModel != null) && (m_laserPointer != null))
+                {
+                    pos = Utilities.Clone(m_originLaser);
+                    fwd = Utilities.Clone(m_forwardLaser);
+                }
+#endif
+                BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_CAMERACONTROLLER_RESPONSE_SELECTOR_DATA, _list[0], pos, fwd);                
             }
             if (DirectorMode)
             {

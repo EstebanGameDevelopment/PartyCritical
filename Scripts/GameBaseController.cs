@@ -714,6 +714,7 @@ namespace PartyCritical
                 GameObject markerBall = Instantiate(isDirector ? MarkerDirector : MarkerPlayer);
                 markerBall.transform.position = posMarker;
             }
+
             OnNetworkEventEnemy(_nameEvent, _isLocalEvent, _networkOriginID, _networkTargetID, _list);
         }
 
