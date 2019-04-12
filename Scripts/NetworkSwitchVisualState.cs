@@ -26,6 +26,7 @@ namespace PartyCritical
         // ----------------------------------------------	
         private int m_currentState;
         private Animator m_animator;
+        private bool m_enableSwitcher = false;
 
         // -------------------------------------------
         /* 
@@ -136,9 +137,12 @@ namespace PartyCritical
 		 */
         private void OnUIEvent(string _nameEvent, object[] _list)
         {
-            if (_nameEvent == KeysEventInputController.ACTION_BUTTON_DOWN)
+            if (m_enableSwitcher)
             {
-                BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_REQUEST_SELECTOR_DATA, this.gameObject.name);
+                if (_nameEvent == KeysEventInputController.ACTION_BUTTON_DOWN)
+                {
+                    BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_REQUEST_SELECTOR_DATA, this.gameObject.name);
+                }
             }
         }
 
@@ -177,6 +181,10 @@ namespace PartyCritical
 		 */
         private void OnNetworkEvent(string _nameEvent, bool _isLocalEvent, int _networkOriginID, int _networkTargetID, object[] _list)
         {
+            if (_nameEvent == ClientTCPEventsController.EVENT_CLIENT_TCP_CLOSE_CURRENT_ROOM)
+            {
+                m_enableSwitcher = true;
+            }
             if (_nameEvent ==  EVENT_NETWORKSWITCHSTATE_CHANGE_STATE)
             {
                 string nameSelected = (string)_list[0];
