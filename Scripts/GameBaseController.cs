@@ -65,6 +65,7 @@ namespace PartyCritical
         public GameObject MarkerPlayer;
         public GameObject MarkerDirector;
         public TextAsset PathfindingData;
+        public Material[] SkyboxesLevels;
 
         // ----------------------------------------------
         // protected MEMBERS
@@ -359,6 +360,24 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		 * Create the welcome screen
+		 */
+        protected virtual void UpdateSkyboxWithNewLevel()
+        {
+            if (SkyboxesLevels != null)
+            {
+                if (m_currentLevel < SkyboxesLevels.Length)
+                {
+                    if (SkyboxesLevels[m_currentLevel] != null)
+                    {
+                        RenderSettings.skybox = SkyboxesLevels[m_currentLevel];
+                    }
+                }
+            }
+        }
+
+        // -------------------------------------------
+        /* 
 		 * Load level assets and data
 		 */
         protected virtual void LoadCurrentGameLevel(int _level = -1, int _nextState = -1)
@@ -388,6 +407,9 @@ namespace PartyCritical
                     m_currentLevel = m_currentLevel % LevelsPrefab.Length;
                     m_level = Utilities.AddChild(LevelContainer.transform, LevelsPrefab[m_currentLevel]);
 #endif
+
+                    UpdateSkyboxWithNewLevel();
+
                     m_level.transform.SetParent(LevelContainer.transform, false);
                     if (!m_positionReferenceInited)
                     {
