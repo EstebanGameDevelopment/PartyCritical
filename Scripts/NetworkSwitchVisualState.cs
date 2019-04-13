@@ -152,6 +152,14 @@ namespace PartyCritical
 		 */
         private void OnBasicSystemEvent(string _nameEvent, object[] _list)
         {
+            if (_nameEvent == GameBaseController.EVENT_GAMECONTROLLER_LEVEL_LOAD_COMPLETED)
+            {
+                BasicSystemEventController.Instance.DispatchBasicSystemEvent(GameBaseController.EVENT_GAMECONTROLLER_REQUEST_IS_GAME_RUNNING);
+            }
+            if (_nameEvent == GameBaseController.EVENT_GAMECONTROLLER_RESPONSE_IS_GAME_RUNNING)
+            {
+                m_enableSwitcher = (bool)_list[0];
+            }
             if (_nameEvent == CameraBaseController.EVENT_CAMERACONTROLLER_RESPONSE_SELECTOR_DATA)
             {
                 if (this.gameObject.name == (string)_list[0])

@@ -29,6 +29,8 @@ namespace PartyCritical
         public const string EVENT_GAMECONTROLLER_NUMBER_LEVEL_TO_LOAD       = "EVENT_GAMECONTROLLER_NUMBER_LEVEL_TO_LOAD";
         public const string EVENT_GAMECONTROLLER_LEVEL_LOAD_COMPLETED       = "EVENT_GAMECONTROLLER_LEVEL_LOAD_COMPLETED";
         public const string EVENT_GAMECONTROLLER_MARKER_BALL                = "EVENT_GAMECONTROLLER_MARKER_BALL";
+        public const string EVENT_GAMECONTROLLER_REQUEST_IS_GAME_RUNNING    = "EVENT_GAMECONTROLLER_REQUEST_IS_GAME_RUNNING";
+        public const string EVENT_GAMECONTROLLER_RESPONSE_IS_GAME_RUNNING   = "EVENT_GAMECONTROLLER_RESPONSE_IS_GAME_RUNNING";
 
         public const string SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL = "SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL";
 
@@ -66,6 +68,7 @@ namespace PartyCritical
         public GameObject MarkerDirector;
         public TextAsset PathfindingData;
         public Material[] SkyboxesLevels;
+        public string[] SoundsLevels;
 
         // ----------------------------------------------
         // protected MEMBERS
@@ -100,6 +103,8 @@ namespace PartyCritical
         protected bool m_enableBackgroundVR = true;
 
         protected bool m_isFirstTimeRun = true;
+
+        protected string m_currentMelody = "";
 
         // ----------------------------------------------
         // GETTERS/SETTERS
@@ -378,6 +383,43 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		 * Create the welcome screen
+		 */
+        protected virtual void PlayerSoundWithNewLevel()
+        {
+            if (SoundsLevels != null)
+            {
+                if (m_currentLevel < SoundsLevels.Length)
+                {
+                    if (SoundsLevels[m_currentLevel] != null)
+                    {
+                        string nextMelody = SoundsLevels[m_currentLevel];
+                        if (nextMelody != m_currentMelody)
+                        {
+                            SoundsController.Instance.StopAllSounds();
+                            m_currentMelody = nextMelody;
+                            SoundsController.Instance.PlaySoundLoop(AssetbundleController.Instance.CreateAudioclip(m_currentMelody));
+                        }
+                    }
+                }
+                else
+                {
+                    if (SoundsLevels.Length == 1)
+                    {
+                        string nextMelody = SoundsLevels[0];
+                        if (nextMelody != m_currentMelody)
+                        {
+                            SoundsController.Instance.StopAllSounds();
+                            m_currentMelody = nextMelody;
+                            SoundsController.Instance.PlaySoundLoop(AssetbundleController.Instance.CreateAudioclip(m_currentMelody));
+                        }                        
+                    }
+                }
+            }
+        }
+
+        // -------------------------------------------
+        /* 
 		 * Load level assets and data
 		 */
         protected virtual void LoadCurrentGameLevel(int _level = -1, int _nextState = -1)
@@ -408,8 +450,6 @@ namespace PartyCritical
                     m_level = Utilities.AddChild(LevelContainer.transform, LevelsPrefab[m_currentLevel]);
 #endif
 
-                    UpdateSkyboxWithNewLevel();
-
                     m_level.transform.SetParent(LevelContainer.transform, false);
                     if (!m_positionReferenceInited)
                     {
@@ -417,8 +457,7 @@ namespace PartyCritical
                         m_positionReference = Utilities.Clone(LevelReference.transform.position);
                         GameObject.Destroy(LevelReference);
                     }
-                    m_level.transform.position = m_positionReference;
-                    
+                    m_level.transform.position = m_positionReference;                    
 
                     // Debug.LogError("NEW LEVEL LOADED[" + m_level.name + "]!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                     // WE SEND A MESSAGE THAT THE LEVEL HAS BEEN LOADED WHEN EVERYTHING HAS BEEN INITIALIZED WITH "START"
@@ -455,7 +494,7 @@ namespace PartyCritical
         /* 
 		 * EnableLaserVR
 		 */
-        protected void EnableLaserVR(bool _enable)
+        protected virtual void EnableLaserVR(bool _enable)
         {
 #if ENABLE_WORLDSENSE || ENABLE_OCULUS
             if (LaserPointer!=null) LaserPointer.SetActive(_enable);
@@ -784,12 +823,16 @@ namespace PartyCritical
                     }
                 }
             }
+            if (_nameEvent == EVENT_GAMECONTROLLER_REQUEST_IS_GAME_RUNNING)
+            {
+                BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_GAMECONTROLLER_RESPONSE_IS_GAME_RUNNING, IsGameFakeRunning());
+            }
         }
 
         // -------------------------------------------
         /* 
-		 * OnUIEvent
-		 */
+         * OnUIEvent
+         */
         protected override void OnUIEvent(string _nameEvent, object[] _list)
         {
             if (_nameEvent == KeysEventInputController.ACTION_BACK_BUTTON)
@@ -1045,6 +1088,7 @@ namespace PartyCritical
 		 */
         protected virtual bool SetUpStateRunning()
         {
+            UpdateSkyboxWithNewLevel();
             UIEventController.Instance.DispatchUIEvent(MenuScreenController.EVENT_FORCE_DESTRUCTION_POPUP);
             m_endLevelConfirmedPlayers.Clear();
             if (m_directorMode)
@@ -1061,6 +1105,7 @@ namespace PartyCritical
                 }
                 else
                 {
+                    PlayerSoundWithNewLevel();
                     if (GameObject.FindObjectOfType<ScreenBaseDirectorView>() == null)
                     {
                         Instantiate(DirectorScreen);

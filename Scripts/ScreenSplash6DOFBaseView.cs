@@ -132,8 +132,29 @@ namespace PartyCritical
         public void PermissionGrantedCallback(string permission, bool isGranted)
         {
             m_hasPermissionsBeenGranted = true;
-            if (m_hasBeenCalledInitialitzation) Initialize();
         }
+
+#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
+        // -------------------------------------------
+        /* 
+		 * OnApplicationFocus
+		 */
+        void OnApplicationFocus(bool hasFocus)
+        {
+
+            m_hasPermissionsBeenGranted = true;
+            Invoke("ForceInitialitzation", 1);
+        }
+
+        // -------------------------------------------
+        /* 
+         * ForceInitialitzation
+         */
+        public void ForceInitialitzation()
+        {
+            Initialize();
+        }
+#endif
 
         // -------------------------------------------
         /* 
@@ -153,8 +174,9 @@ namespace PartyCritical
 		 */
         public override void Initialize(params object[] _list)
         {
-            m_hasBeenCalledInitialitzation = true;
             if (!m_hasPermissionsBeenGranted) return;
+            if (m_hasBeenCalledInitialitzation) return;
+            m_hasBeenCalledInitialitzation = true;
 
             base.Initialize(_list);
 
@@ -179,8 +201,8 @@ namespace PartyCritical
             }
 #endif
 
-            BasicSystemEventController.Instance.BasicSystemEvent += new BasicSystemEventHandler(OnBasicSystemEvent);
             UIEventController.Instance.UIEvent += new UIEventHandler(OnMenuEvent);
+            BasicSystemEventController.Instance.BasicSystemEvent += new BasicSystemEventHandler(OnBasicSystemEvent);
 
 #if ENABLE_VALIDATION
             if (m_container.Find("Text") != null)
@@ -290,6 +312,7 @@ namespace PartyCritical
 #if ENABLE_PLAYER_WORLDSENSE
             Debug.LogError("++++USING CONFIG::ENABLE_PLAYER_WORLDSENSE");
             localConfigData = "#ENABLE_PLAYER_WORLDSENSE#LEVEL_00#PLAYER_00";
+            // localConfigData = "#ENABLE_PLAYER_WORLDSENSE#LEVEL_01#PLAYER_00";
 #elif ENABLE_PLAYER_ARCORE
             Debug.LogError("++++USING CONFIG::ENABLE_PLAYER_ARCORE");
             localConfigData = "#ENABLE_PLAYER_ARCORE#LEVEL_00#PLAYER_00";
@@ -316,31 +339,36 @@ namespace PartyCritical
 
             if (m_enablePlayerWorldsense)
             {
+                m_runUpdate = false;
                 Invoke("Direct2PlayerGame", delayShortcutSplash);
             }
             else
             if (m_enablePlayerARCore)
             {
+                m_runUpdate = false;
                 Invoke("JoinAsOtherPlayerGame_ARCore", delayShortcutSplash);
             }
             else
             if (m_enablePlayerGyro)
             {
+                m_runUpdate = false;
                 Invoke("JoinAsOtherPlayerGame_Gyro", delayShortcutSplash);
             }
             else
             if (m_enablePlayerNoARCore)
             {
+                m_runUpdate = false;
                 Invoke("JoinAsOtherPlayerGame_NoARCore", delayShortcutSplash);
             }
             else
             if (m_enableDirectorJoin || m_enableSpectator)
             {
+                m_runUpdate = false;
                 Invoke("JoinAsDirectorGame", delayShortcutSplash);
             }
             else
             {
-                m_runUpdate = true;
+                // m_runUpdate = true;
                 if (!m_isThereButtons)
                 {
                     StartCoroutine(ShowSplashDelay());
@@ -765,7 +793,8 @@ namespace PartyCritical
                 if ((bool)_list[0])
                 {
                     if ((long)_list[1] > 0)
-                    {
+                    {   
+                        m_runUpdate = true;
                         InitializeWithShortcut((string)_list[2]);
                     }
                 }

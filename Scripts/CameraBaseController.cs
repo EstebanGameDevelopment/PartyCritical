@@ -172,6 +172,15 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		 * InitialitzationLaserPointer
+		 */
+        protected virtual void InitialitzationLaserPointer()
+        {
+            if (YourVRUIScreenController.Instance.LaserPointer != null) YourVRUIScreenController.Instance.LaserPointer.SetActive(false);
+        }
+
+        // -------------------------------------------
+        /* 
 		 * Initialize
 		 */
         public virtual void Initialize()
@@ -194,7 +203,7 @@ namespace PartyCritical
             if (ShotgunContainer != null) ShotgunContainer.SetActive(false);
 #endif
 
-            if (YourVRUIScreenController.Instance.LaserPointer != null) YourVRUIScreenController.Instance.LaserPointer.SetActive(false);
+            InitialitzationLaserPointer();
 
             if (DirectorMode)
             {
@@ -1023,7 +1032,7 @@ namespace PartyCritical
         /* 
 		 * OnUIEvent
 		 */
-        private void OnUIEvent(string _nameEvent, object[] _list)
+        protected virtual void OnUIEvent(string _nameEvent, object[] _list)
         {
             if (_nameEvent == ScreenInformationView.EVENT_SCREEN_INFORMATION_DISPLAYED)
             {
