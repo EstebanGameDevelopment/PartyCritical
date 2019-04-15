@@ -658,7 +658,8 @@ namespace PartyCritical
                     if (YourNetworkTools.Instance.IsServer)
                     {
                         m_currentLevel = nextLevelToLoad;
-                        NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_NUMBER_LEVEL_TO_LOAD, m_currentLevel.ToString());
+                        CreateLoadingScreen();
+                        NetworkEventController.Instance.PriorityDelayNetworkEvent(EVENT_GAMECONTROLLER_NUMBER_LEVEL_TO_LOAD, 0.5f, m_currentLevel.ToString());
                     }
                 }
                 else
@@ -1300,6 +1301,21 @@ namespace PartyCritical
         public override void Update()
 		{
             base.Update();
+
+#if UNITY_EDITOR
+            if (Input.GetKeyDown(KeyCode.KeypadPlus))
+            {
+                int nextLevel = m_currentLevel + 1;
+                if (nextLevel >= LevelsAssetsNames.Length) nextLevel = LevelsAssetsNames.Length - 1;
+                NetworkEventController.Instance.DispatchNetworkEvent(CloudGameAnchorController.EVENT_6DOF_CHANGE_LEVEL, nextLevel.ToString());
+            }
+            if (Input.GetKeyDown(KeyCode.KeypadMinus))
+            {
+                int previousLevel = m_currentLevel - 1;
+                if (previousLevel < 0) previousLevel = 0;
+                NetworkEventController.Instance.DispatchNetworkEvent(CloudGameAnchorController.EVENT_6DOF_CHANGE_LEVEL, previousLevel.ToString());
+            }
+#endif
 
             switch (m_stateManager.State)
             {
