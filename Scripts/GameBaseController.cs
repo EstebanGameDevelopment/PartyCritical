@@ -738,7 +738,7 @@ namespace PartyCritical
                     bool isDirector = bool.Parse((string)_list[1]);
                     if (m_playersReady.IndexOf(networkID) == -1) m_playersReady.Add(networkID);
                     // Debug.LogError("EVENT_SYSTEM_INITIALITZATION_REMOTE_COMPLETED::CONNECTED CLIENT[" + networkID + "] OF TOTAL["+ m_playersReady.Count + "] of EXPECTED[" + m_totalNumberPlayers +"]");
-                    if ((isDirector) || (m_totalNumberPlayers <= m_playersReady.Count))
+                    if ((isDirector) || ((m_totalNumberPlayers <= m_playersReady.Count) && (m_totalNumberPlayers != MultiplayerConfiguration.VALUE_FOR_JOINING)))
                     {
                         m_totalNumberPlayers = m_playersReady.Count;
                         NetworkEventController.Instance.PriorityDelayNetworkEvent(ClientTCPEventsController.EVENT_CLIENT_TCP_CLOSE_CURRENT_ROOM, 0.2f);
@@ -915,7 +915,10 @@ namespace PartyCritical
                 }
                 for (int k = 0; k < objectsSpawn.Length; k++)
                 {
-                    GameObject.Destroy(objectsSpawn[k].gameObject);
+                    if (objectsSpawn[k].Name == "SPAWN")
+                    {
+                        GameObject.Destroy(objectsSpawn[k].gameObject);
+                    }                        
                 }
                 // Debug.LogError("FindSpawnPositions::TOTAL FOUND[" + m_positionsSpawn.Count + "]::TOTAL LEFT["+ GameObject.FindObjectsOfType<ClassFinder>().Length + "]+++++++++++++++++++++++++++++++");
             }
@@ -1203,7 +1206,7 @@ namespace PartyCritical
         /* 
 		* CreateNewEnemy
 		*/
-        protected virtual bool CreateNewEnemy(Vector3 _position)
+        public virtual bool CreateNewEnemy(Vector3 _position)
         {
             int indexEnemy = UnityEngine.Random.Range(0, EnemyModelPrefab.Length);
             string initialData = "ENEMY" + "," + "ZOMBIE" + "," + EnemyModelPrefab[indexEnemy] + "," + _position.x + "," + _position.y + "," + _position.z;

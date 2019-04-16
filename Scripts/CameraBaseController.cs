@@ -376,6 +376,106 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+         * GetPositionLaser
+         */
+        public Vector3 GetPositionLaser()
+        {
+            Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
+#if ENABLE_OCULUS && !UNITY_EDITOR
+                if ((m_armModel != null) && (m_laserPointer != null))
+                {
+                    pos = Utilities.Clone(m_originLaser);
+                }
+#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+                if ((m_armModel != null) && (m_laserPointer != null))
+                {
+                    pos = Utilities.Clone(m_originLaser);
+                }
+#endif
+
+            return pos;
+        }
+
+        // -------------------------------------------
+        /* 
+         * GetForwardLaser
+         */
+        public Vector3 GetForwardLaser()
+        {
+            Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
+#if ENABLE_OCULUS && !UNITY_EDITOR
+                if ((m_armModel != null) && (m_laserPointer != null))
+                {
+                    fwd = Utilities.Clone(m_forwardLaser);
+                }
+#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+                if ((m_armModel != null) && (m_laserPointer != null))
+                {
+                    fwd = Utilities.Clone(m_forwardLaser);
+                }
+#endif
+
+            return fwd;
+        }
+
+
+        // -------------------------------------------
+        /* 
+         * GetForwardPoint
+         */
+        public Vector3 GetForwardPoint(float _distance)
+        {
+            Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
+            Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
+#if ENABLE_OCULUS && !UNITY_EDITOR
+                if ((m_armModel != null) && (m_laserPointer != null))
+                {
+                    pos = Utilities.Clone(m_originLaser);
+                    fwd = Utilities.Clone(m_forwardLaser);
+                }
+#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+                if ((m_armModel != null) && (m_laserPointer != null))
+                {
+                    pos = Utilities.Clone(m_originLaser);
+                    fwd = Utilities.Clone(m_forwardLaser);
+                }
+#endif
+
+            return pos + fwd * _distance;
+        }
+
+        // -------------------------------------------
+        /* 
+         * CheckRaycastAgainst
+         */
+        public GameObject CheckRaycastAgainst(params string[] _layers)
+        {
+            Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
+            Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
+#if ENABLE_OCULUS && !UNITY_EDITOR
+                if ((m_armModel != null) && (m_laserPointer != null))
+                {
+                    pos = Utilities.Clone(m_originLaser);
+                    fwd = Utilities.Clone(m_forwardLaser);
+                }
+#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+                if ((m_armModel != null) && (m_laserPointer != null))
+                {
+                    pos = Utilities.Clone(m_originLaser);
+                    fwd = Utilities.Clone(m_forwardLaser);
+                }
+#endif
+
+            RaycastHit raycastHit = new RaycastHit();
+            if (Utilities.GetRaycastHitInfoByRayWithMask(pos, fwd, ref raycastHit, _layers))
+            {
+                return raycastHit.collider.gameObject;
+            }
+            return null;
+        }
+
+        // -------------------------------------------
+        /* 
          * SetAMarkerSignal
          */
         protected virtual void SetAMarkerSignal()
