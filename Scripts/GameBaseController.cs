@@ -1109,7 +1109,6 @@ namespace PartyCritical
                 }
                 else
                 {
-                    PlayerSoundWithNewLevel();
                     if (GameObject.FindObjectOfType<ScreenBaseDirectorView>() == null)
                     {
                         Instantiate(DirectorScreen);
@@ -1119,6 +1118,10 @@ namespace PartyCritical
                     }
                 }
             }
+            if (m_directorMode || (m_totalNumberPlayers == 1))
+            {
+                PlayerSoundWithNewLevel();
+            }                
             bool previousStateIsFirstTimeRun = m_isFirstTimeRun;
             m_isFirstTimeRun = false;
             return previousStateIsFirstTimeRun;

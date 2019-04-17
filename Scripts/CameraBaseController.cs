@@ -745,6 +745,29 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+         * InitialPositionCameraDirector
+         */
+        protected virtual void InitialPositionCameraDirector()
+        {
+            if (!m_twoFingersHasBeenPressedOnce)
+            {
+                if (!EnableARCore)
+                {
+                    this.gameObject.transform.position = new Vector3(6.1f, 7.4f, -5.1f);
+                    CameraLocal.forward = new Vector3(-0.6f, -0.7f, 0.4f);
+                }
+                else
+                {
+                    m_twoFingersHasBeenPressedOnce = true;
+                }
+#if UNITY_EDITOR
+                m_twoFingersHasBeenPressedOnce = true;
+#endif
+            }
+        }
+
+        // -------------------------------------------
+        /* 
          * ProcessInputDirector
          */
         protected virtual void ProcessInputDirector()
@@ -801,21 +824,7 @@ namespace PartyCritical
             }
 #endif
 
-            if (!m_twoFingersHasBeenPressedOnce)
-            {
-                if (!EnableARCore)
-                {
-                    this.gameObject.transform.position = new Vector3(6.1f, 7.4f, -5.1f);
-                    CameraLocal.forward = new Vector3(-0.6f, -0.7f, 0.4f);
-                }
-                else
-                {
-                    m_twoFingersHasBeenPressedOnce = true;
-                }
-#if UNITY_EDITOR
-                m_twoFingersHasBeenPressedOnce = true;
-#endif
-            }
+            InitialPositionCameraDirector();
 
             // USE ARROW KEYS TO MOVE
             if (!twoFingersInScreen)
@@ -877,6 +886,41 @@ namespace PartyCritical
 				}
 			}
             */
+        }
+
+        // -------------------------------------------
+        /* 
+         * CreateNewElementInRaycast
+         */
+        public void CreateNewElementInRaycastLayer(string _eventElement, float _height, string _layer)
+        {
+            Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
+            Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
+#if ENABLE_OCULUS && !UNITY_EDITOR
+                if ((m_armModel != null) && (m_laserPointer != null))
+                {
+                    pos = Utilities.Clone(m_originLaser);
+                    fwd = Utilities.Clone(m_forwardLaser);
+                }
+#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+                if ((m_armModel != null) && (m_laserPointer != null))
+                {
+                    pos = Utilities.Clone(m_originLaser);
+                    fwd = Utilities.Clone(m_forwardLaser);
+                }
+#endif
+
+            // RAYCAST TO FLOOR TO CREATE A NEW ENEMY
+            RaycastHit raycastHit = new RaycastHit();
+            if (Utilities.GetRaycastHitInfoByRayWithMask(pos, fwd, ref raycastHit, _layer))
+            {
+                Vector3 positionNewElement = Utilities.Clone(raycastHit.point);
+                positionNewElement.y += _height;
+                string x = positionNewElement.x.ToString();
+                string y = positionNewElement.y.ToString();
+                string z = positionNewElement.z.ToString();
+                NetworkEventController.Instance.DispatchNetworkEvent(_eventElement, x, y, z);
+            }
         }
 
         // -------------------------------------------
