@@ -368,9 +368,9 @@ namespace PartyCritical
             }
             else
             {
-                // m_runUpdate = true;
                 if (!m_isThereButtons)
                 {
+                    m_runUpdate = true;
                     StartCoroutine(ShowSplashDelay());
                 }
             }
