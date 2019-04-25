@@ -360,7 +360,7 @@ namespace PartyCritical
 		 */
         protected void CreateWelcomeScreen()
 		{
-            UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_INFORMATION_SCREEN, ScreenInformationView.SCREEN_INFORMATION, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, LanguageController.Instance.GetText("message.info"), LanguageController.Instance.GetText("message.welcome.deadmatch.example"), null, "");
+            UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_INFORMATION_SCREEN, ScreenInformationView.SCREEN_INFORMATION, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, LanguageController.Instance.GetText("message.info"), LanguageController.Instance.GetText("message.welcome"), null, "");
         }
 
         // -------------------------------------------
