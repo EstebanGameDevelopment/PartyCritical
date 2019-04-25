@@ -325,33 +325,6 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
-         * Daydream logic
-         */
-        protected virtual void LogicDaydream6DOF()
-        {
-#if ENABLE_WORLDSENSE && !UNITY_EDITOR
-            this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
-            this.gameObject.GetComponent<Rigidbody>().useGravity = true;
-            this.gameObject.GetComponent<Collider>().isTrigger = false;
-
-            Vector3 posWorld = Utilities.Clone(CameraLocal.transform.localPosition);
-            Vector3 centerLevel = new Vector3(0, transform.position.y, 0);
-            transform.position = centerLevel + new Vector3(posWorld.x * ScaleMovementXZ,
-												0,
-                                                posWorld.z * ScaleMovementXZ);
-            CameraLocal.transform.parent.localPosition = -new Vector3(CameraLocal.transform.localPosition.x, CAMERA_SHIFT_HEIGHT_WORLDSENSE - (posWorld.y * ScaleMovementY), CameraLocal.transform.localPosition.z);
-#else
-            if (!DirectorMode)
-            {
-                this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
-                this.gameObject.GetComponent<Rigidbody>().useGravity = true;
-                this.gameObject.GetComponent<Collider>().isTrigger = false;
-            }
-#endif
-        }
-
-        // -------------------------------------------
-        /* 
          * MoveCamera
          */
         protected void MoveCamera()
@@ -1219,6 +1192,34 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+         * Daydream logic
+         */
+        protected virtual void LogicDaydream6DOF()
+        {
+#if ENABLE_WORLDSENSE && !UNITY_EDITOR
+            this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
+            this.gameObject.GetComponent<Rigidbody>().useGravity = true;
+            this.gameObject.GetComponent<Collider>().isTrigger = false;
+
+            Vector3 posWorld = Utilities.Clone(CameraLocal.transform.localPosition);
+            Vector3 centerLevel = new Vector3(0, transform.position.y, 0);
+            transform.position = centerLevel + new Vector3(posWorld.x * ScaleMovementXZ,
+												0,
+                                                posWorld.z * ScaleMovementXZ);
+            Vector3 shiftToRecenter = -new Vector3(CameraLocal.transform.localPosition.x, CAMERA_SHIFT_HEIGHT_WORLDSENSE - (posWorld.y * ScaleMovementY), CameraLocal.transform.localPosition.z);
+            CameraLocal.transform.parent.localPosition = shiftToRecenter;
+#else
+            if (!DirectorMode)
+            {
+                this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
+                this.gameObject.GetComponent<Rigidbody>().useGravity = true;
+                this.gameObject.GetComponent<Collider>().isTrigger = false;
+            }
+#endif
+        }
+
+        // -------------------------------------------
+        /* 
          * UpdateDefaultLogic
          */
         protected virtual void UpdateDefaultLogic()
@@ -1267,6 +1268,20 @@ namespace PartyCritical
         protected virtual bool IsGameLoading()
         {
             return false;
+        }
+
+        // -------------------------------------------
+        /* 
+		 * Update
+		 */
+        void LateUpdate()
+        {
+#if ENABLE_WORLDSENSE && !UNITY_EDITOR
+            if (ShotgunContainer != null)
+            {
+                ShotgunContainer.transform.rotation = Quaternion.identity;
+            }
+#endif
         }
 
         // -------------------------------------------
