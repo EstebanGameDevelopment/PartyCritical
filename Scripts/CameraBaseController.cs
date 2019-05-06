@@ -473,6 +473,36 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+         * GetCollisionPointOfLaser
+         */
+        public virtual Vector3 GetCollisionPointOfLaser(params string[] _layerIgnore)
+        {
+            Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
+            Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
+#if ENABLE_OCULUS && !UNITY_EDITOR
+                if ((m_armModel != null) && (m_laserPointer != null))
+                {
+                    pos = Utilities.Clone(m_originLaser);
+                    fwd = Utilities.Clone(m_forwardLaser);
+                }
+#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+                if ((m_armModel != null) && (m_laserPointer != null))
+                {
+                    pos = Utilities.Clone(m_originLaser);
+                    fwd = Utilities.Clone(m_forwardLaser);
+                }
+#endif
+
+            RaycastHit raycastHit = new RaycastHit();
+            if (Utilities.GetRaycastHitInfoByRay(pos, fwd, ref raycastHit, _layerIgnore))
+            {
+                return Utilities.Clone(raycastHit.point);
+            }
+            return Vector3.zero;
+        }
+
+        // -------------------------------------------
+        /* 
          * ActionShootPlayer
          */
         protected virtual void ActionShootPlayer()
@@ -515,32 +545,129 @@ namespace PartyCritical
          */
         protected virtual void OpenInventory()
         {
+            if (m_timeoutPressed > TIMEOUT_TO_INVENTORY)
+            {
+                m_timeoutPressed = 0;
 #if (ENABLE_WORLDSENSE || ENABLE_OCULUS) && !UNITY_EDITOR && ENABLE_MULTIPLAYER_TIMELINE
-            if (GameObject.FindObjectOfType<ScreenInventoryView>() == null)
-            {
-                UIEventController.Instance.DispatchUIEvent(GameLevelData.EVENT_GAMELEVELDATA_OPEN_INVENTORY);
-            }                            
-#elif UNITY_EDITOR && ENABLE_MULTIPLAYER_TIMELINE
-            if (GameObject.FindObjectOfType<ScreenInventoryView>() == null)
-            {
-                UIEventController.Instance.DispatchUIEvent(GameLevelData.EVENT_GAMELEVELDATA_OPEN_INVENTORY);
-            }
-#else
-#if ENABLE_MULTIPLAYER_TIMELINE
-            if (!EnableARCore)
-            {
-                BasicSystemEventController.Instance.DispatchBasicSystemEvent(GameLevelData.EVENT_GAMELEVELDATA_REQUEST_COLLISION_RAY, this);
-            }
-            else
-            {
-
                 if (GameObject.FindObjectOfType<ScreenInventoryView>() == null)
                 {
                     UIEventController.Instance.DispatchUIEvent(GameLevelData.EVENT_GAMELEVELDATA_OPEN_INVENTORY);
-                }              
+                }                            
+#elif UNITY_EDITOR && ENABLE_MULTIPLAYER_TIMELINE
+                if (GameObject.FindObjectOfType<ScreenInventoryView>() == null)
+                {
+                    UIEventController.Instance.DispatchUIEvent(GameLevelData.EVENT_GAMELEVELDATA_OPEN_INVENTORY);
+                }
+#else
+#if ENABLE_MULTIPLAYER_TIMELINE
+                if (!EnableARCore)
+                {
+                    BasicSystemEventController.Instance.DispatchBasicSystemEvent(GameLevelData.EVENT_GAMELEVELDATA_REQUEST_COLLISION_RAY, this);
+                }
+                else
+                {
+
+                    if (GameObject.FindObjectOfType<ScreenInventoryView>() == null)
+                    {
+                        UIEventController.Instance.DispatchUIEvent(GameLevelData.EVENT_GAMELEVELDATA_OPEN_INVENTORY);
+                    }              
+                }
+#endif
+#endif
+            }
+        }
+
+        // -------------------------------------------
+        /* 
+        * RunOnMoveTimeoutPressed
+        */
+        protected virtual void RunMoveOnTimeoutPressed()
+        {
+#if (UNITY_EDITOR || (!ENABLE_OCULUS && !ENABLE_WORLDSENSE))
+            if (m_timeoutToMove >= TIMEOUT_TO_MOVE)
+			{
+                bool allowMovement = !EnableARCore;
+#if UNITY_EDITOR
+                allowMovement = true;
+#endif
+                if (allowMovement)
+				{
+					Vector3 normalForward = CameraLocal.forward.normalized;
+                    normalForward = new Vector3(normalForward.x, 0, normalForward.z);
+                    transform.GetComponent<Rigidbody>().MovePosition(transform.position + normalForward * PLAYER_SPEED * Time.deltaTime);
+                    UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_DESTROY_ALL_SCREEN);
+                }
             }
 #endif
+        }
+
+        // -------------------------------------------
+        /* 
+        * UpdateTransformShotgun
+        */
+        protected virtual void UpdateTransformShotgun()
+        {
+#if ENABLE_WORLDSENSE || ENABLE_OCULUS
+            if ((m_armModel == null) && (m_laserPointer == null))
+            {
+#if ENABLE_WORLDSENSE
+                if (GameObject.FindObjectOfType<GvrArmModel>() != null) m_armModel = GameObject.FindObjectOfType<GvrArmModel>().gameObject;
+                if (GameObject.FindObjectOfType<GvrControllerVisual>() != null) m_laserPointer = GameObject.FindObjectOfType<GvrControllerVisual>().gameObject;
+#elif ENABLE_OCULUS
+                m_armModel = new GameObject();
+                if (GameObject.FindObjectOfType<OVRTrackedRemote>() != null) m_laserPointer = GameObject.FindObjectOfType<OVRTrackedRemote>().gameObject;
 #endif
+            }
+            if ((m_armModel != null) && (m_laserPointer != null))
+            {
+                m_originLaser = m_laserPointer.transform.position;
+#if ENABLE_WORLDSENSE
+                m_forwardLaser = m_armModel.GetComponent<GvrArmModel>().ControllerRotationFromHead * Vector3.forward;
+#elif ENABLE_OCULUS
+                m_forwardLaser = m_laserPointer.transform.forward;
+#endif
+                m_forwardLaser.Normalize();
+            }
+            m_timeShotgun += Time.deltaTime;
+            if (m_timeShotgun > TIME_UPDATE_SHOTGUN)
+            {
+                m_timeShotgun = 0;
+                SendDataShotgun();
+            }
+#endif
+        }
+
+        // -------------------------------------------
+        /* 
+        * IsThereBlockingScreen
+        */
+        protected virtual bool IsThereBlockingScreen()
+        {
+            // ENABLE DEFAULT INPUTS WHEN THERE ARE SCREEN ACTIVATED
+            if (YourVRUIScreenController.Instance.ScreensTemporal.Count > 0)
+            {
+#if ENABLE_OCULUS
+                KeysEventInputController.Instance.EnableActionButton = false;
+#elif ENABLE_WORLDSENSE
+                KeysEventInputController.Instance.EnableActionButton = true;
+                return true;
+#else
+                KeysEventInputController.Instance.EnableActionButton = true;
+                bool allowBlocking = EnableARCore;
+#if UNITY_EDITOR
+                allowBlocking = false;
+#endif
+                if (allowBlocking || (m_timeoutToMove < 1))
+                {
+                    return true;
+                }                
+#endif
+            }
+            else
+            {
+                KeysEventInputController.Instance.EnableActionButton = false;
+            }
+            return false;
         }
 
         // -------------------------------------------
@@ -549,19 +676,9 @@ namespace PartyCritical
         */
         protected void ProcessInputCustomer()
         {
-            // ENABLE DEFAULT INPUTS WHEN THERE ARE SCREEN ACTIVATED
-            if (YourVRUIScreenController.Instance.ScreensTemporal.Count > 0)
+            if (IsThereBlockingScreen())
             {
-#if ENABLE_OCULUS
-                KeysEventInputController.Instance.EnableActionButton = false;
-#else
-                KeysEventInputController.Instance.EnableActionButton = true;
                 return;
-#endif
-            }
-            else
-            {
-                KeysEventInputController.Instance.EnableActionButton = false;
             }
 
             // INPUTS FOR THE IN-GAME, NOT THE SCREENS
@@ -578,6 +695,9 @@ namespace PartyCritical
                 ActionShootPlayer();
 
                 m_timeoutPressed = 0;
+#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
+                m_timeoutToMove = 0;
+#endif
 
                 // Debug.LogError("KEY UP+++++++++++++++");
                 UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_UP);
@@ -619,6 +739,9 @@ namespace PartyCritical
                  )
             {
                 m_timeoutPressed = 0;
+#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
+                m_timeoutToMove = 0;
+#endif
                 UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_DOWN);
                 SetAMarkerSignal();
             }
@@ -643,54 +766,16 @@ namespace PartyCritical
                 )
             {
                 m_timeoutPressed += Time.deltaTime;
-                if (m_timeoutPressed > TIMEOUT_TO_INVENTORY)
-                {
-                    m_timeoutPressed = 0;
-                    OpenInventory();
-                }
+                OpenInventory();
 
-#if !UNITY_EDITOR && !ENABLE_OCULUS && !ENABLE_WORLDSENSE
-                if ((m_timeoutPressed >= TIMEOUT_TO_MOVE) || (m_timeoutToMove >= TIMEOUT_TO_MOVE))
-				{
-                    if (!EnableARCore)
-					{
-						Vector3 normalForward = CameraLocal.forward.normalized;
-                        normalForward = new Vector3(normalForward.x, 0, normalForward.z);
-                        transform.GetComponent<Rigidbody>().MovePosition(transform.position + normalForward * PLAYER_SPEED * Time.deltaTime);
-					}
-                }
+#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
+                m_timeoutToMove += Time.deltaTime;
 #endif
+                RunMoveOnTimeoutPressed();
             }
 
-
-#if ENABLE_WORLDSENSE || ENABLE_OCULUS
-            if ((m_armModel == null) && (m_laserPointer == null))
-            {
-#if ENABLE_WORLDSENSE
-                if (GameObject.FindObjectOfType<GvrArmModel>() != null) m_armModel = GameObject.FindObjectOfType<GvrArmModel>().gameObject;
-                if (GameObject.FindObjectOfType<GvrControllerVisual>() != null) m_laserPointer = GameObject.FindObjectOfType<GvrControllerVisual>().gameObject;
-#elif ENABLE_OCULUS
-                m_armModel = new GameObject();
-                if (GameObject.FindObjectOfType<OVRTrackedRemote>() != null) m_laserPointer = GameObject.FindObjectOfType<OVRTrackedRemote>().gameObject;
-#endif
-            }
-            if ((m_armModel != null) && (m_laserPointer != null))
-            {
-                m_originLaser = m_laserPointer.transform.position;
-#if ENABLE_WORLDSENSE
-                m_forwardLaser = m_armModel.GetComponent<GvrArmModel>().ControllerRotationFromHead * Vector3.forward;
-#elif ENABLE_OCULUS
-                m_forwardLaser = m_laserPointer.transform.forward;
-#endif
-                m_forwardLaser.Normalize();
-            }
-            m_timeShotgun += Time.deltaTime;
-            if (m_timeShotgun > TIME_UPDATE_SHOTGUN)
-            {
-                m_timeShotgun = 0;
-                SendDataShotgun();
-            }
-#endif
+            // SHOTGUN
+            UpdateTransformShotgun();
         }
 
         // -------------------------------------------
