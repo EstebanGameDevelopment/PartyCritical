@@ -172,7 +172,7 @@ namespace PartyCritical
                         Vector3 pc = Utilities.Clone(raycastHit.point);
                         for (int i = 0; i < States.Length; i++)
                         {
-                            if (States[i] == raycastHit.collider.gameObject)
+                            if (Utilities.FindGameObjectInParent(raycastHit.collider.gameObject, States[i]))
                             {
                                 NetworkEventController.Instance.DispatchNetworkEvent(EVENT_NETWORKSWITCHSTATE_INCREASE_STATE, this.gameObject.name);
                                 return;

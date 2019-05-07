@@ -31,6 +31,7 @@ namespace PartyCritical
         public const string EVENT_GAMECONTROLLER_MARKER_BALL                = "EVENT_GAMECONTROLLER_MARKER_BALL";
         public const string EVENT_GAMECONTROLLER_REQUEST_IS_GAME_RUNNING    = "EVENT_GAMECONTROLLER_REQUEST_IS_GAME_RUNNING";
         public const string EVENT_GAMECONTROLLER_RESPONSE_IS_GAME_RUNNING   = "EVENT_GAMECONTROLLER_RESPONSE_IS_GAME_RUNNING";
+        public const string EVENT_GAMECONTROLLER_SELECT_SKYBOX              = "EVENT_GAMECONTROLLER_SELECT_SKYBOX";
 
         public const string SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL = "SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL";
 
@@ -827,6 +828,20 @@ namespace PartyCritical
             if (_nameEvent == EVENT_GAMECONTROLLER_REQUEST_IS_GAME_RUNNING)
             {
                 BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_GAMECONTROLLER_RESPONSE_IS_GAME_RUNNING, IsGameFakeRunning());
+            }
+            if (_nameEvent == EVENT_GAMECONTROLLER_SELECT_SKYBOX)
+            {
+                int selectedSkybox = (int)_list[0];
+                if (SkyboxesLevels != null)
+                {
+                    if (m_currentLevel < SkyboxesLevels.Length)
+                    {
+                        if (SkyboxesLevels[selectedSkybox] != null)
+                        {
+                            RenderSettings.skybox = SkyboxesLevels[selectedSkybox];
+                        }
+                    }
+                }
             }
         }
 
