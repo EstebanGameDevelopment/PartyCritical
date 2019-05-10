@@ -656,10 +656,10 @@ namespace PartyCritical
                 int nextLevelToLoad = int.Parse((string)_list[0]);
                 if (m_currentLevel != nextLevelToLoad)
                 {
+                    CreateLoadingScreen();
                     if (YourNetworkTools.Instance.IsServer)
                     {
                         m_currentLevel = nextLevelToLoad;
-                        CreateLoadingScreen();
                         NetworkEventController.Instance.PriorityDelayNetworkEvent(EVENT_GAMECONTROLLER_NUMBER_LEVEL_TO_LOAD, 0.5f, m_currentLevel.ToString());
                     }
                 }
@@ -778,6 +778,21 @@ namespace PartyCritical
                 markerBall.transform.position = posMarker;
             }
 
+            if (_nameEvent == EVENT_GAMECONTROLLER_SELECT_SKYBOX)
+            {
+                int selectedSkybox = int.Parse((string)_list[0]);
+                if (SkyboxesLevels != null)
+                {
+                    if (m_currentLevel < SkyboxesLevels.Length)
+                    {
+                        if (SkyboxesLevels[selectedSkybox] != null)
+                        {
+                            RenderSettings.skybox = SkyboxesLevels[selectedSkybox];
+                        }
+                    }
+                }
+            }
+
             OnNetworkEventEnemy(_nameEvent, _isLocalEvent, _networkOriginID, _networkTargetID, _list);
         }
 
@@ -828,20 +843,6 @@ namespace PartyCritical
             if (_nameEvent == EVENT_GAMECONTROLLER_REQUEST_IS_GAME_RUNNING)
             {
                 BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_GAMECONTROLLER_RESPONSE_IS_GAME_RUNNING, IsGameFakeRunning());
-            }
-            if (_nameEvent == EVENT_GAMECONTROLLER_SELECT_SKYBOX)
-            {
-                int selectedSkybox = (int)_list[0];
-                if (SkyboxesLevels != null)
-                {
-                    if (m_currentLevel < SkyboxesLevels.Length)
-                    {
-                        if (SkyboxesLevels[selectedSkybox] != null)
-                        {
-                            RenderSettings.skybox = SkyboxesLevels[selectedSkybox];
-                        }
-                    }
-                }
             }
         }
 
