@@ -293,6 +293,30 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+         * IsShortCutEnabled
+         */
+        protected bool IsShortCutEnabled()
+        {
+            bool isShortcutEnabled = false;
+#if ENABLE_PLAYER_WORLDSENSE
+            isShortcutEnabled = true;
+#elif ENABLE_PLAYER_ARCORE
+            isShortcutEnabled = true;
+#elif ENABLE_PLAYER_GYRO
+            isShortcutEnabled = true;
+#elif ENABLE_PLAYER_NOARCORE
+            isShortcutEnabled = true;
+#elif ENABLE_DIRECTOR_JOIN
+            isShortcutEnabled = true;
+#elif ENABLE_SPECTATOR
+            isShortcutEnabled = true;
+#endif
+
+            return isShortcutEnabled;
+        }
+
+        // -------------------------------------------
+        /* 
          * InitializeWithShortcut
          */
         protected void InitializeWithShortcut(string _configData)
@@ -337,34 +361,48 @@ namespace PartyCritical
             m_configData = localConfigData;
             ParseConfigData(m_configData);
 
+            InitializeSecondPhase(delayShortcutSplash);
+
+#if ENABLE_OCULUS || ENABLE_WORLDSENSE
+            KeysEventInputController.Instance.EnableActionOnMouseDown = false;
+            UIEventController.Instance.DispatchUIEvent(EventSystemController.EVENT_EVENTSYSTEMCONTROLLER_RAYCASTING_SYSTEM, false);
+#endif
+        }
+
+        // -------------------------------------------
+        /* 
+        * InitializeSecondPhase
+        */
+        protected virtual void InitializeSecondPhase(float _delayShortcutSplash)
+        {
             if (m_enablePlayerWorldsense)
             {
                 m_runUpdate = false;
-                Invoke("Direct2PlayerGame", delayShortcutSplash);
+                Invoke("Direct2PlayerGame", _delayShortcutSplash);
             }
             else
             if (m_enablePlayerARCore)
             {
                 m_runUpdate = false;
-                Invoke("JoinAsOtherPlayerGame_ARCore", delayShortcutSplash);
+                Invoke("JoinAsOtherPlayerGame_ARCore", _delayShortcutSplash);
             }
             else
             if (m_enablePlayerGyro)
             {
                 m_runUpdate = false;
-                Invoke("JoinAsOtherPlayerGame_Gyro", delayShortcutSplash);
+                Invoke("JoinAsOtherPlayerGame_Gyro", _delayShortcutSplash);
             }
             else
             if (m_enablePlayerNoARCore)
             {
                 m_runUpdate = false;
-                Invoke("JoinAsOtherPlayerGame_NoARCore", delayShortcutSplash);
+                Invoke("JoinAsOtherPlayerGame_NoARCore", _delayShortcutSplash);
             }
             else
             if (m_enableDirectorJoin || m_enableSpectator)
             {
                 m_runUpdate = false;
-                Invoke("JoinAsDirectorGame", delayShortcutSplash);
+                Invoke("JoinAsDirectorGame", _delayShortcutSplash);
             }
             else
             {
@@ -374,11 +412,6 @@ namespace PartyCritical
                     StartCoroutine(ShowSplashDelay());
                 }
             }
-
-#if ENABLE_OCULUS || ENABLE_WORLDSENSE
-            KeysEventInputController.Instance.EnableActionOnMouseDown = false;
-            UIEventController.Instance.DispatchUIEvent(EventSystemController.EVENT_EVENTSYSTEMCONTROLLER_RAYCASTING_SYSTEM, false);
-#endif
         }
 
         // -------------------------------------------
@@ -659,7 +692,7 @@ namespace PartyCritical
         /* 
 		 * Constructor
 		 */
-        IEnumerator ShowSplashDelay()
+        public IEnumerator ShowSplashDelay()
         {
             yield return new WaitForSeconds(5);
             Destroy();
@@ -783,6 +816,16 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		 * CustomInitializeWithShortCut
+		 */
+        protected virtual void CustomInitializeWithShortCut(string _data)
+        {
+            m_runUpdate = true;
+            InitializeWithShortcut(_data);
+        }
+
+        // -------------------------------------------
+        /* 
 		 * OnBasicSystemEvent
 		 */
         protected void OnBasicSystemEvent(string _nameEvent, object[] _list)
@@ -793,9 +836,8 @@ namespace PartyCritical
                 if ((bool)_list[0])
                 {
                     if ((long)_list[1] > 0)
-                    {   
-                        m_runUpdate = true;
-                        InitializeWithShortcut((string)_list[2]);
+                    {
+                        CustomInitializeWithShortCut((string)_list[2]);
                     }
                 }
             }
@@ -804,9 +846,9 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
-        * Update
+        * CustomUpdate
         */
-        public void Update()
+        protected virtual void CustomUpdate()
         {
 #if ENABLE_WORLDSENSE || ENABLE_OCULUS
             if (m_runUpdate)
@@ -842,6 +884,15 @@ namespace PartyCritical
                 }
             }
 #endif
+        }
+
+        // -------------------------------------------
+        /* 
+        * Update
+        */
+        public void Update()
+        {
+            CustomUpdate();
         }
     }
 }
