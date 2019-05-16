@@ -28,6 +28,11 @@ namespace PartyCritical
         public const string SCREEN_NAME = "SCREEN_SPLASH";
 
         // ----------------------------------------------
+        // EVENTS
+        // ----------------------------------------------	
+        public const string EVENT_SPLASHBASE_REPORT_LOGIN_INFO = "EVENT_SPLASHBASE_REPORT_LOGIN_INFO";
+
+        // ----------------------------------------------
         // CONSTANTS
         // ----------------------------------------------	
         public const int SHORTCUT_CREATE_GAME_AS_WORLDSENSE_PLAYER  = 0;
@@ -46,6 +51,7 @@ namespace PartyCritical
         protected const string CTE_ENABLE_SOCKET                = "#ENABLE_SOCKET_";
         protected const string CTE_LEVEL_                       = "#LEVEL_";
         protected const string CTE_PLAYER_                      = "#PLAYER_";
+        protected const string CTE_LOGIN_                       = "#LOGIN_";
 
         protected const string CTE_ENABLE_AUGMENTED             = "#ENABLE_AUGMENTED";
 
@@ -231,7 +237,7 @@ namespace PartyCritical
             m_enablePlayerNoARCore = (_configData.IndexOf(CTE_ENABLE_PLAYER_NOARCORE) != -1);
             m_enableDirectorJoin = (_configData.IndexOf(CTE_ENABLE_DIRECTOR_JOIN) != -1);
             m_enableSpectator = (_configData.IndexOf(CTE_ENABLE_SPECTATOR) != -1);
-
+            
             m_enableSocket = (_configData.IndexOf(CTE_ENABLE_SOCKET) != -1);
             if (m_enableSocket)
             {
@@ -288,6 +294,24 @@ namespace PartyCritical
             else
             {
                 return 0;
+            }
+        }
+
+
+        // -------------------------------------------
+        /* 
+		 * ParseLogin
+		 */
+        protected void ParseLogin(string _configData)
+        {
+            if (_configData.IndexOf(CTE_LOGIN_) != -1)
+            {
+                int indexLoginData = _configData.IndexOf(CTE_LOGIN_) + CTE_LOGIN_.Length;
+                string[] loginData = (_configData.Substring(indexLoginData, _configData.Length - indexLoginData)).Split('_');
+                if (loginData.Length == 2)
+                {
+                    BasicSystemEventController.Instance.DelayBasicSystemEvent(EVENT_SPLASHBASE_REPORT_LOGIN_INFO, 1, loginData[0], loginData[1]);
+                }
             }
         }
 
@@ -358,8 +382,14 @@ namespace PartyCritical
             localConfigData += "#ENABLE_SOCKET_localhost_7890_";
 #endif
 
+#if ENABLE_LOGIN
+            localConfigData += "#LOGIN_esteban@yourvrexperience.com_mierda";
+#endif
+
             m_configData = localConfigData;
             ParseConfigData(m_configData);
+
+            ParseLogin(m_configData);
 
             InitializeSecondPhase(delayShortcutSplash);
 
@@ -828,7 +858,7 @@ namespace PartyCritical
         /* 
 		 * OnBasicSystemEvent
 		 */
-        protected void OnBasicSystemEvent(string _nameEvent, object[] _list)
+        protected virtual void OnBasicSystemEvent(string _nameEvent, object[] _list)
         {
 #if ENABLE_VALIDATION
             if (_nameEvent == VRPartyValidationController.EVENT_VRPARTYVALIDATION_RESPONSE_ACCESS)
