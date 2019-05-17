@@ -22,6 +22,7 @@ namespace PartyCritical
         public const string EVENT_CAMERACONTROLLER_REQUEST_SELECTOR_DATA    = "EVENT_CAMERACONTROLLER_REQUEST_SELECTOR_DATA";
         public const string EVENT_CAMERACONTROLLER_RESPONSE_SELECTOR_DATA   = "EVENT_CAMERACONTROLLER_RESPONSE_SELECTOR_DATA";
         public const string EVENT_CAMERACONTROLLER_DATA_SHOTGUN             = "EVENT_CAMERACONTROLLER_DATA_SHOTGUN";
+        public const string EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION = "EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION";
         public const string EVENT_GAMECAMERA_REAL_PLAYER_FORWARD            = "EVENT_GAMECAMERA_REAL_PLAYER_FORWARD";
         
         public const string MARKER_NAME = "MARKER";
@@ -61,6 +62,8 @@ namespace PartyCritical
 
         protected bool m_enableShootAction = true;
         protected bool m_ignoreNextShootAction = false;
+
+        protected bool m_enabledCameraInput = true;
 
 #if ENABLE_WORLDSENSE || ENABLE_OCULUS
         protected GameObject m_armModel;
@@ -163,7 +166,7 @@ namespace PartyCritical
         {
             get { return -1; }
         }
-
+        
         // -------------------------------------------
         /* 
 		 * InitialitzationLaserPointer
@@ -742,8 +745,11 @@ namespace PartyCritical
 #if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
                 m_timeoutToMove = 0;
 #endif
-                UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_DOWN);
-                SetAMarkerSignal();
+                if (m_enabledCameraInput)
+                {
+                    UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_DOWN);
+                    SetAMarkerSignal();
+                }
             }
 #endif
 
@@ -1159,6 +1165,10 @@ namespace PartyCritical
                 this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
                 this.gameObject.GetComponent<Rigidbody>().useGravity = true;
                 this.gameObject.GetComponent<Collider>().isTrigger = false;
+            }
+            if (_nameEvent == EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION)
+            {
+                m_enabledCameraInput = (bool)_list[0];
             }
 
 #if ENABLE_MULTIPLAYER_TIMELINE
