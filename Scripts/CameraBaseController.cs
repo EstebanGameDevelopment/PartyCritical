@@ -683,15 +683,15 @@ namespace PartyCritical
             {
                 return;
             }
-
+            
             // INPUTS FOR THE IN-GAME, NOT THE SCREENS
             if (false
 #if ENABLE_OCULUS && !UNITY_EDITOR
-                || (OVRInput.GetUp(OVRInput.Button.PrimaryIndexTrigger))
+                || KeysEventInputController.Instance.GetActionOculusController(false)
 #elif ENABLE_WORLDSENSE && !UNITY_EDITOR
-                || (KeysEventInputController.Instance.GetActionDaydreamController(false))
+                || KeysEventInputController.Instance.GetActionDaydreamController(false)
 #else
-                || Input.GetMouseButtonUp(0) || Input.GetKeyUp(KeyCode.Z) || Input.GetButtonUp("Fire1")
+                || KeysEventInputController.Instance.GetActionDefaultController(false)
 #endif
                 )
             {
@@ -702,16 +702,36 @@ namespace PartyCritical
                 m_timeoutToMove = 0;
 #endif
 
-                // Debug.LogError("KEY UP+++++++++++++++");
+#if ENABLE_OCULUS && !UNITY_EDITOR
+                if (KeysEventInputController.Instance.EnableActionOnMouseDown)
+                {
+                    UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_UP);
+                }
+                else
+                {
+                    UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_DOWN);
+                }
+#else
                 UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_UP);
+#endif
             }
 
 #if ENABLE_OCULUS && !UNITY_EDITOR
             if (OVRInput.GetDown(OVRInput.Button.PrimaryIndexTrigger))
             {
                 m_timeoutPressed = 0;
-                UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_DOWN);
-                SetAMarkerSignal();
+                if (KeysEventInputController.Instance.EnableActionOnMouseDown)
+                {
+                    UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_DOWN);
+                }
+                else
+                {
+                    UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_SET_ANCHOR_POSITION);
+                }
+                if (YourVRUIScreenController.Instance.ScreensTemporal.Count == 0)
+                {
+                    SetAMarkerSignal();
+                }
             }
             if (OVRInput.GetDown(OVRInput.Button.PrimaryTouchpad))
             {
@@ -737,7 +757,7 @@ namespace PartyCritical
 #if ENABLE_WORLDSENSE && !UNITY_EDITOR
                 || (KeysEventInputController.Instance.GetActionDaydreamController(true))
 #else
-                || Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Z) || Input.GetButtonDown("Fire1")
+                || KeysEventInputController.Instance.GetActionDefaultController(true)
 #endif
                  )
             {
@@ -746,7 +766,7 @@ namespace PartyCritical
                 m_timeoutToMove = 0;
 #endif
                 if (m_enabledCameraInput)
-                {
+                {                    
                     UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_DOWN);
                     SetAMarkerSignal();
                 }
