@@ -11,7 +11,13 @@ using VRPartyValidation;
 
 namespace PartyCritical
 {
-	public class GameBaseController : ScreenController
+    /******************************************
+     * 
+     * GameBaseController
+     * 
+     * @author Esteban Gallardo
+     */
+    public class GameBaseController : ScreenController
 	{
         public const bool DEBUG = false;
 
@@ -458,7 +464,14 @@ namespace PartyCritical
                         m_positionReference = Utilities.Clone(LevelReference.transform.position);
                         GameObject.Destroy(LevelReference);
                     }
-                    m_level.transform.position = m_positionReference;                    
+                    m_level.transform.position = m_positionReference;
+
+#if ENABLE_GOOGLE_ARCORE
+                    if (EnableARCore)
+                    {
+                        m_level.transform.position = new Vector3(10000, 10000, 10000);
+                    }
+#endif
 
                     // Debug.LogError("NEW LEVEL LOADED[" + m_level.name + "]!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                     // WE SEND A MESSAGE THAT THE LEVEL HAS BEEN LOADED WHEN EVERYTHING HAS BEEN INITIALIZED WITH "START"
@@ -647,6 +660,10 @@ namespace PartyCritical
         */
         protected virtual void OnNetworkEvent(string _nameEvent, bool _isLocalEvent, int _networkOriginID, int _networkTargetID, params object[] _list)
 		{
+            if (_nameEvent == ClientTCPEventsController.EVENT_CLIENT_TCP_CLOSE_CURRENT_ROOM)
+            {
+                UIEventController.Instance.DispatchUIEvent(MenuScreenController.EVENT_FORCE_DESTRUCTION_POPUP);
+            }
             if (_nameEvent == CloudGameAnchorController.EVENT_6DOF_REQUEST_LEVEL_NUMBER)
             {
                 NetworkEventController.Instance.PriorityDelayNetworkEvent(CloudGameAnchorController.EVENT_6DOF_RESPONSE_LEVEL_NUMBER, 0.1f, m_currentLevel.ToString(), m_totalNumberOfLevels.ToString());
@@ -742,7 +759,11 @@ namespace PartyCritical
                     if ((isDirector) || ((m_totalNumberPlayers <= m_playersReady.Count) && (m_totalNumberPlayers != MultiplayerConfiguration.VALUE_FOR_JOINING)))
                     {
                         m_totalNumberPlayers = m_playersReady.Count;
+#if ENABLE_CONFUSION
+                        NetworkEventController.Instance.DelayLocalEvent(ClientTCPEventsController.EVENT_CLIENT_TCP_CLOSE_CURRENT_ROOM, 0.2f);
+#else
                         NetworkEventController.Instance.PriorityDelayNetworkEvent(ClientTCPEventsController.EVENT_CLIENT_TCP_CLOSE_CURRENT_ROOM, 0.2f);
+#endif
 
                         // Debug.LogError("EVENT_SYSTEM_INITIALITZATION_REMOTE_COMPLETED::START RUNNING***********************************");
 #if FORCE_REPOSITION
@@ -753,7 +774,7 @@ namespace PartyCritical
                     }
                 }
 #endif
-            }
+                    }
             if (_nameEvent == EVENT_GAMECONTROLLER_COLLIDED_REPOSITION_BALL)
             {
                 int networkID = int.Parse((string)_list[0]);
@@ -809,6 +830,11 @@ namespace PartyCritical
                 {
                     NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), IsRealDirectorMode.ToString());
                 }
+                if (EnableARCore)
+                {
+                    m_level.transform.position = m_positionReference;
+                }
+
 #if FORCE_GAME
                 SetState(STATE_RUNNING);
 #elif !UNITY_EDITOR
@@ -979,7 +1005,11 @@ namespace PartyCritical
             int timelineID = YourNetworkTools.Instance.GetUniversalNetworkID();
             if (YourNetworkTools.Instance.IsLocalGame)
             {
+#if !ENABLE_CONFUSION
                 timelineID = (timelineID - (int)(CommunicationsController.Instance.NetworkID / 2));
+#else
+                timelineID = (timelineID - (int)(1 / 2));
+#endif
             }
 
             if (m_directorMode)
@@ -1032,9 +1062,12 @@ namespace PartyCritical
 
                 // TO FORCE REPOSITION ON EDITOR
                 // initialData = m_namePlayer + "," + NameModelPrefab[m_characterSelected] + "," + 0 + "," + initialPosition.y + "," + 0;
-
+#if !ENABLE_CONFUSION
                 YourNetworkTools.Instance.CreateLocalNetworkObject(PlayerPrefab[m_characterSelected].name, initialData, false);
                 YourNetworkTools.Instance.ActivateTransformUpdate = true;
+#else
+                GameObject myOwnPlayer = Instantiate(PlayerPrefab[m_characterSelected]);
+#endif
                 YourVRUIScreenController.Instance.DestroyScreens();
                 if (!m_enableARCore)
                 {

@@ -34,6 +34,7 @@ namespace PartyCritical
         public GameObject OVRPlayer;
         public GameObject CenterEyeAnchor;
         public GameObject ShotgunContainer;
+        public GameObject SubContainerCamera;
 
         public float ScaleMovementXZ = 4;
         public float ScaleMovementY = 2;
@@ -235,16 +236,17 @@ namespace PartyCritical
                     if (this.gameObject.GetComponentInChildren<ARCoreBackgroundRenderer>() != null)
                     {
                         this.gameObject.GetComponentInChildren<ARCoreBackgroundRenderer>().enabled = false;
-                        this.gameObject.GetComponentInChildren<Skybox>().enabled = true;
+                        if (this.gameObject.GetComponentInChildren<Skybox>() != null) this.gameObject.GetComponentInChildren<Skybox>().enabled = true;
                     }
                 }
                 else
                 {
-                    this.gameObject.GetComponentInChildren<Skybox>().enabled = false;
+                    if (this.gameObject.GetComponentInChildren<Skybox>() != null) this.gameObject.GetComponentInChildren<Skybox>().enabled = false;
                 }
 #else
                 if (this.gameObject.GetComponentInChildren<Skybox>()!=null) this.gameObject.GetComponentInChildren<Skybox>().enabled = true;
 #endif
+
             }
             else
             {
@@ -273,7 +275,13 @@ namespace PartyCritical
             }
 
 #if !ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS
-            CameraLocal.GetComponent<Camera>().enabled = true;
+            if (CameraLocal != null)
+            {
+                if (CameraLocal.GetComponent<Camera>() != null)
+                {
+                    CameraLocal.GetComponent<Camera>().enabled = true;
+                }
+            }            
 #endif
         }
 
@@ -1058,7 +1066,14 @@ namespace PartyCritical
                 if (!m_rotatedTo90)
                 {
                     m_rotatedTo90 = true;
-                    transform.Rotate(Vector3.right, 90);
+                    if (DirectorMode || (SubContainerCamera==null))
+                    {
+                        transform.Rotate(Vector3.right, 90);
+                    }
+                    else
+                    {
+                        if (SubContainerCamera!=null) SubContainerCamera.transform.Rotate(Vector3.right, 90);
+                    }
                 }
 
                 Quaternion rotFix = new Quaternion(Input.gyro.attitude.x, Input.gyro.attitude.y, -Input.gyro.attitude.z, -Input.gyro.attitude.w);
