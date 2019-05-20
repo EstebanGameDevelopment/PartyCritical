@@ -24,7 +24,10 @@ namespace PartyCritical
         public const string EVENT_CAMERACONTROLLER_DATA_SHOTGUN             = "EVENT_CAMERACONTROLLER_DATA_SHOTGUN";
         public const string EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION = "EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION";
         public const string EVENT_GAMECAMERA_REAL_PLAYER_FORWARD            = "EVENT_GAMECAMERA_REAL_PLAYER_FORWARD";
-        
+        public const string EVENT_CAMERACONTROLLER_OPEN_INVENTORY           = "EVENT_CAMERACONTROLLER_OPEN_INVENTORY";
+        public const string EVENT_CAMERACONTROLLER_START_MOVING             = "EVENT_CAMERACONTROLLER_START_MOVING";
+        public const string EVENT_CAMERACONTROLLER_STOP_MOVING              = "EVENT_CAMERACONTROLLER_STOP_MOVING";
+
         public const string MARKER_NAME = "MARKER";
 
         // ----------------------------------------------
@@ -60,6 +63,7 @@ namespace PartyCritical
         protected bool m_twoFingersHasBeenPressedOnce = false;
 
         protected bool m_activateMovement = false;
+        protected bool m_activateMovementByButton = false;
 
         protected bool m_enableShootAction = true;
         protected bool m_ignoreNextShootAction = false;
@@ -98,7 +102,19 @@ namespace PartyCritical
         {
             get { return m_enableVR; }
         }
-
+        public bool EnableGyroscope
+        {
+            get {
+                if (EnableARCore && !m_enableVR)
+                {
+                    return true;
+                }
+                else
+                {
+                    return m_enableGyroscope;
+                }
+            }
+        }
         public virtual bool DirectorMode
         {
             get { return false; }
@@ -283,6 +299,8 @@ namespace PartyCritical
                 }
             }            
 #endif
+
+            // m_enableGyroscope = true; // HOLA, TO QUIT
         }
 
         // -------------------------------------------
@@ -554,7 +572,7 @@ namespace PartyCritical
         /* 
          * OpenInventory
          */
-        protected virtual void OpenInventory()
+        protected virtual void OpenInventory(bool _openedByTimer = true)
         {
             if (m_timeoutPressed > TIMEOUT_TO_INVENTORY)
             {
@@ -693,7 +711,7 @@ namespace PartyCritical
             }
             
             // INPUTS FOR THE IN-GAME, NOT THE SCREENS
-            if (false
+            if ((false
 #if ENABLE_OCULUS && !UNITY_EDITOR
                 || KeysEventInputController.Instance.GetActionOculusController(false)
 #elif ENABLE_WORLDSENSE && !UNITY_EDITOR
@@ -701,7 +719,7 @@ namespace PartyCritical
 #else
                 || KeysEventInputController.Instance.GetActionDefaultController(false)
 #endif
-                )
+                ) &&  !m_activateMovementByButton)
             {
                 ActionShootPlayer();
 
@@ -761,13 +779,13 @@ namespace PartyCritical
                 }
             }
 #else
-            if (false
+            if ((false
 #if ENABLE_WORLDSENSE && !UNITY_EDITOR
                 || (KeysEventInputController.Instance.GetActionDaydreamController(true))
 #else
                 || KeysEventInputController.Instance.GetActionDefaultController(true)
 #endif
-                 )
+                 ) && !m_activateMovementByButton)
             {
                 m_timeoutPressed = 0;
 #if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
@@ -789,7 +807,7 @@ namespace PartyCritical
             }
 #endif
 
-                if (false
+                if (false || m_activateMovementByButton
 #if ENABLE_OCULUS && !UNITY_EDITOR
                 || (OVRInput.Get(OVRInput.Button.PrimaryIndexTrigger))
 #elif ENABLE_WORLDSENSE && !UNITY_EDITOR
@@ -800,7 +818,7 @@ namespace PartyCritical
                 )
             {
                 m_timeoutPressed += Time.deltaTime;
-                OpenInventory();
+                OpenInventory(true);
 
 #if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
                 m_timeoutToMove += Time.deltaTime;
@@ -1271,9 +1289,9 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
-		 * OnUIEvent
+		 * EnableLaserLogic
 		 */
-        protected virtual void OnUIEvent(string _nameEvent, object[] _list)
+        protected virtual void EnableLaserLogic(string _nameEvent, object[] _list)
         {
             if (_nameEvent == ScreenInformationView.EVENT_SCREEN_INFORMATION_DISPLAYED)
             {
@@ -1289,6 +1307,34 @@ namespace PartyCritical
 #if ENABLE_WORLDSENSE || ENABLE_OCULUS
                 if (YourVRUIScreenController.Instance.LaserPointer!=null) YourVRUIScreenController.Instance.LaserPointer.SetActive(false);
 #endif
+            }
+        }
+
+        // -------------------------------------------
+        /* 
+		 * OnUIEvent
+		 */
+        protected virtual void OnUIEvent(string _nameEvent, object[] _list)
+        {
+            EnableLaserLogic(_nameEvent, _list);
+
+            if (_nameEvent == EVENT_CAMERACONTROLLER_OPEN_INVENTORY)
+            {
+                if (EnableGyroscope)
+                {
+                    KeysEventInputController.Instance.EnableActionButton = false;
+                }                
+                OpenInventory(false);
+            }
+            if (_nameEvent == EVENT_CAMERACONTROLLER_START_MOVING)
+            {
+                m_timeoutToMove = TIMEOUT_TO_MOVE + 1;
+                m_activateMovementByButton = true;
+            }
+            if (_nameEvent == EVENT_CAMERACONTROLLER_STOP_MOVING)
+            {
+                m_timeoutToMove = 0;
+                m_activateMovementByButton = false;
             }
         }
 

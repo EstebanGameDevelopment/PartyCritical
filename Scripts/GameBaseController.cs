@@ -466,7 +466,7 @@ namespace PartyCritical
                     }
                     m_level.transform.position = m_positionReference;
 
-#if ENABLE_GOOGLE_ARCORE
+#if ENABLE_GOOGLE_ARCORE && !UNITY_EDITOR
                     if (EnableARCore)
                     {
                         m_level.transform.position = new Vector3(10000, 10000, 10000);
@@ -543,7 +543,24 @@ namespace PartyCritical
                 {
                     pages = _list[3];
                 }
-                YourVRUIScreenController.Instance.CreateScreenLinkedToCamera(GetScreenPrefabByName((string)_list[0]), pages, 1.5f, -1, false, -1, (UIScreenTypePreviousAction)_list[1]);
+                float scaleScreen = -1;
+                if (_list.Length > 4)
+                {
+                    if (_list[4] is float)
+                    {
+                        scaleScreen = (float)_list[4];
+                    }
+                }
+                bool isTemporalScreen = true;
+                if (_list.Length > 5)
+                {
+                    if (_list[5] is bool)
+                    {
+                        isTemporalScreen = (bool)_list[5];
+                    }
+                }
+                GameObject prefabScreen = GetScreenPrefabByName((string)_list[0]);
+                YourVRUIScreenController.Instance.CreateScreenLinkedToCamera(prefabScreen, (List<PageInformation>)pages, 1.5f, -1, false, scaleScreen, (UIScreenTypePreviousAction)_list[1], isTemporalScreen);
                 // AUTO-DESTROY THE POP UP WHEN YOU ARE NOT INTERESTED TO OFFER INTERACTION
                 // UIEventController.Instance.DelayUIEvent(ScreenController.EVENT_FORCE_TRIGGER_OK_BUTTON, 5);
                 if ((string)_list[0] == ScreenCreateRoomView.SCREEN_NAME)
@@ -561,9 +578,17 @@ namespace PartyCritical
                 string description = (string)_list[3];
                 Sprite image = (Sprite)_list[4];
                 string eventData = (string)_list[5];
+                float scaleScreen = -1;
+                if (_list.Length > 6)
+                {
+                    if (_list[6] is float)
+                    {
+                        scaleScreen = (float)_list[6];
+                    }
+                }
                 List<PageInformation> pages = new List<PageInformation>();
                 pages.Add(new PageInformation(title, description, image, eventData, "", ""));
-                YourVRUIScreenController.Instance.CreateScreenLinkedToCamera(GetScreenPrefabByName((string)_list[0]), pages, 1.5f, -1, false, -1, previousAction);
+                YourVRUIScreenController.Instance.CreateScreenLinkedToCamera(GetScreenPrefabByName((string)_list[0]), pages, 1.5f, -1, false, scaleScreen, previousAction);
                 // AUTO-DESTROY THE POP UP WHEN YOU ARE NOT INTERESTED TO OFFER INTERACTION
                 // UIEventController.Instance.DelayUIEvent(ScreenController.EVENT_FORCE_TRIGGER_OK_BUTTON, 5);
             }
@@ -830,10 +855,12 @@ namespace PartyCritical
                 {
                     NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), IsRealDirectorMode.ToString());
                 }
+#if !UNITY_EDITOR
                 if (EnableARCore)
                 {
                     m_level.transform.position = m_positionReference;
                 }
+#endif
 
 #if FORCE_GAME
                 SetState(STATE_RUNNING);
@@ -842,7 +869,7 @@ namespace PartyCritical
 #endif
             }
 #endif
-            if (_nameEvent == CardboardLoaderVR.EVENT_VRLOADER_LOADED_DEVICE_NAME)
+                if (_nameEvent == CardboardLoaderVR.EVENT_VRLOADER_LOADED_DEVICE_NAME)
             {
                 
             }
@@ -874,6 +901,26 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+         * ManageTypeScreen
+         */
+        protected virtual void ManageTypeScreen(string _nameEvent, object[] _list)
+        {
+            bool isDirector = DirectorMode;
+#if UNITY_EDITOR
+            isDirector = false;
+#endif
+            if ((YourVRUIScreenController.Instance == null) || (isDirector))
+            {
+                ProcessScreenEvents(_nameEvent, _list);
+            }
+            else
+            {
+                ProcessCustomUIScreenEvent(_nameEvent, _list);
+            }
+        }
+
+        // -------------------------------------------
+        /* 
          * OnUIEvent
          */
         protected override void OnUIEvent(string _nameEvent, object[] _list)
@@ -891,18 +938,8 @@ namespace PartyCritical
                 }
 #endif
             }
-            bool isDirector = DirectorMode;
-#if UNITY_EDITOR
-            isDirector = false;
-#endif
-            if ((YourVRUIScreenController.Instance == null) || (isDirector))
-            {
-                ProcessScreenEvents(_nameEvent, _list);
-            }
-            else
-            {
-                ProcessCustomUIScreenEvent(_nameEvent, _list);
-            }
+            ManageTypeScreen(_nameEvent, _list);
+
             if (_nameEvent == ScreenController.EVENT_CONFIRMATION_POPUP)
             {
                 string subEvent = (string)_list[2];
