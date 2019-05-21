@@ -63,7 +63,6 @@ namespace PartyCritical
         protected bool m_twoFingersHasBeenPressedOnce = false;
 
         protected bool m_activateMovement = false;
-        protected bool m_activateMovementByButton = false;
 
         protected bool m_enableShootAction = true;
         protected bool m_ignoreNextShootAction = false;
@@ -711,7 +710,7 @@ namespace PartyCritical
             }
             
             // INPUTS FOR THE IN-GAME, NOT THE SCREENS
-            if ((false
+            if (false
 #if ENABLE_OCULUS && !UNITY_EDITOR
                 || KeysEventInputController.Instance.GetActionOculusController(false)
 #elif ENABLE_WORLDSENSE && !UNITY_EDITOR
@@ -719,7 +718,7 @@ namespace PartyCritical
 #else
                 || KeysEventInputController.Instance.GetActionDefaultController(false)
 #endif
-                ) &&  !m_activateMovementByButton)
+                )
             {
                 ActionShootPlayer();
 
@@ -779,13 +778,13 @@ namespace PartyCritical
                 }
             }
 #else
-            if ((false
+            if (false
 #if ENABLE_WORLDSENSE && !UNITY_EDITOR
                 || (KeysEventInputController.Instance.GetActionDaydreamController(true))
 #else
                 || KeysEventInputController.Instance.GetActionDefaultController(true)
 #endif
-                 ) && !m_activateMovementByButton)
+                 )
             {
                 m_timeoutPressed = 0;
 #if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
@@ -807,7 +806,7 @@ namespace PartyCritical
             }
 #endif
 
-                if (false || m_activateMovementByButton
+                if (false
 #if ENABLE_OCULUS && !UNITY_EDITOR
                 || (OVRInput.Get(OVRInput.Button.PrimaryIndexTrigger))
 #elif ENABLE_WORLDSENSE && !UNITY_EDITOR
@@ -1320,21 +1319,15 @@ namespace PartyCritical
 
             if (_nameEvent == EVENT_CAMERACONTROLLER_OPEN_INVENTORY)
             {
-                if (EnableGyroscope)
-                {
-                    KeysEventInputController.Instance.EnableActionButton = false;
-                }                
                 OpenInventory(false);
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_START_MOVING)
             {
                 m_timeoutToMove = TIMEOUT_TO_MOVE + 1;
-                m_activateMovementByButton = true;
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_STOP_MOVING)
             {
                 m_timeoutToMove = 0;
-                m_activateMovementByButton = false;
             }
         }
 
