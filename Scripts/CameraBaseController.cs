@@ -104,6 +104,10 @@ namespace PartyCritical
         public bool EnableGyroscope
         {
             get {
+#if UNITY_EDITOR
+                return m_enableGyroscope;
+#else
+
                 if (EnableARCore && !m_enableVR)
                 {
                     return true;
@@ -112,6 +116,7 @@ namespace PartyCritical
                 {
                     return m_enableGyroscope;
                 }
+#endif
             }
         }
         public virtual bool DirectorMode
@@ -298,8 +303,6 @@ namespace PartyCritical
                 }
             }            
 #endif
-
-            // m_enableGyroscope = true; // HOLA, TO QUIT
         }
 
         // -------------------------------------------
