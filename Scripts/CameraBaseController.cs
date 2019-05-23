@@ -203,6 +203,10 @@ namespace PartyCritical
 		 */
         public virtual void Initialize()
         {
+#if ENABLE_OCULUS && ENABLE_QUEST
+            this.gameObject.GetComponentInChildren<OVRCameraRig>().gameObject.transform.position = -new Vector3(0, 6*(CAMERA_SHIFT_HEIGHT_WORLDSENSE/10), 0);
+#endif
+
 #if ENABLE_OCULUS
             m_enableVR = true;
             CameraLocal.gameObject.SetActive(false);
@@ -1392,36 +1396,93 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
-         * UpdateDefaultLogic
+         * UpdateLogicOculusGo
          */
-        protected virtual void UpdateDefaultLogic()
+        private bool UpdateLogicOculusGo()
         {
-#if ENABLE_OCULUS
-			OVRInput.Update();
+#if ENABLE_OCULUS && !ENABLE_QUEST
+            OVRInput.Update();
 
             this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
             this.gameObject.GetComponent<Rigidbody>().useGravity = true;
             this.gameObject.GetComponent<Collider>().isTrigger = false;
 
-			if (m_avatar != null)
-			{
-				// m_avatar.transform.position = new Vector3(transform.position.x, -CAMERA_SHIFT_HEIGHT_WORLDSENSE + transform.position.y, transform.position.z);
-                m_avatar.transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z);
-				m_avatar.transform.forward = new Vector3(CenterEyeAnchor.transform.forward.x, 0, CenterEyeAnchor.transform.forward.z);
-				m_avatar.GetComponent<Actor>().ForwardPlayer = CenterEyeAnchor.transform.forward;
-                m_avatar.GetComponent<Actor>().PositionPlayer = CenterEyeAnchor.transform.position;
-			}
-#else
             if (m_avatar != null)
             {
+                // m_avatar.transform.position = new Vector3(transform.position.x, -CAMERA_SHIFT_HEIGHT_WORLDSENSE + transform.position.y, transform.position.z);
                 m_avatar.transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z);
-                m_avatar.transform.forward = new Vector3(CameraLocal.forward.x, 0, CameraLocal.forward.z);
-                m_avatar.GetComponent<Actor>().ForwardPlayer = CameraLocal.forward;
-                m_avatar.GetComponent<Actor>().PositionPlayer = CameraLocal.transform.position;
+                m_avatar.transform.forward = new Vector3(CenterEyeAnchor.transform.forward.x, 0, CenterEyeAnchor.transform.forward.z);
+                m_avatar.GetComponent<Actor>().ForwardPlayer = CenterEyeAnchor.transform.forward;
+                m_avatar.GetComponent<Actor>().PositionPlayer = CenterEyeAnchor.transform.position;
+            }
+            return true;
+#else
+            return false;
+#endif
+        }
+
+        // -------------------------------------------
+        /* 
+         * UpdateLogicOculusQuest
+         */
+        private bool UpdateLogicOculusQuest()
+        {
+#if ENABLE_OCULUS && ENABLE_QUEST
+            OVRInput.Update();
+
+            this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
+            this.gameObject.GetComponent<Rigidbody>().useGravity = true;
+            this.gameObject.GetComponent<Collider>().isTrigger = false;
+
+            if (m_avatar != null)
+            {
+                // m_avatar.transform.position = new Vector3(transform.position.x, -CAMERA_SHIFT_HEIGHT_WORLDSENSE + transform.position.y, transform.position.z);
+                m_avatar.transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z);
+                m_avatar.transform.forward = new Vector3(CenterEyeAnchor.transform.forward.x, 0, CenterEyeAnchor.transform.forward.z);
+                m_avatar.GetComponent<Actor>().ForwardPlayer = CenterEyeAnchor.transform.forward;
+                m_avatar.GetComponent<Actor>().PositionPlayer = CenterEyeAnchor.transform.position;
             }
 
-            LogicDaydream6DOF();
+            Vector3 posWorld = Utilities.Clone(CenterEyeAnchor.transform.localPosition);
+            Vector3 centerLevel = new Vector3(0, transform.position.y, 0);
+            transform.position = centerLevel + new Vector3(posWorld.x * ScaleMovementXZ,
+												0,
+                                                posWorld.z * ScaleMovementXZ);
+            Vector3 shiftToRecenter = -new Vector3(CenterEyeAnchor.transform.localPosition.x, CAMERA_SHIFT_HEIGHT_WORLDSENSE - (posWorld.y * ScaleMovementY), CenterEyeAnchor.transform.localPosition.z);
+            CenterEyeAnchor.transform.parent.localPosition = shiftToRecenter;
+
+            return true;
+#else
+            return false;
 #endif
+        }
+
+        // -------------------------------------------
+        /* 
+         * UpdateDefaultLogic
+         */
+        protected virtual void UpdateDefaultLogic()
+        {
+            if (UpdateLogicOculusGo())
+            {
+                return;
+            }
+            else
+            if (UpdateLogicOculusQuest())
+            {
+                return;
+            }
+            else
+            {
+                if (m_avatar != null)
+                {
+                    m_avatar.transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z);
+                    m_avatar.transform.forward = new Vector3(CameraLocal.forward.x, 0, CameraLocal.forward.z);
+                    m_avatar.GetComponent<Actor>().ForwardPlayer = CameraLocal.forward;
+                    m_avatar.GetComponent<Actor>().PositionPlayer = CameraLocal.transform.position;
+                }
+                LogicDaydream6DOF();
+            }
         }
 
         // -------------------------------------------
