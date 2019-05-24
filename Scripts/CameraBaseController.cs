@@ -650,7 +650,7 @@ namespace PartyCritical
                 if (GameObject.FindObjectOfType<GvrControllerVisual>() != null) m_laserPointer = GameObject.FindObjectOfType<GvrControllerVisual>().gameObject;
 #elif ENABLE_OCULUS
                 m_armModel = new GameObject();
-                if (GameObject.FindObjectOfType<OVRTrackedRemote>() != null) m_laserPointer = GameObject.FindObjectOfType<OVRTrackedRemote>().gameObject;
+                if (GameObject.FindObjectOfType<OVRControllerHelper>() != null) m_laserPointer = GameObject.FindObjectOfType<OVRControllerHelper>().gameObject;
 #endif
             }
             if ((m_armModel != null) && (m_laserPointer != null))
@@ -749,7 +749,7 @@ namespace PartyCritical
             }
 
 #if ENABLE_OCULUS && !UNITY_EDITOR
-            if (OVRInput.GetDown(OVRInput.Button.PrimaryIndexTrigger))
+            if (KeysEventInputController.Instance.GetActionOculusController(true))
             {
                 m_timeoutPressed = 0;
                 if (KeysEventInputController.Instance.EnableActionOnMouseDown)
@@ -805,7 +805,6 @@ namespace PartyCritical
             }
 #endif
 
-
 #if ENABLE_WORLDSENSE && !UNITY_EDITOR
             if (KeysEventInputController.Instance.GetAppButtonDowDaydreamController())
             {
@@ -813,13 +812,20 @@ namespace PartyCritical
             }
 #endif
 
-                if (false
+#if ENABLE_OCULUS && ENABLE_QUEST && !UNITY_EDITOR
+            if (KeysEventInputController.Instance.GetAppButtonDownOculusController())
+            {
+                m_timeoutPressed = TIMEOUT_TO_INVENTORY;
+            }
+#endif
+
+            if (false
 #if ENABLE_OCULUS && !UNITY_EDITOR
-                || (OVRInput.Get(OVRInput.Button.PrimaryIndexTrigger))
+                || KeysEventInputController.Instance.GetAppButtonDownOculusController() || KeysEventInputController.Instance.GetActionCurrentStateOculusController()
 #elif ENABLE_WORLDSENSE && !UNITY_EDITOR
-                || (KeysEventInputController.Instance.GetAppButtonDowDaydreamController())
+                || KeysEventInputController.Instance.GetAppButtonDowDaydreamController() || KeysEventInputController.Instance.GetActionCurrentStateDaydreamController()
 #else
-                || Input.GetMouseButton(0) || Input.GetKey(KeyCode.Z) || Input.GetButton("Fire1")
+                || KeysEventInputController.Instance.GetActionCurrentStateDefaultController()
 #endif
                 )
             {
