@@ -765,6 +765,7 @@ namespace PartyCritical
                     SetAMarkerSignal();
                 }
             }
+#if !ENABLE_QUEST
             if (OVRInput.GetDown(OVRInput.Button.PrimaryTouchpad))
             {
                 m_timeoutToMove = TIMEOUT_TO_MOVE;
@@ -784,6 +785,7 @@ namespace PartyCritical
                     transform.GetComponent<Rigidbody>().MovePosition(transform.position + normalForward * PLAYER_SPEED * Time.deltaTime);
                 }
             }
+#endif
 #else
             if (false
 #if ENABLE_WORLDSENSE && !UNITY_EDITOR
