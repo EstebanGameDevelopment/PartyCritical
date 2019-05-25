@@ -1079,7 +1079,7 @@ namespace PartyCritical
 
                 Vector3 initialPosition = m_positionsSpawn[YourNetworkTools.Instance.GetUniversalNetworkID() % m_positionsSpawn.Count];
                 string initialData = initialPosition.x + "," + initialPosition.y + "," + initialPosition.z;
-#if ENABLE_WORLDSENSE && !UNITY_EDITOR
+#if (ENABLE_WORLDSENSE || ENABLE_QUEST) && !UNITY_EDITOR
                         initialData = 0 + "," + initialPosition.y + "," + 0;
 #elif ENABLE_GOOGLE_ARCORE && !UNITY_EDITOR
                         if (m_enableARCore)
