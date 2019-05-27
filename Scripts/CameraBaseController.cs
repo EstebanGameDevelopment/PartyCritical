@@ -1532,7 +1532,7 @@ namespace PartyCritical
         void Update()
         {
             if (IsGameFakeRunning()
-#if ENABLE_WORLDSENSE || ENABLE_GOOGLE_ARCORE
+#if ENABLE_WORLDSENSE || ENABLE_QUEST || ENABLE_GOOGLE_ARCORE
                 || IsGameLoading()
 #endif
                 )
