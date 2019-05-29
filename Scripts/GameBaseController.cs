@@ -982,9 +982,9 @@ namespace PartyCritical
         protected void FindSpawnPositions()
         {
             ClassFinder[] objectsSpawn = GameObject.FindObjectsOfType<ClassFinder>();
+            m_positionsSpawn = new List<Vector3>();
             if (objectsSpawn.Length > 0)
             {
-                m_positionsSpawn = new List<Vector3>();
                 for (int k = 0; k < objectsSpawn.Length; k++)
                 {
                     if (objectsSpawn[k].Name == "SPAWN")
@@ -1000,6 +1000,10 @@ namespace PartyCritical
                     }                        
                 }
                 // Debug.LogError("FindSpawnPositions::TOTAL FOUND[" + m_positionsSpawn.Count + "]::TOTAL LEFT["+ GameObject.FindObjectsOfType<ClassFinder>().Length + "]+++++++++++++++++++++++++++++++");
+            }
+            if (m_positionsSpawn.Count == 0)
+            {
+                m_positionsSpawn.Add(new Vector3(0, 5, 0));
             }
         }
 
@@ -1087,6 +1091,10 @@ namespace PartyCritical
                             initialData = 0 + "," + initialPosition.y + "," + 0;
                         }
 #endif
+                if (m_characterSelected >= PlayerPrefab.Length)
+                {
+                    m_characterSelected = 0;
+                }
 
                 if (m_characterSelected >= NameModelPrefab.Length)
                 {
@@ -1105,6 +1113,7 @@ namespace PartyCritical
 #else
                 GameObject myOwnPlayer = Instantiate(PlayerPrefab[m_characterSelected]);
 #endif
+
                 YourVRUIScreenController.Instance.DestroyScreens();
                 if (!m_enableARCore)
                 {
