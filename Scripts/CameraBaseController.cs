@@ -197,15 +197,26 @@ namespace PartyCritical
             if (YourVRUIScreenController.Instance.LaserPointer != null) YourVRUIScreenController.Instance.LaserPointer.SetActive(false);
         }
 
+
+        // -------------------------------------------
+        /* 
+		 * InitialitzeHMDHeight
+		 */
+        protected virtual void InitialitzeHMDHeight()
+        {
+#if ENABLE_OCULUS && ENABLE_QUEST
+            this.gameObject.GetComponentInChildren<OVRCameraRig>().gameObject.transform.position = -new Vector3(0, 6*(CAMERA_SHIFT_HEIGHT_WORLDSENSE/10), 0);
+#endif
+        }
+
+
         // -------------------------------------------
         /* 
 		 * Initialize
 		 */
         public virtual void Initialize()
         {
-#if ENABLE_OCULUS && ENABLE_QUEST
-            this.gameObject.GetComponentInChildren<OVRCameraRig>().gameObject.transform.position = -new Vector3(0, 6*(CAMERA_SHIFT_HEIGHT_WORLDSENSE/10), 0);
-#endif
+            InitialitzeHMDHeight();
 
 #if ENABLE_OCULUS
             m_enableVR = true;
