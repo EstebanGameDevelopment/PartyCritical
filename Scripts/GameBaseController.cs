@@ -989,7 +989,14 @@ namespace PartyCritical
                 {
                     if (objectsSpawn[k].Name == "SPAWN")
                     {
-                        m_positionsSpawn.Add(Utilities.Clone(objectsSpawn[k].gameObject.transform.position));
+                        Vector3 spawnPos = Utilities.Clone(objectsSpawn[k].gameObject.transform.position);
+#if ENABLE_GOOGLE_ARCORE && !UNITY_EDITOR
+                    if (EnableARCore)
+                    {
+                        spawnPos = spawnPos - new Vector3(10000, 10000, 10000);
+                    }
+#endif
+                        m_positionsSpawn.Add(spawnPos);
                     }
                 }
                 for (int k = 0; k < objectsSpawn.Length; k++)
