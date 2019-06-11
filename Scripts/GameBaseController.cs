@@ -466,7 +466,7 @@ namespace PartyCritical
                     }
                     m_level.transform.position = m_positionReference;
 
-#if ENABLE_GOOGLE_ARCORE && !UNITY_EDITOR
+#if ENABLE_RELOCATE_LEVEL && !UNITY_EDITOR
                     if (EnableARCore)
                     {
                         m_level.transform.position = new Vector3(10000, 10000, 10000);
@@ -990,7 +990,7 @@ namespace PartyCritical
                     if (objectsSpawn[k].Name == "SPAWN")
                     {
                         Vector3 spawnPos = Utilities.Clone(objectsSpawn[k].gameObject.transform.position);
-#if ENABLE_GOOGLE_ARCORE && !UNITY_EDITOR
+#if ENABLE_RELOCATE_LEVEL && !UNITY_EDITOR
                     if (EnableARCore)
                     {
                         spawnPos = spawnPos - new Vector3(10000, 10000, 10000);
@@ -1007,10 +1007,6 @@ namespace PartyCritical
                     }                        
                 }
                 // Debug.LogError("FindSpawnPositions::TOTAL FOUND[" + m_positionsSpawn.Count + "]::TOTAL LEFT["+ GameObject.FindObjectsOfType<ClassFinder>().Length + "]+++++++++++++++++++++++++++++++");
-            }
-            if (m_positionsSpawn.Count == 0)
-            {
-                m_positionsSpawn.Add(new Vector3(0, 5, 0));
             }
         }
 
@@ -1087,6 +1083,10 @@ namespace PartyCritical
                 m_namePlayer = MultiplayerConfiguration.HUMAN_NAME + timelineID;
 
                 // Debug.LogError("+++++++++++++++++m_positionsSpawn=" + m_positionsSpawn.Count);
+                if (m_positionsSpawn.Count == 0)
+                {
+                    m_positionsSpawn.Add(new Vector3(0, 5, 0));
+                }
 
                 Vector3 initialPosition = m_positionsSpawn[YourNetworkTools.Instance.GetUniversalNetworkID() % m_positionsSpawn.Count];
                 string initialData = initialPosition.x + "," + initialPosition.y + "," + initialPosition.z;
