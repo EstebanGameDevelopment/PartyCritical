@@ -175,6 +175,10 @@ namespace PartyCritical
         {
             get { return -1; }
         }
+        public virtual float PLAYER_DIRECTOR_SPEED
+        {
+            get { return 2; }
+        }        
         public virtual float TIMEOUT_TO_MOVE
         {
             get { return -1; }
@@ -901,7 +905,7 @@ namespace PartyCritical
          */
         protected virtual void ProcessInputDirector()
         {
-            Vector3 normalForward = CameraLocal.forward.normalized * PLAYER_SPEED * 4 * Time.deltaTime;
+            Vector3 normalForward = CameraLocal.forward.normalized * PLAYER_DIRECTOR_SPEED * 4 * Time.deltaTime;
 
             transform.GetComponent<Rigidbody>().useGravity = false;
             transform.GetComponent<Rigidbody>().isKinematic = true;
