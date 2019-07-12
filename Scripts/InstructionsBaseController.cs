@@ -156,13 +156,13 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
-		* UpdateTimeline
+		* CheckCloseGameWithAllConnectedPlayers
 		*/
-        protected void UpdateTimeline()
+        protected virtual bool CheckCloseGameWithAllConnectedPlayers()
         {
             if ((m_namesPlayers.Count + m_namesDirectors.Count + m_namesSpectators.Count < TotalNumberPlayers) && YourNetworkTools.Instance.IsServer)
             {
-                return;
+                return true;
             }
             else
             {
@@ -173,9 +173,20 @@ namespace PartyCritical
                         // THANKS TO THIS MESSAGE WE TRY TO START AT THE SAME TIME
                         NetworkEventController.Instance.PriorityDelayNetworkEvent(EVENT_INSTRUCTION_CONTROLLER_START, 0.1f, TotalNumberPlayers.ToString());
                     }
-                    return;
+                    return true;
                 }
             }
+
+            return false;
+        }
+
+        // -------------------------------------------
+        /* 
+		* UpdateTimeline
+		*/
+        protected void UpdateTimeline()
+        {
+            if (CheckCloseGameWithAllConnectedPlayers()) return;
 
 #if ENABLE_MULTIPLAYER_TIMELINE
             if (GameLevelData.Instance.Init(YourNetworkTools.Instance.IsServer, NamePlayer))
