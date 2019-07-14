@@ -29,9 +29,9 @@ namespace PartyCritical
         // ----------------------------------------------
         // CONSTANTS
         // ----------------------------------------------	
-        public const string GROUP_PLAYERS = "PLAYERS";
-        public const string GROUP_DIRECTORS = "DIRECTORS";
-        public const string GROUP_EVERYBODY_HUMAN = "EVERYBODY_HUMAN";
+        public const string GROUP_PLAYERS        = "GROUP_PLAYERS";
+        public const string GROUP_DIRECTORS      = "DIRECTORS";
+        public const string GROUP_EVERYBODY_HUMAN= "EVERYBODY_HUMAN";
         public const string GROUP_PICKABLE_ITEMS = "PICKABLE_ITEMS";
 
         // ----------------------------------------------
@@ -40,8 +40,11 @@ namespace PartyCritical
         protected bool m_allPlayersConnected = false;
 
         protected List<string> m_namesPlayers = new List<string>();
+        protected Dictionary<string,List<string>> m_classesPlayers = new Dictionary<string, List<string>>();
         protected List<string> m_namesDirectors = new List<string>();
         protected List<string> m_namesSpectators = new List<string>();
+
+        protected List<string> m_teams = new List<string>();
 
         protected int m_timeMarker;
         protected int m_timeSegment;
@@ -184,7 +187,7 @@ namespace PartyCritical
         /* 
 		* UpdateTimeline
 		*/
-        protected void UpdateTimeline()
+        protected virtual void UpdateTimeline()
         {
             if (CheckCloseGameWithAllConnectedPlayers()) return;
 
@@ -209,6 +212,18 @@ namespace PartyCritical
                 {
                     playersGroup.AddActor(m_namesPlayers[i]);
                     // Debug.LogError("m_namesPlayers["+i+"]=" + m_namesPlayers[i]);
+                }
+
+                // CREATE THE TEAM GROUPS
+                foreach (KeyValuePair<string, List<string>> item in m_classesPlayers)
+                {
+                    string teamName = item.Key;
+                    m_teams.Add(item.Key);
+                    GroupActorsData teamGroup = GameLevelData.Instance.AddNewGroup(teamName);
+                    for (int i = 0; i < item.Value.Count; i++)
+                    {
+                        teamGroup.AddActor(item.Value[i]);
+                    }
                 }
 
                 // EVERYBODY HUMAN
@@ -476,10 +491,20 @@ namespace PartyCritical
             if (_nameEvent == EVENT_GAMEPLAYER_HUMAN_PLAYER_NAME)
             {
                 string nameNewPlayer = (string)_list[0];
+                string classNewPlayer = (string)_list[1];
                 if (!m_namesPlayers.Contains(nameNewPlayer))
                 {
                     m_namesPlayers.Add(nameNewPlayer);
                 }
+
+                // CLASS MEMBER
+                List<string> memberOfClass;
+                if (!m_classesPlayers.TryGetValue(classNewPlayer, out memberOfClass))
+                {
+                    memberOfClass = new List<string>();
+                    m_classesPlayers.Add(classNewPlayer, memberOfClass);
+                }
+                memberOfClass.Add(nameNewPlayer);
             }
             if (_nameEvent == EVENT_GAMEPLAYER_HUMAN_DIRECTOR_NAME)
             {

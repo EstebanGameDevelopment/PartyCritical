@@ -1040,8 +1040,26 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
-		 * SetUpStateLoading
+		 * SetUpInitialGamePlayerData
 		 */
+        protected virtual string SetUpInitialGamePlayerData(string _initialData)
+        {
+            string output = "";
+            if (m_characterSelected >= NameModelPrefab.Length)
+            {
+                output = m_namePlayer + "," + "NO_ASSET_BUNDLE" + "," + _initialData;
+            }
+            else
+            {
+                output = m_namePlayer + "," + NameModelPrefab[m_characterSelected] + "," + _initialData;
+            }
+            return output;
+        }
+
+        // -------------------------------------------
+        /* 
+         * SetUpStateLoading
+         */
         protected virtual void SetUpStateLoading()
         {
             m_playersReady.Clear();
@@ -1103,14 +1121,8 @@ namespace PartyCritical
                     m_characterSelected = 0;
                 }
 
-                if (m_characterSelected >= NameModelPrefab.Length)
-                {
-                    initialData = m_namePlayer + "," + "NO_ASSET_BUNDLE" + "," + initialData;
-                }
-                else
-                {
-                    initialData = m_namePlayer + "," + NameModelPrefab[m_characterSelected] + "," + initialData;
-                }
+                initialData = SetUpInitialGamePlayerData(initialData);
+
 
                 // TO FORCE REPOSITION ON EDITOR
                 // initialData = m_namePlayer + "," + NameModelPrefab[m_characterSelected] + "," + 0 + "," + initialPosition.y + "," + 0;
