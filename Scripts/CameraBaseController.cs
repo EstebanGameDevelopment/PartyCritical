@@ -555,7 +555,7 @@ namespace PartyCritical
         /* 
          * ActionShootPlayer
          */
-        protected virtual void ActionShootPlayer()
+        protected virtual void ActionShootPlayer(int _indexShoot = 0)
         {
             string position = "";
             string forward = "";
@@ -585,7 +585,7 @@ namespace PartyCritical
             if (shootDone)
             {
                 // SixDOFConfiguration.PlayFxShoot();
-                NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMESHOOT_NEW, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), position, forward);
+                NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMESHOOT_NEW, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), position, forward, _indexShoot.ToString());
             }
         }
 

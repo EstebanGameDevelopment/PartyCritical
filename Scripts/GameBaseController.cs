@@ -64,9 +64,9 @@ namespace PartyCritical
         public string[] NameModelPrefab;
         public GameObject[] EnemyPrefab;
         public string[] EnemyModelPrefab;
-        public GameObject ShootPrefab;
+        public GameObject[] ShootPrefab;
         public GameObject Floor;
-        public GameObject Shotgun;
+        public GameObject[] Shotgun;
         public GameObject RepositionBall;
         public GameObject DirectorScreen;
         public GameObject SpectatorScreen;
@@ -81,6 +81,7 @@ namespace PartyCritical
         // protected MEMBERS
         // ----------------------------------------------	
         protected string m_namePlayer = "";
+        protected string m_className = "";
         protected StateManager m_stateManager;
         protected List<GameObject> m_players = new List<GameObject>();
         protected List<GameObject> m_enemies = new List<GameObject>();
@@ -119,6 +120,10 @@ namespace PartyCritical
         public string NamePlayer
         {
             get { return m_namePlayer; }
+        }
+        public string ClassName
+        {
+            get { return m_className; }
         }
         public int TotalNumberPlayers
         {
