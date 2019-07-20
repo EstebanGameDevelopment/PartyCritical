@@ -946,13 +946,13 @@ namespace PartyCritical
 
             if (Input.GetAxis("Mouse ScrollWheel") > 0)
             {
-                transform.GetComponent<Rigidbody>().MovePosition(transform.position + normalForward * 3);
+                transform.GetComponent<Rigidbody>().MovePosition(transform.position + normalForward * 30);
             }
             else
             {
                 if (Input.GetAxis("Mouse ScrollWheel") < 0)
                 {
-                    transform.GetComponent<Rigidbody>().MovePosition(transform.position - normalForward * 3);
+                    transform.GetComponent<Rigidbody>().MovePosition(transform.position - normalForward * 30);
                 }
             }
 #endif
