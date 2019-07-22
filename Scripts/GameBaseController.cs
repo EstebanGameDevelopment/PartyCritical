@@ -1081,6 +1081,8 @@ namespace PartyCritical
 
             if (m_directorMode)
             {
+                SetUpInitialGamePlayerData("");
+
                 m_namePlayer = MultiplayerConfiguration.DIRECTOR_NAME + timelineID;
                 if (!m_enableARCore)
                 {

@@ -82,6 +82,10 @@ namespace PartyCritical
         {
             get { return ""; }
         }
+        public bool AllPlayersConnected
+        {
+            get { return m_allPlayersConnected; }
+        }
         // GAMEPLAYER
         public virtual string EVENT_GAMEPLAYER_HUMAN_PLAYER_NAME
         {
