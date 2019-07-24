@@ -964,7 +964,7 @@ namespace PartyCritical
         /* 
 		* GetClosestPlayer
 		*/
-        public GameObject GetClosestPlayer(Vector3 _position)
+        public virtual GameObject GetClosestPlayer(Vector3 _position)
 		{
 			GameObject target = m_players[0];
 			float minDistance = 100000000f;
@@ -1326,6 +1326,8 @@ namespace PartyCritical
             return (m_stateManager.State == STATE_LOADING);
         }
 
+        private int m_globalCounterEnemies = 0;
+
         // -------------------------------------------
         /* 
 		* CreateNewEnemy
@@ -1333,7 +1335,8 @@ namespace PartyCritical
         public virtual bool CreateNewEnemy(Vector3 _position)
         {
             int indexEnemy = UnityEngine.Random.Range(0, EnemyModelPrefab.Length);
-            string initialData = "ENEMY" + "," + "ZOMBIE" + "," + EnemyModelPrefab[indexEnemy] + "," + _position.x + "," + _position.y + "," + _position.z;
+            string initialData = "ENEMY" + m_globalCounterEnemies + "," + "ZOMBIE" + "," + EnemyModelPrefab[indexEnemy] + "," + _position.x + "," + _position.y + "," + _position.z;
+            m_globalCounterEnemies++;
             YourNetworkTools.Instance.CreateLocalNetworkObject(EnemyPrefab[0].name, initialData, true);
             return true;
         }

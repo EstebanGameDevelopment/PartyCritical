@@ -79,7 +79,10 @@ namespace PartyCritical
                     m_precalculatedWaypointHasBeenReached = true;
                     if (_list.Length > 1)
                     {
-                        m_originLastFreeCell = (Vector3)_list[1];
+                        if (_list[1] is Vector3)
+                        {
+                            m_originLastFreeCell = (Vector3)_list[1];
+                        }                        
                     }
                 }
             }
