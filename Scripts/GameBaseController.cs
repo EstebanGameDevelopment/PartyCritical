@@ -64,6 +64,8 @@ namespace PartyCritical
         public string[] NameModelPrefab;
         public GameObject[] EnemyPrefab;
         public string[] EnemyModelPrefab;
+        public GameObject[] NPCPrefab;
+        public string[] NPCModelPrefab;
         public GameObject[] ShootPrefab;
         public GameObject Floor;
         public GameObject[] Shotgun;
@@ -85,6 +87,7 @@ namespace PartyCritical
         protected StateManager m_stateManager;
         protected List<GameObject> m_players = new List<GameObject>();
         protected List<GameObject> m_enemies = new List<GameObject>();
+        protected List<GameObject> m_npcs = new List<GameObject>();
         protected List<int> m_playersReady = new List<int>();
         protected List<int> m_repositionedPlayers = new List<int>();
         protected List<int> m_endLevelConfirmedPlayers = new List<int>();
@@ -1338,6 +1341,20 @@ namespace PartyCritical
             string initialData = "ENEMY" + m_globalCounterEnemies + "," + "ZOMBIE" + "," + EnemyModelPrefab[indexEnemy] + "," + _position.x + "," + _position.y + "," + _position.z;
             m_globalCounterEnemies++;
             YourNetworkTools.Instance.CreateLocalNetworkObject(EnemyPrefab[0].name, initialData, true);
+            return true;
+        }
+
+        private int m_globalCounterNPCs = 0;
+
+        // -------------------------------------------
+        /* 
+		* CreateNewNPC
+		*/
+        public virtual bool CreateNewNPC(Vector3 _position, int _indexNPC)
+        {
+            string initialData = "NPC" + m_globalCounterNPCs + "," + "NPC" + "," + NPCModelPrefab[_indexNPC] + "," + _position.x + "," + _position.y + "," + _position.z;
+            m_globalCounterNPCs++;
+            YourNetworkTools.Instance.CreateLocalNetworkObject(NPCPrefab[0].name, initialData, true);
             return true;
         }
 
