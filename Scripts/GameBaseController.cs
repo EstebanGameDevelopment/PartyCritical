@@ -38,6 +38,7 @@ namespace PartyCritical
         public const string EVENT_GAMECONTROLLER_REQUEST_IS_GAME_RUNNING    = "EVENT_GAMECONTROLLER_REQUEST_IS_GAME_RUNNING";
         public const string EVENT_GAMECONTROLLER_RESPONSE_IS_GAME_RUNNING   = "EVENT_GAMECONTROLLER_RESPONSE_IS_GAME_RUNNING";
         public const string EVENT_GAMECONTROLLER_SELECT_SKYBOX              = "EVENT_GAMECONTROLLER_SELECT_SKYBOX";
+        public const string EVENT_GAMECONTROLLER_CREATE_FX                  = "EVENT_GAMECONTROLLER_CREATE_FX";
 
         public const string SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL = "SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL";
 
@@ -66,6 +67,7 @@ namespace PartyCritical
         public string[] EnemyModelPrefab;
         public GameObject[] NPCPrefab;
         public string[] NPCModelPrefab;
+        public GameObject[] FXPrefab;
         public GameObject[] ShootPrefab;
         public GameObject Floor;
         public GameObject[] Shotgun;
@@ -846,6 +848,14 @@ namespace PartyCritical
                     }
                 }
             }
+            if (_nameEvent == EVENT_GAMECONTROLLER_CREATE_FX)
+            {
+                int fxIndex = int.Parse((string)_list[0]);
+                float timeDestroy = float.Parse((string)_list[1]);
+                Vector3 posFX =  Utilities.StringToVector3((string)_list[2]);
+                Vector3 scaleFX = Utilities.StringToVector3((string)_list[3]);
+                CreateNewFX(fxIndex, timeDestroy, posFX, scaleFX);
+            }
 
             OnNetworkEventEnemy(_nameEvent, _isLocalEvent, _networkOriginID, _networkTargetID, _list);
         }
@@ -1355,6 +1365,20 @@ namespace PartyCritical
             string initialData = "NPC" + m_globalCounterNPCs + "," + "NPC" + "," + NPCModelPrefab[_indexNPC] + "," + _position.x + "," + _position.y + "," + _position.z;
             m_globalCounterNPCs++;
             YourNetworkTools.Instance.CreateLocalNetworkObject(NPCPrefab[0].name, initialData, true);
+            return true;
+        }
+
+        // -------------------------------------------
+        /* 
+		* CreateNewFX
+		*/
+        public virtual bool CreateNewFX(int _fx, float _autoDestroy, Vector3 _position, Vector3 _scale)
+        {
+            GameObject fx = GameObject.Instantiate(FXPrefab[_fx]);
+            fx.transform.position = _position;
+            fx.transform.localScale = _scale;
+            fx.AddComponent<AutoGameDestroy>();
+            fx.GetComponent<AutoGameDestroy>().TimeToDestroy = _autoDestroy;
             return true;
         }
 
