@@ -833,20 +833,9 @@ namespace PartyCritical
                 GameObject markerBall = Instantiate(isDirector ? MarkerDirector : MarkerPlayer);
                 markerBall.transform.position = posMarker;
             }
-
             if (_nameEvent == EVENT_GAMECONTROLLER_SELECT_SKYBOX)
             {
-                int selectedSkybox = int.Parse((string)_list[0]);
-                if (SkyboxesLevels != null)
-                {
-                    if (m_currentLevel < SkyboxesLevels.Length)
-                    {
-                        if (SkyboxesLevels[selectedSkybox] != null)
-                        {
-                            RenderSettings.skybox = SkyboxesLevels[selectedSkybox];
-                        }
-                    }
-                }
+                SelectedSkybox(int.Parse((string)_list[0]));
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_CREATE_FX)
             {
@@ -915,6 +904,10 @@ namespace PartyCritical
             {
                 BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_GAMECONTROLLER_RESPONSE_IS_GAME_RUNNING, IsGameFakeRunning());
             }
+            if (_nameEvent == EVENT_GAMECONTROLLER_SELECT_SKYBOX)
+            {
+                SelectedSkybox((int)_list[0]);
+            }
         }
 
         // -------------------------------------------
@@ -970,6 +963,25 @@ namespace PartyCritical
             if (_nameEvent == UIEventController.EVENT_SCREENMANAGER_DESTROY_SCREEN)
             {
                 EnableLaserVR(false);
+            }
+        }
+
+        // -------------------------------------------
+        /* 
+		* SelectedSkybox
+		*/
+        public void SelectedSkybox(int _skybox)
+        {
+            int selectedSkybox = _skybox;
+            if (SkyboxesLevels != null)
+            {
+                if (selectedSkybox < SkyboxesLevels.Length)
+                {
+                    if (SkyboxesLevels[selectedSkybox] != null)
+                    {
+                        RenderSettings.skybox = SkyboxesLevels[selectedSkybox];
+                    }
+                }
             }
         }
 
