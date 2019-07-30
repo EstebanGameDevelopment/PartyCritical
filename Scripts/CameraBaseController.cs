@@ -1140,6 +1140,30 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		 * RequestSelectorData
+		 */
+        protected virtual void RequestSelectorData(object[] _list)
+        {
+            Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
+            Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
+#if ENABLE_OCULUS && !UNITY_EDITOR
+                if ((m_armModel != null) && (m_laserPointer != null))
+                {
+                    pos = Utilities.Clone(m_originLaser);
+                    fwd = Utilities.Clone(m_forwardLaser);
+                }
+#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+                if ((m_armModel != null) && (m_laserPointer != null))
+                {
+                    pos = Utilities.Clone(m_originLaser);
+                    fwd = Utilities.Clone(m_forwardLaser);
+                }
+#endif
+            BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_CAMERACONTROLLER_RESPONSE_SELECTOR_DATA, _list[0], pos, fwd);
+        }
+
+        // -------------------------------------------
+        /* 
 		 * OnBasicSystemEvent
 		 */
         protected virtual void OnBasicSystemEvent(string _nameEvent, object[] _list)
@@ -1183,22 +1207,7 @@ namespace PartyCritical
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_REQUEST_SELECTOR_DATA)
             {
-                Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
-                Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
-#if ENABLE_OCULUS && !UNITY_EDITOR
-                if ((m_armModel != null) && (m_laserPointer != null))
-                {
-                    pos = Utilities.Clone(m_originLaser);
-                    fwd = Utilities.Clone(m_forwardLaser);
-                }
-#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
-                if ((m_armModel != null) && (m_laserPointer != null))
-                {
-                    pos = Utilities.Clone(m_originLaser);
-                    fwd = Utilities.Clone(m_forwardLaser);
-                }
-#endif
-                BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_CAMERACONTROLLER_RESPONSE_SELECTOR_DATA, _list[0], pos, fwd);                
+                RequestSelectorData(_list);
             }
             if (DirectorMode)
             {
