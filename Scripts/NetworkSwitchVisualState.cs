@@ -20,6 +20,7 @@ namespace PartyCritical
         public GameObject[] States;
         public string[] Triggers;
         public int InitialState = 0;
+        public string LayerName = "";
 
         // ----------------------------------------------
         // PRIVATE MEMBERS
@@ -166,15 +167,37 @@ namespace PartyCritical
                 {
                     Vector3 pos = (Vector3)_list[1];
                     Vector3 fwd = (Vector3)_list[2];
+                    string maskToConsider = "";
+                    if (_list.Length > 3)
+                    {
+                        maskToConsider = (string)_list[3];
+                    }
+                    if (LayerName.Length > 0)
+                    {
+                        for (int i= 0; i < States.Length; i++)
+                        {
+                            States[i].layer = LayerMask.NameToLayer(LayerName);
+                        }
+                    }
                     RaycastHit raycastHit = new RaycastHit();
-                    if (Utilities.GetRaycastHitInfoByRay(pos, fwd, ref raycastHit, ActorTimeline.LAYER_PLAYERS))
+                    bool collided = false;
+                    if (maskToConsider == "")
+                    {
+                        collided = Utilities.GetRaycastHitInfoByRay(pos, fwd, ref raycastHit, ActorTimeline.LAYER_PLAYERS);
+                    }
+                    else
+                    {
+                        raycastHit = Utilities.GetRaycastHitInfoByRayWithMask(pos, fwd, maskToConsider);
+                        collided = (raycastHit.collider != null);
+                    }
+                    if (collided)
                     {
                         Vector3 pc = Utilities.Clone(raycastHit.point);
                         for (int i = 0; i < States.Length; i++)
                         {
                             if (Utilities.FindGameObjectInParent(raycastHit.collider.gameObject, States[i]))
                             {
-                                NetworkEventController.Instance.DispatchNetworkEvent(EVENT_NETWORKSWITCHSTATE_INCREASE_STATE, this.gameObject.name);
+                                NetworkEventController.Instance.DispatchNetworkEvent(EVENT_NETWORKSWITCHSTATE_INCREASE_STATE, Utilities.GetFullPathNameGO(this.gameObject));
                                 return;
                             }
                         }
@@ -195,8 +218,8 @@ namespace PartyCritical
             }
             if (_nameEvent ==  EVENT_NETWORKSWITCHSTATE_CHANGE_STATE)
             {
-                string nameSelected = (string)_list[0];
-                if (this.gameObject.name == nameSelected)
+                string nameSelected = (string)_list[0];                
+                if (Utilities.GetFullPathNameGO(this.gameObject) == nameSelected)
                 {
                     SelectVisualState(int.Parse((string)_list[1]));
                 }
@@ -204,7 +227,7 @@ namespace PartyCritical
             if (_nameEvent == EVENT_NETWORKSWITCHSTATE_INCREASE_STATE)
             {
                 string nameSelected = (string)_list[0];
-                if (this.gameObject.name == nameSelected)
+                if (Utilities.GetFullPathNameGO(this.gameObject) == nameSelected)
                 {
                     m_currentState++;
                     SelectVisualState(m_currentState);
@@ -213,7 +236,7 @@ namespace PartyCritical
             if (_nameEvent == EVENT_NETWORKSWITCHSTATE_DECREASE_STATE)
             {
                 string nameSelected = (string)_list[0];
-                if (this.gameObject.name == nameSelected)
+                if (Utilities.GetFullPathNameGO(this.gameObject) == nameSelected)
                 {
                     m_currentState--;
                     SelectVisualState(m_currentState);
