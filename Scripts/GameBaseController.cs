@@ -39,6 +39,8 @@ namespace PartyCritical
         public const string EVENT_GAMECONTROLLER_RESPONSE_IS_GAME_RUNNING   = "EVENT_GAMECONTROLLER_RESPONSE_IS_GAME_RUNNING";
         public const string EVENT_GAMECONTROLLER_SELECT_SKYBOX              = "EVENT_GAMECONTROLLER_SELECT_SKYBOX";
         public const string EVENT_GAMECONTROLLER_CREATE_FX                  = "EVENT_GAMECONTROLLER_CREATE_FX";
+        public const string EVENT_GAMECONTROLLER_LAYOUT_TOTALLY_LOADED      = "EVENT_GAMECONTROLLER_LAYOUT_TOTALLY_LOADED";
+        public const string EVENT_GAMECONTROLLER_REFRESH_STATES_SWITCHES    = "EVENT_GAMECONTROLLER_REFRESH_STATES_SWITCHES";
 
         public const string SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL = "SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL";
 
@@ -851,6 +853,28 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+        * GameHasLoadedLevel
+        */
+        protected virtual void GameHasLoadedLevel(object[] _list)
+        {
+            int nextState = (int)_list[1];
+            FindSpawnPositions();
+            if (nextState != STATE_NULL)
+            {
+                if (nextState == -1)
+                {
+                    SetState(STATE_LOADING);
+                }
+                else
+                {
+                    SetState(nextState);
+                }
+            }
+            NetworkEventController.Instance.PriorityDelayNetworkEvent(GameBaseController.EVENT_GAMECONTROLLER_REFRESH_STATES_SWITCHES, 0.1f);
+        }
+
+        // -------------------------------------------
+        /* 
         * OnBasicSystemEvent
         */
         protected virtual void OnBasicSystemEvent(string _nameEvent, object[] _list)
@@ -876,7 +900,7 @@ namespace PartyCritical
 #endif
             }
 #endif
-                if (_nameEvent == CardboardLoaderVR.EVENT_VRLOADER_LOADED_DEVICE_NAME)
+            if (_nameEvent == CardboardLoaderVR.EVENT_VRLOADER_LOADED_DEVICE_NAME)
             {
                 
             }
@@ -886,19 +910,7 @@ namespace PartyCritical
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_LEVEL_LOAD_COMPLETED)
             {
-                int nextState = (int)_list[1];
-                FindSpawnPositions();
-                if (nextState != STATE_NULL)
-                {
-                    if (nextState == -1)
-                    {
-                        SetState(STATE_LOADING);
-                    }
-                    else
-                    {
-                        SetState(nextState);
-                    }
-                }
+                GameHasLoadedLevel(_list);
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_REQUEST_IS_GAME_RUNNING)
             {

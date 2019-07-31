@@ -216,12 +216,23 @@ namespace PartyCritical
             {
                 m_enableSwitcher = true;
             }
-            if (_nameEvent ==  EVENT_NETWORKSWITCHSTATE_CHANGE_STATE)
+            if (_nameEvent == GameBaseController.EVENT_GAMECONTROLLER_REFRESH_STATES_SWITCHES)
+            {
+                if (YourNetworkTools.Instance.IsServer)
+                {
+                    NetworkEventController.Instance.PriorityDelayNetworkEvent(EVENT_NETWORKSWITCHSTATE_CHANGE_STATE, 1, Utilities.GetFullPathNameGO(this.gameObject), m_currentState.ToString());
+                }
+            }
+            if (_nameEvent == EVENT_NETWORKSWITCHSTATE_CHANGE_STATE)
             {
                 string nameSelected = (string)_list[0];                
                 if (Utilities.GetFullPathNameGO(this.gameObject) == nameSelected)
                 {
-                    SelectVisualState(int.Parse((string)_list[1]));
+                    int nextState = int.Parse((string)_list[1]);
+                    if (m_currentState != nextState)
+                    {
+                        SelectVisualState(nextState);                        
+                    }
                 }
             }
             if (_nameEvent == EVENT_NETWORKSWITCHSTATE_INCREASE_STATE)
