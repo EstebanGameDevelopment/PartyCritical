@@ -27,7 +27,7 @@ namespace PartyCritical
         // ----------------------------------------------	
         private int m_currentState;
         private Animator m_animator;
-        private bool m_enableSwitcher = false;
+        private bool m_enableSwitcher = true;
 
         // -------------------------------------------
         /* 

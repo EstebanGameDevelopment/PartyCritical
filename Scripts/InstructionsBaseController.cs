@@ -416,6 +416,18 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		* CalculateCollisionsPathfinding
+		*/
+        protected virtual void CalculateCollisionsPathfinding(float _timeToDisplayCollisions = 0)
+        {
+            // CALCULATE THE COLLISIONS OF THE LEVEL
+            PathFindingController.Instance.CalculateCollisions(0, new string[3] { ActorTimeline.LAYER_ITEMS, ActorTimeline.LAYER_PLAYERS, ActorTimeline.LAYER_NPCS });
+            PathFindingController.Instance.ClearDotPaths();
+            PathFindingController.Instance.RenderDebugMatrixConstruction(-1, _timeToDisplayCollisions);
+        }
+
+        // -------------------------------------------
+        /* 
 		* InitPathfindingMatrix
 		*/
         public virtual void InitPathfindingMatrix()
@@ -426,10 +438,7 @@ namespace PartyCritical
             PathFindingController.Instance.AllocateMemoryMatrix(25, 25, 1, 4, -53, 0, -50);
             PathFindingController.Instance.SetWaypointHeight(10);
 
-            // CALCULATE THE COLLISIONS OF THE LEVEL
-            PathFindingController.Instance.CalculateCollisions(0, new string[3] { ActorTimeline.LAYER_ITEMS, ActorTimeline.LAYER_PLAYERS, ActorTimeline.LAYER_NPCS });
-            PathFindingController.Instance.ClearDotPaths();
-            PathFindingController.Instance.RenderDebugMatrixConstruction();
+            CalculateCollisionsPathfinding();
 
             if (USE_PRECALCULATED_PATHFINDING)
             {
@@ -483,6 +492,16 @@ namespace PartyCritical
 #endif
                 }
                 m_currentLevel = currentLevel;
+            }
+            if (_nameEvent == GameBaseController.EVENT_GAMECONTROLLER_RECALCULATE_COLLISIONS)
+            {
+                m_pathfindingInitialized = false;
+                float totalTimeToRender = 0;
+                if (_list.Length > 0)
+                {
+                    totalTimeToRender = float.Parse((string)_list[0]);
+                }
+                CalculateCollisionsPathfinding(totalTimeToRender);
             }
         }
 
