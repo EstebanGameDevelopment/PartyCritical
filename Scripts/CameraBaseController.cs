@@ -59,6 +59,7 @@ namespace PartyCritical
         protected bool m_rotatedTo90 = false;
         protected float m_timeoutPressed = 0;
         protected float m_timeoutToMove = 0;
+        protected float m_timeoutToTeleport = 0;
 
         protected bool m_twoFingersHasBeenPressedOnce = false;
 
@@ -68,6 +69,10 @@ namespace PartyCritical
         protected bool m_ignoreNextShootAction = false;
 
         protected bool m_enabledCameraInput = true;
+
+        protected bool m_teleportAvailable = false;
+
+        protected Vector3 m_shiftCameraFromOrigin = Vector3.zero;
 
 #if ENABLE_WORLDSENSE || ENABLE_OCULUS
         protected GameObject m_armModel;
@@ -191,11 +196,20 @@ namespace PartyCritical
         {
             get { return -1; }
         }
-        
+        public virtual float TIMEOUT_TO_TELEPORT
+        {
+            get { return 1; }
+        }
+        public Vector3 ShiftCameraFromOrigin
+        {
+            get { return m_shiftCameraFromOrigin; }
+        }
+
+
         // -------------------------------------------
         /* 
-		 * InitialitzationLaserPointer
-		 */
+         * InitialitzationLaserPointer
+         */
         protected virtual void InitialitzationLaserPointer()
         {
             if (YourVRUIScreenController.Instance.LaserPointer != null) YourVRUIScreenController.Instance.LaserPointer.SetActive(false);
@@ -221,6 +235,8 @@ namespace PartyCritical
         public virtual void Initialize()
         {
             InitialitzeHMDHeight();
+
+            m_teleportAvailable = (GameObject.FindObjectOfType<TeleportController>() != null);
 
 #if ENABLE_OCULUS
             m_enableVR = true;
@@ -822,25 +838,91 @@ namespace PartyCritical
             }
 #endif
 
-#if ENABLE_WORLDSENSE && !UNITY_EDITOR
-            if (KeysEventInputController.Instance.GetAppButtonDowDaydreamController())
+            // TELEPORT INPUT ACTIVATION
+            if (m_teleportAvailable)
             {
-                m_timeoutPressed = TIMEOUT_TO_INVENTORY;
+                if (m_timeoutToTeleport > 0)
+                {
+                    m_timeoutToTeleport += Time.deltaTime;
+                    if (m_timeoutToTeleport > TIMEOUT_TO_TELEPORT)
+                    {
+                        m_timeoutToTeleport = 0;
+                        BasicSystemEventController.Instance.DispatchBasicSystemEvent(TeleportController.EVENT_TELEPORTCONTROLLER_ACTIVATION);                        
+                    }
+                }
+#if ENABLE_WORLDSENSE && !UNITY_EDITOR
+                if (KeysEventInputController.Instance.GetAppButtonDowDaydreamController())
+                {
+                    m_timeoutToTeleport = 0.01f;
+                }
+#endif
+#if ENABLE_OCULUS && ENABLE_QUEST && !UNITY_EDITOR
+                if (KeysEventInputController.Instance.GetAppButtonDownOculusController())
+                {
+                    m_timeoutToTeleport = 0.01f;
+                }
+#endif
+#if UNITY_EDITOR
+                if (Input.GetKeyDown(KeyCode.RightControl))
+                {
+                    m_timeoutToTeleport = 0.01f;
+                }
+#endif
+            }
+
+            bool activateInventory = true;
+
+#if ENABLE_WORLDSENSE && !UNITY_EDITOR
+            if (KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false))
+            {
+                if (m_teleportAvailable)
+                {
+                    activateInventory = !TeleportController.Instance.ActivateTeleport;
+                }
+                if (activateInventory)
+                {
+                    m_timeoutToTeleport = 0;
+                    m_timeoutPressed = TIMEOUT_TO_INVENTORY;
+                }
             }
 #endif
 
 #if ENABLE_OCULUS && ENABLE_QUEST && !UNITY_EDITOR
-            if (KeysEventInputController.Instance.GetAppButtonDownOculusController())
+            if (KeysEventInputController.Instance.GetAppButtonUpOculusController())
             {
-                m_timeoutPressed = TIMEOUT_TO_INVENTORY;
+                if (m_teleportAvailable)
+                {
+                    activateInventory = !TeleportController.Instance.ActivateTeleport;
+                }
+                if (activateInventory)
+                {
+                    m_timeoutToTeleport = 0;
+                    m_timeoutPressed = TIMEOUT_TO_INVENTORY;
+                }
+            }
+#endif
+            bool keyEventUpToActivateInventory = false;
+#if UNITY_EDITOR
+            if (Input.GetKeyUp(KeyCode.RightControl))
+            {
+                if (m_teleportAvailable)
+                {
+                    activateInventory = !TeleportController.Instance.ActivateTeleport;
+                }
+                if (activateInventory)
+                {
+                    m_timeoutToTeleport = 0;
+                    m_timeoutPressed = TIMEOUT_TO_INVENTORY;
+                    keyEventUpToActivateInventory = true;
+                }
             }
 #endif
 
-            if (false
+            if (keyEventUpToActivateInventory
 #if ENABLE_OCULUS && !UNITY_EDITOR
-                || KeysEventInputController.Instance.GetAppButtonDownOculusController() || KeysEventInputController.Instance.GetActionCurrentStateOculusController()
+                || KeysEventInputController.Instance.GetAppButtonUpOculusController() || KeysEventInputController.Instance.GetActionCurrentStateOculusController()
 #elif ENABLE_WORLDSENSE && !UNITY_EDITOR
-                || KeysEventInputController.Instance.GetAppButtonDowDaydreamController() || KeysEventInputController.Instance.GetActionCurrentStateDaydreamController()
+                || KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false) || KeysEventInputController.Instance.GetActionCurrentStateDaydreamController()
 #else
                 || KeysEventInputController.Instance.GetActionCurrentStateDefaultController()
 #endif
@@ -1323,6 +1405,22 @@ namespace PartyCritical
                 this.gameObject.GetComponent<Rigidbody>().useGravity = false;
                 this.gameObject.GetComponent<Collider>().isTrigger = true;
             }
+            if (_nameEvent == TeleportController.EVENT_TELEPORTCONTROLLER_TELEPORT)
+            {
+                bool applyTeleport = true;
+#if TELEPORT_INDIVIDUAL
+                if (YourNetworkTools.Instance.GetUniversalNetworkID() != _networkOriginID)
+                {
+                    applyTeleport = false;
+                }
+#endif
+                if (applyTeleport)
+                {
+                    Vector3 shiftTeleport = Utilities.StringToVector3((string)_list[0]);
+                    m_shiftCameraFromOrigin += new Vector3(shiftTeleport.x, 0, shiftTeleport.z);
+                    Debug.LogError("CameraBaseController::EVENT_TELEPORTCONTROLLER_TELEPORT::m_shiftCameraFromOrigin=" + m_shiftCameraFromOrigin.ToString());
+                }
+            }
         }
 
         // -------------------------------------------
@@ -1411,9 +1509,9 @@ namespace PartyCritical
 
             Vector3 posWorld = Utilities.Clone(CameraLocal.transform.localPosition);
             Vector3 centerLevel = new Vector3(0, transform.position.y, 0);
-            transform.position = centerLevel + new Vector3(posWorld.x * ScaleMovementXZ,
-												0,
-                                                posWorld.z * ScaleMovementXZ);
+            transform.position = centerLevel 
+                                    + new Vector3(posWorld.x * ScaleMovementXZ, 0, posWorld.z * ScaleMovementXZ) 
+                                    + m_shiftCameraFromOrigin;
             Vector3 shiftToRecenter = -new Vector3(CameraLocal.transform.localPosition.x, CAMERA_SHIFT_HEIGHT_WORLDSENSE - (posWorld.y * ScaleMovementY), CameraLocal.transform.localPosition.z);
             CameraLocal.transform.parent.localPosition = shiftToRecenter;
 #else
@@ -1477,9 +1575,9 @@ namespace PartyCritical
 
             Vector3 posWorld = Utilities.Clone(CenterEyeAnchor.transform.localPosition);
             Vector3 centerLevel = new Vector3(0, transform.position.y, 0);
-            transform.position = centerLevel + new Vector3(posWorld.x * ScaleMovementXZ,
-												0,
-                                                posWorld.z * ScaleMovementXZ);
+            transform.position = centerLevel 
+                                    + new Vector3(posWorld.x * ScaleMovementXZ, 0, posWorld.z * ScaleMovementXZ) 
+                                    + m_shiftCameraFromOrigin;
             Vector3 shiftToRecenter = -new Vector3(CenterEyeAnchor.transform.localPosition.x, CAMERA_SHIFT_HEIGHT_WORLDSENSE - (posWorld.y * ScaleMovementY), CenterEyeAnchor.transform.localPosition.z);
             CenterEyeAnchor.transform.parent.localPosition = shiftToRecenter;
 
