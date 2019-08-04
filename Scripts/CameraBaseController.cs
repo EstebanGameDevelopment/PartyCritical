@@ -738,12 +738,123 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+         * UpdateLogicTeleportInventory
+         */
+        protected virtual void UpdateLogicTeleportInventory(bool _openInventory = true)
+        {
+            // TELEPORT INPUT ACTIVATION
+            if (m_teleportAvailable)
+            {
+                if (m_timeoutToTeleport > 0)
+                {
+                    m_timeoutToTeleport += Time.deltaTime;
+                    if (m_timeoutToTeleport > TIMEOUT_TO_TELEPORT)
+                    {
+                        m_timeoutToTeleport = 0;
+                        BasicSystemEventController.Instance.DispatchBasicSystemEvent(TeleportController.EVENT_TELEPORTCONTROLLER_ACTIVATION);
+                    }
+                }
+#if ENABLE_WORLDSENSE && !UNITY_EDITOR
+                if (KeysEventInputController.Instance.GetAppButtonDowDaydreamController())
+                {
+                    m_timeoutToTeleport = 0.01f;
+                }
+#endif
+#if ENABLE_OCULUS && ENABLE_QUEST && !UNITY_EDITOR
+                if (KeysEventInputController.Instance.GetAppButtonDownOculusController())
+                {
+                    m_timeoutToTeleport = 0.01f;
+                }
+#endif
+#if UNITY_EDITOR
+                if (Input.GetKeyDown(KeyCode.RightControl))
+                {
+                    m_timeoutToTeleport = 0.01f;
+                }
+#endif
+            }
+
+            bool activateInventory = true;
+
+#if ENABLE_WORLDSENSE && !UNITY_EDITOR
+            if (KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false))
+            {
+                if (m_teleportAvailable)
+                {
+                    activateInventory = !TeleportController.Instance.ActivateTeleport;
+                }
+                if (activateInventory)
+                {
+                    m_timeoutToTeleport = 0;
+                    m_timeoutPressed = TIMEOUT_TO_INVENTORY;
+                }
+            }
+#endif
+
+#if ENABLE_OCULUS && ENABLE_QUEST && !UNITY_EDITOR
+            if (KeysEventInputController.Instance.GetAppButtonUpOculusController())
+            {
+                if (m_teleportAvailable)
+                {
+                    activateInventory = !TeleportController.Instance.ActivateTeleport;
+                }
+                if (activateInventory)
+                {
+                    m_timeoutToTeleport = 0;
+                    m_timeoutPressed = TIMEOUT_TO_INVENTORY;
+                }
+            }
+#endif
+            bool keyEventUpToActivateInventory = false;
+#if UNITY_EDITOR
+            if (Input.GetKeyUp(KeyCode.RightControl))
+            {
+                if (m_teleportAvailable)
+                {
+                    activateInventory = !TeleportController.Instance.ActivateTeleport;
+                }
+                if (activateInventory)
+                {
+                    m_timeoutToTeleport = 0;
+                    m_timeoutPressed = TIMEOUT_TO_INVENTORY;
+                    keyEventUpToActivateInventory = true;
+                }
+            }
+#endif
+
+            if (keyEventUpToActivateInventory
+#if ENABLE_OCULUS && !UNITY_EDITOR
+                || KeysEventInputController.Instance.GetAppButtonUpOculusController() || KeysEventInputController.Instance.GetActionCurrentStateOculusController()
+#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+                || KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false) || KeysEventInputController.Instance.GetActionCurrentStateDaydreamController()
+#else
+                || KeysEventInputController.Instance.GetActionCurrentStateDefaultController()
+#endif
+                )
+            {
+                m_timeoutPressed += Time.deltaTime;
+
+                if (_openInventory)
+                {
+                    OpenInventory(true);
+
+#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
+                    m_timeoutToMove += Time.deltaTime;
+#endif
+                    RunMoveOnTimeoutPressed();
+                }
+            }
+        }
+
+        // -------------------------------------------
+        /* 
         * ProcessInputCustomer
         */
         protected void ProcessInputCustomer()
         {
             if (IsThereBlockingScreen())
             {
+                UpdateLogicTeleportInventory(false);
                 return;
             }
             
@@ -838,104 +949,7 @@ namespace PartyCritical
             }
 #endif
 
-            // TELEPORT INPUT ACTIVATION
-            if (m_teleportAvailable)
-            {
-                if (m_timeoutToTeleport > 0)
-                {
-                    m_timeoutToTeleport += Time.deltaTime;
-                    if (m_timeoutToTeleport > TIMEOUT_TO_TELEPORT)
-                    {
-                        m_timeoutToTeleport = 0;
-                        BasicSystemEventController.Instance.DispatchBasicSystemEvent(TeleportController.EVENT_TELEPORTCONTROLLER_ACTIVATION);                        
-                    }
-                }
-#if ENABLE_WORLDSENSE && !UNITY_EDITOR
-                if (KeysEventInputController.Instance.GetAppButtonDowDaydreamController())
-                {
-                    m_timeoutToTeleport = 0.01f;
-                }
-#endif
-#if ENABLE_OCULUS && ENABLE_QUEST && !UNITY_EDITOR
-                if (KeysEventInputController.Instance.GetAppButtonDownOculusController())
-                {
-                    m_timeoutToTeleport = 0.01f;
-                }
-#endif
-#if UNITY_EDITOR
-                if (Input.GetKeyDown(KeyCode.RightControl))
-                {
-                    m_timeoutToTeleport = 0.01f;
-                }
-#endif
-            }
-
-            bool activateInventory = true;
-
-#if ENABLE_WORLDSENSE && !UNITY_EDITOR
-            if (KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false))
-            {
-                if (m_teleportAvailable)
-                {
-                    activateInventory = !TeleportController.Instance.ActivateTeleport;
-                }
-                if (activateInventory)
-                {
-                    m_timeoutToTeleport = 0;
-                    m_timeoutPressed = TIMEOUT_TO_INVENTORY;
-                }
-            }
-#endif
-
-#if ENABLE_OCULUS && ENABLE_QUEST && !UNITY_EDITOR
-            if (KeysEventInputController.Instance.GetAppButtonUpOculusController())
-            {
-                if (m_teleportAvailable)
-                {
-                    activateInventory = !TeleportController.Instance.ActivateTeleport;
-                }
-                if (activateInventory)
-                {
-                    m_timeoutToTeleport = 0;
-                    m_timeoutPressed = TIMEOUT_TO_INVENTORY;
-                }
-            }
-#endif
-            bool keyEventUpToActivateInventory = false;
-#if UNITY_EDITOR
-            if (Input.GetKeyUp(KeyCode.RightControl))
-            {
-                if (m_teleportAvailable)
-                {
-                    activateInventory = !TeleportController.Instance.ActivateTeleport;
-                }
-                if (activateInventory)
-                {
-                    m_timeoutToTeleport = 0;
-                    m_timeoutPressed = TIMEOUT_TO_INVENTORY;
-                    keyEventUpToActivateInventory = true;
-                }
-            }
-#endif
-
-            if (keyEventUpToActivateInventory
-#if ENABLE_OCULUS && !UNITY_EDITOR
-                || KeysEventInputController.Instance.GetAppButtonUpOculusController() || KeysEventInputController.Instance.GetActionCurrentStateOculusController()
-#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
-                || KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false) || KeysEventInputController.Instance.GetActionCurrentStateDaydreamController()
-#else
-                || KeysEventInputController.Instance.GetActionCurrentStateDefaultController()
-#endif
-                )
-            {
-                m_timeoutPressed += Time.deltaTime;
-                OpenInventory(true);
-
-#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
-                m_timeoutToMove += Time.deltaTime;
-#endif
-                RunMoveOnTimeoutPressed();
-            }
+            UpdateLogicTeleportInventory();
 
             // SHOTGUN
             UpdateTransformShotgun();
