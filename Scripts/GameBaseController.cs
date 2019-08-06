@@ -694,6 +694,25 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+        * LoadSelectedLevel
+        */
+        protected virtual void LoadSelectedLevel(int _level)
+        {
+            m_currentLevel = _level;
+#if ENABLE_ASSET_BUNDLE
+            m_currentLevel = m_currentLevel % LevelsAssetsNames.Length;
+#else
+            m_currentLevel = m_currentLevel % LevelsPrefab.Length;
+#endif
+            m_onNetworkRemoteConnection = true;
+            if (m_isInitialConnectionEstablished)
+            {
+                FinallyLoadLevel();
+            }
+        }
+
+        // -------------------------------------------
+        /* 
         * Manager of global events
         */
         protected virtual void OnNetworkEvent(string _nameEvent, bool _isLocalEvent, int _networkOriginID, int _networkTargetID, params object[] _list)
@@ -773,17 +792,7 @@ namespace PartyCritical
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_SELECTED_LEVEL)
             {
-                m_currentLevel = int.Parse((string)_list[0]);
-#if ENABLE_ASSET_BUNDLE
-                m_currentLevel = m_currentLevel % LevelsAssetsNames.Length;
-#else
-                m_currentLevel = m_currentLevel % LevelsPrefab.Length;
-#endif
-                m_onNetworkRemoteConnection = true;
-                if (m_isInitialConnectionEstablished)
-                {
-                    FinallyLoadLevel();
-                }
+                LoadSelectedLevel(int.Parse((string)_list[0]));
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_PLAYER_IS_READY)
             {
