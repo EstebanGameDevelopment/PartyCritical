@@ -663,6 +663,13 @@ namespace PartyCritical
                     transform.GetComponent<Rigidbody>().MovePosition(transform.position + normalForward * PLAYER_SPEED * Time.deltaTime);
                     UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_DESTROY_ALL_SCREEN);
                 }
+                else
+                {
+                    Vector3 normalForward = CameraLocal.forward.normalized;
+                    normalForward = new Vector3(normalForward.x, 0, normalForward.z);
+                    m_shiftCameraFromOrigin += normalForward * PLAYER_SPEED * Time.deltaTime;
+                    UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_DESTROY_ALL_SCREEN);
+                }
             }
 #endif
         }
@@ -1230,7 +1237,7 @@ namespace PartyCritical
 		 */
         protected virtual void SetUpCloudAnchorPosition(Vector3 _position)
         {
-            transform.position = new Vector3(_position.x, transform.position.y, _position.z);
+            transform.position = m_shiftCameraFromOrigin + new Vector3(_position.x, transform.position.y, _position.z);
             CameraLocal.transform.parent.localPosition = -new Vector3(CameraLocal.transform.localPosition.x, CAMERA_SHIFT_HEIGHT_WORLDSENSE - _position.y, CameraLocal.transform.localPosition.z);
         }
 
