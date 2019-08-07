@@ -713,6 +713,48 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+        * PlayerReadyConfirmation
+        */
+        protected virtual void PlayerReadyConfirmation(params object[] _list)
+        {
+#if !FORCE_GAME
+            if (YourNetworkTools.Instance.IsServer)
+            {
+                int networkID = int.Parse((string)_list[0]);
+                bool isDirector = bool.Parse((string)_list[1]);
+                if (m_playersReady.IndexOf(networkID) == -1) m_playersReady.Add(networkID);
+                // Debug.LogError("EVENT_SYSTEM_INITIALITZATION_REMOTE_COMPLETED::CONNECTED CLIENT[" + networkID + "] OF TOTAL["+ m_playersReady.Count + "] of EXPECTED[" + m_totalNumberPlayers +"]");
+                if ((isDirector) || ((m_totalNumberPlayers <= m_playersReady.Count) && (m_totalNumberPlayers != MultiplayerConfiguration.VALUE_FOR_JOINING)))
+                {
+                    m_totalNumberPlayers = m_playersReady.Count;
+#if ENABLE_CONFUSION
+                        NetworkEventController.Instance.DelayLocalEvent(ClientTCPEventsController.EVENT_CLIENT_TCP_CLOSE_CURRENT_ROOM, 0.2f);
+#else
+                    NetworkEventController.Instance.PriorityDelayNetworkEvent(ClientTCPEventsController.EVENT_CLIENT_TCP_CLOSE_CURRENT_ROOM, 0.2f);
+#endif
+
+                    StartRunningGame();
+                }
+            }
+#endif
+        }
+
+        // -------------------------------------------
+        /* 
+        * StartRunningGame
+        */
+        public virtual void StartRunningGame()
+        {
+            // Debug.LogError("EVENT_SYSTEM_INITIALITZATION_REMOTE_COMPLETED::START RUNNING***********************************");
+#if FORCE_REPOSITION
+                        ChangeState(STATE_REPOSITION);
+#else
+            ChangeState(STATE_RUNNING);
+#endif
+        }
+
+        // -------------------------------------------
+        /* 
         * Manager of global events
         */
         protected virtual void OnNetworkEvent(string _nameEvent, bool _isLocalEvent, int _networkOriginID, int _networkTargetID, params object[] _list)
@@ -796,32 +838,8 @@ namespace PartyCritical
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_PLAYER_IS_READY)
             {
-#if !FORCE_GAME
-                if (YourNetworkTools.Instance.IsServer)
-                {
-                    int networkID = int.Parse((string)_list[0]);
-                    bool isDirector = bool.Parse((string)_list[1]);
-                    if (m_playersReady.IndexOf(networkID) == -1) m_playersReady.Add(networkID);
-                    // Debug.LogError("EVENT_SYSTEM_INITIALITZATION_REMOTE_COMPLETED::CONNECTED CLIENT[" + networkID + "] OF TOTAL["+ m_playersReady.Count + "] of EXPECTED[" + m_totalNumberPlayers +"]");
-                    if ((isDirector) || ((m_totalNumberPlayers <= m_playersReady.Count) && (m_totalNumberPlayers != MultiplayerConfiguration.VALUE_FOR_JOINING)))
-                    {
-                        m_totalNumberPlayers = m_playersReady.Count;
-#if ENABLE_CONFUSION
-                        NetworkEventController.Instance.DelayLocalEvent(ClientTCPEventsController.EVENT_CLIENT_TCP_CLOSE_CURRENT_ROOM, 0.2f);
-#else
-                        NetworkEventController.Instance.PriorityDelayNetworkEvent(ClientTCPEventsController.EVENT_CLIENT_TCP_CLOSE_CURRENT_ROOM, 0.2f);
-#endif
-
-                        // Debug.LogError("EVENT_SYSTEM_INITIALITZATION_REMOTE_COMPLETED::START RUNNING***********************************");
-#if FORCE_REPOSITION
-                        ChangeState(STATE_REPOSITION);
-#else
-                        ChangeState(STATE_RUNNING);
-#endif
-                    }
-                }
-#endif
-                    }
+                PlayerReadyConfirmation(_list);
+            }
             if (_nameEvent == EVENT_GAMECONTROLLER_COLLIDED_REPOSITION_BALL)
             {
                 int networkID = int.Parse((string)_list[0]);
