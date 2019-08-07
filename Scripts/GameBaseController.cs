@@ -1402,7 +1402,7 @@ namespace PartyCritical
             int indexEnemy = UnityEngine.Random.Range(0, EnemyModelPrefab.Length);
             string initialData = "ENEMY" + m_globalCounterEnemies + "," + "ZOMBIE" + "," + EnemyModelPrefab[indexEnemy] + "," + _position.x + "," + _position.y + "," + _position.z;
             m_globalCounterEnemies++;
-            YourNetworkTools.Instance.CreateLocalNetworkObject(EnemyPrefab[0].name, initialData, true);
+            YourNetworkTools.Instance.CreateLocalNetworkObject(EnemyPrefab[0].name, initialData, true, 10000, 10000, 10000);
             return true;
         }
 
