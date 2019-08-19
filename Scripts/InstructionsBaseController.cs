@@ -617,7 +617,7 @@ namespace PartyCritical
 		 */
         protected virtual void OnGUI()
         {
-#if ENABLE_MULTIPLAYER_TIMELINE
+#if ENABLE_MULTIPLAYER_TIMELINE && UNITY_EDITOR
             string data = "TIME=" + GameLevelData.Instance.CurrentTimePlaying;
             if (m_newTimeLine != null) data += ":T:" + m_newTimeLine.Name;
             if (m_newActionLine != null) data += ":A:" + m_newActionLine.Name;
