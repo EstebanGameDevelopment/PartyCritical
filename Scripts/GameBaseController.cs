@@ -42,6 +42,7 @@ namespace PartyCritical
         public const string EVENT_GAMECONTROLLER_LAYOUT_TOTALLY_LOADED      = "EVENT_GAMECONTROLLER_LAYOUT_TOTALLY_LOADED";
         public const string EVENT_GAMECONTROLLER_REFRESH_STATES_SWITCHES    = "EVENT_GAMECONTROLLER_REFRESH_STATES_SWITCHES";
         public const string EVENT_GAMECONTROLLER_RECALCULATE_COLLISIONS     = "EVENT_GAMECONTROLLER_RECALCULATE_COLLISIONS";
+        public const string EVENT_GAMECONTROLLER_PARTY_OVER                 = "EVENT_GAMECONTROLLER_PARTY_OVER";
 
         public const string SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL = "SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL";
 
@@ -875,8 +876,26 @@ namespace PartyCritical
                 Vector3 scaleFX = Utilities.StringToVector3((string)_list[3]);
                 CreateNewFX(fxIndex, timeDestroy, posFX, scaleFX);
             }
+            if (_nameEvent == EVENT_GAMECONTROLLER_PARTY_OVER)
+            {
+                SoundsController.Instance.StopAllSounds();
+                YourVRUIScreenController.Instance.DestroyScreens();
+                KeysEventInputController.Instance.EnableInteractions = false;
+                UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN, ScreenPartyOver.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false, null);
+                Invoke("KillGameParty", 10);
+            }
 
             OnNetworkEventEnemy(_nameEvent, _isLocalEvent, _networkOriginID, _networkTargetID, _list);
+        }
+        
+        // -------------------------------------------
+        /* 
+        * KillGameParty
+        */
+        public void KillGameParty()
+        {
+            Debug.LogError("KILLING APP+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+            Application.Quit();
         }
 
         // -------------------------------------------

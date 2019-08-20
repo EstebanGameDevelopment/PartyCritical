@@ -65,7 +65,13 @@ namespace PartyCritical
 			GameObject hideThisScreen = m_container.Find("Hide").gameObject;
 			hideThisScreen.GetComponent<Button>().onClick.AddListener(HidePanel);
 
-			UIEventController.Instance.UIEvent += new UIEventHandler(OnMenuEvent);
+            if (m_container.Find("KillParty") != null)
+            {
+                GameObject killPartyButton = m_container.Find("KillParty").gameObject;
+                killPartyButton.GetComponent<Button>().onClick.AddListener(KillThisParty);
+            }
+
+            UIEventController.Instance.UIEvent += new UIEventHandler(OnMenuEvent);
             BasicSystemEventController.Instance.BasicSystemEvent += new BasicSystemEventHandler(OnBasicSystemEvent);
 
             Invoke("LoadRightCamera", 2);
@@ -128,11 +134,20 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
-		* PlayWithGyroscopePressed
+		* HidePanel
 		*/
         protected virtual void HidePanel()
 		{
             m_container.gameObject.SetActive(false);
+        }
+
+        // -------------------------------------------
+        /* 
+		* KillThisParty
+		*/
+        protected virtual void KillThisParty()
+        {
+            NetworkEventController.Instance.PriorityDelayNetworkEvent(GameBaseController.EVENT_GAMECONTROLLER_PARTY_OVER, 0.1f);
         }
 
         // -------------------------------------------
