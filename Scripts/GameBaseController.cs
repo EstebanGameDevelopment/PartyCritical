@@ -832,6 +832,7 @@ namespace PartyCritical
 #endif
 
                 LoadCurrentGameLevel(-1, nextStateAfterCreateInstanceLevel);
+                UIEventController.Instance.DelayUIEvent(EventSystemController.EVENT_ACTIVATION_INPUT_STANDALONE, 1f, true);
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_SELECTED_LEVEL)
             {
