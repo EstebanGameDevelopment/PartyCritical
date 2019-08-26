@@ -1323,6 +1323,7 @@ namespace PartyCritical
                         NetworkEventController.Instance.DispatchNetworkEvent(ActorTimeline.EVENT_GAMEPLAYER_HUMAN_DIRECTOR_NAME, m_namePlayer);
                     }
                 }
+                UIEventController.Instance.DelayUIEvent(InteractionController.EVENT_INTERACTIONCONTROLLER_ENABLE_INTERACTION, 2, false);
             }
             if (m_directorMode || (m_totalNumberPlayers == 1))
             {
