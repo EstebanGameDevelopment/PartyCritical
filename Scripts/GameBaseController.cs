@@ -43,6 +43,7 @@ namespace PartyCritical
         public const string EVENT_GAMECONTROLLER_REFRESH_STATES_SWITCHES    = "EVENT_GAMECONTROLLER_REFRESH_STATES_SWITCHES";
         public const string EVENT_GAMECONTROLLER_RECALCULATE_COLLISIONS     = "EVENT_GAMECONTROLLER_RECALCULATE_COLLISIONS";
         public const string EVENT_GAMECONTROLLER_PARTY_OVER                 = "EVENT_GAMECONTROLLER_PARTY_OVER";
+        public const string EVENT_GAMECONTROLLER_DIRECTOR_CONNECTED         = "EVENT_GAMECONTROLLER_DIRECTOR_CONNECTED";
 
         public const string SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL = "SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL";
 
@@ -1322,6 +1323,7 @@ namespace PartyCritical
                         UIEventController.Instance.DelayUIEvent(EventSystemController.EVENT_ACTIVATION_INPUT_STANDALONE, 1f, true);
                         NetworkEventController.Instance.DispatchNetworkEvent(ActorTimeline.EVENT_GAMEPLAYER_HUMAN_DIRECTOR_NAME, m_namePlayer);
                     }
+                    NetworkEventController.Instance.PriorityDelayNetworkEvent(GameBaseController.EVENT_GAMECONTROLLER_DIRECTOR_CONNECTED, 1);                    
                 }
                 UIEventController.Instance.DelayUIEvent(InteractionController.EVENT_INTERACTIONCONTROLLER_ENABLE_INTERACTION, 2, false);
             }
