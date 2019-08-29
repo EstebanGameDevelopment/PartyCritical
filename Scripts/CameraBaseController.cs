@@ -98,7 +98,7 @@ namespace PartyCritical
             set
             {
                 m_avatar = value;
-                this.transform.position = m_avatar.transform.position;
+                this.transform.position = new Vector3(m_avatar.transform.position.x, m_avatar.transform.position.y + 1, m_avatar.transform.position.z);
             }
         }
 
