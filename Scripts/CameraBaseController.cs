@@ -768,9 +768,13 @@ namespace PartyCritical
                 }
 #endif
 #if ENABLE_OCULUS && ENABLE_QUEST && !UNITY_EDITOR
+                if (KeysEventInputController.Instance.GetThumbstickDownOculusController())
+                {
+                    m_timeoutToTeleport = TIMEOUT_TO_TELEPORT + 1;
+                }
                 if (KeysEventInputController.Instance.GetAppButtonDownOculusController())
                 {
-                    m_timeoutToTeleport = 0.01f;
+                    m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
                 }
 #endif
 #if UNITY_EDITOR
@@ -798,20 +802,6 @@ namespace PartyCritical
             }
 #endif
 
-#if ENABLE_OCULUS && ENABLE_QUEST && !UNITY_EDITOR
-            if (KeysEventInputController.Instance.GetAppButtonUpOculusController())
-            {
-                if (m_teleportAvailable)
-                {
-                    activateInventory = !TeleportController.Instance.ActivateTeleport;
-                }
-                if (activateInventory)
-                {
-                    m_timeoutToTeleport = 0;
-                    m_timeoutPressed = TIMEOUT_TO_INVENTORY;
-                }
-            }
-#endif
             bool keyEventUpToActivateInventory = false;
 #if UNITY_EDITOR
             if (Input.GetKeyUp(KeyCode.RightControl))
@@ -831,7 +821,7 @@ namespace PartyCritical
 
             if (keyEventUpToActivateInventory
 #if ENABLE_OCULUS && !UNITY_EDITOR
-                || KeysEventInputController.Instance.GetAppButtonUpOculusController() || KeysEventInputController.Instance.GetActionCurrentStateOculusController()
+                || KeysEventInputController.Instance.GetAppButtonDownOculusController() || KeysEventInputController.Instance.GetActionCurrentStateOculusController()
 #elif ENABLE_WORLDSENSE && !UNITY_EDITOR
                 || KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false) || KeysEventInputController.Instance.GetActionCurrentStateDaydreamController()
 #else

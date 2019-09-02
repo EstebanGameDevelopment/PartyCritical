@@ -131,8 +131,8 @@ namespace PartyCritical
         * CheckReleasedKey
         */
         private void CheckReleasedKey()
-        {
-            bool keyReleased = false;
+        {            
+                bool keyReleased = false;
 #if ENABLE_WORLDSENSE && !UNITY_EDITOR
                 if (KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false))
                 {
@@ -140,7 +140,7 @@ namespace PartyCritical
                 }
 #endif
 #if ENABLE_OCULUS && ENABLE_QUEST && !UNITY_EDITOR
-                if (KeysEventInputController.Instance.GetAppButtonUpOculusController())
+                if (KeysEventInputController.Instance.GetThumbstickUpOculusController())
                 {
                     keyReleased = true;
                 }
