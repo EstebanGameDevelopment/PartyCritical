@@ -30,6 +30,8 @@ namespace PartyCritical
         public const string EVENT_DIRECTOR_RESET_CAMERA_TO_DIRECTOR = "EVENT_DIRECTOR_RESET_CAMERA_TO_DIRECTOR";
         public const string EVENT_DIRECTOR_CHANGE_CAMERA_TO_PLAYER  = "EVENT_DIRECTOR_CHANGE_CAMERA_TO_PLAYER";
 
+        public const string EVENT_DIRECTOR_TELEPORT_ENABLE  = "EVENT_DIRECTOR_TELEPORT_ENABLE";
+
         // ----------------------------------------------
         // PRIVATE MEMBERS
         // ----------------------------------------------	
@@ -43,6 +45,22 @@ namespace PartyCritical
         protected int m_playerIndexSelected = -1;
 
         protected List<GameObject> m_players;
+
+        protected bool m_teleportEnabled = false;
+        protected GameObject m_stopTeleport;
+
+
+        protected bool TeleportEnabled
+        {
+            get { return m_teleportEnabled; }
+            set {
+                m_teleportEnabled = value;
+                if (m_stopTeleport != null)
+                {
+                    m_stopTeleport.SetActive(!m_teleportEnabled);
+                }
+            }
+        }
 
         // -------------------------------------------
         /* 
@@ -69,6 +87,13 @@ namespace PartyCritical
             {
                 GameObject killPartyButton = m_container.Find("KillParty").gameObject;
                 killPartyButton.GetComponent<Button>().onClick.AddListener(KillThisParty);
+            }
+
+            if (m_container.Find("Teleport") != null)
+            {
+                GameObject teleportButton = m_container.Find("Teleport").gameObject;
+                teleportButton.GetComponent<Button>().onClick.AddListener(TeleportChanged);
+                m_stopTeleport = m_container.Find("Teleport/Stop").gameObject;
             }
 
             UIEventController.Instance.UIEvent += new UIEventHandler(OnMenuEvent);
@@ -167,6 +192,16 @@ namespace PartyCritical
                 m_iconDirector.SetActive(true);
                 m_textCamera.text = "DIRECTOR";
             }
+        }
+
+        // -------------------------------------------
+        /* 
+		* TeleportChanged
+		*/
+        protected void TeleportChanged()
+        {
+            TeleportEnabled = !TeleportEnabled;
+            NetworkEventController.Instance.DispatchNetworkEvent(EVENT_DIRECTOR_TELEPORT_ENABLE, TeleportEnabled.ToString());            
         }
 
         // -------------------------------------------

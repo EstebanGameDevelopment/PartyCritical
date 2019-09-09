@@ -71,7 +71,8 @@ namespace PartyCritical
         protected bool m_enabledCameraInput = true;
 
         protected bool m_teleportAvailable = false;
-
+        protected bool m_teleportEnabled = false;
+        
         protected Vector3 m_shiftCameraFromOrigin = Vector3.zero;
 
 #if ENABLE_WORLDSENSE || ENABLE_OCULUS
@@ -750,7 +751,7 @@ namespace PartyCritical
         protected virtual void UpdateLogicTeleportInventory(bool _openInventory = true)
         {
             // TELEPORT INPUT ACTIVATION
-            if (m_teleportAvailable)
+            if (m_teleportAvailable && m_teleportEnabled)
             {
                 if (m_timeoutToTeleport > 0)
                 {
@@ -790,7 +791,7 @@ namespace PartyCritical
 #if ENABLE_WORLDSENSE && !UNITY_EDITOR
             if (KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false))
             {
-                if (m_teleportAvailable)
+                if (m_teleportAvailable && m_teleportEnabled)
                 {
                     activateInventory = !TeleportController.Instance.ActivateTeleport;
                 }
@@ -806,7 +807,7 @@ namespace PartyCritical
 #if UNITY_EDITOR
             if (Input.GetKeyUp(KeyCode.RightControl))
             {
-                if (m_teleportAvailable)
+                if (m_teleportAvailable && m_teleportEnabled)
                 {
                     activateInventory = !TeleportController.Instance.ActivateTeleport;
                 }
@@ -1415,6 +1416,14 @@ namespace PartyCritical
                 this.gameObject.GetComponent<Rigidbody>().isKinematic = true;
                 this.gameObject.GetComponent<Rigidbody>().useGravity = false;
                 this.gameObject.GetComponent<Collider>().isTrigger = true;
+            }
+            if (_nameEvent == ScreenBaseDirectorView.EVENT_DIRECTOR_TELEPORT_ENABLE)
+            {
+                if (!DirectorMode)
+                {
+                    m_teleportEnabled = bool.Parse((string)_list[0]);
+                    m_timeoutToTeleport = 0;
+                }
             }
             if (_nameEvent == TeleportController.EVENT_TELEPORTCONTROLLER_TELEPORT)
             {
