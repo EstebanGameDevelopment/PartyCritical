@@ -751,27 +751,36 @@ namespace PartyCritical
         protected virtual void UpdateLogicTeleportInventory(bool _openInventory = true)
         {
             // TELEPORT INPUT ACTIVATION
-            if (m_teleportAvailable && m_teleportEnabled)
+            if (m_teleportAvailable)
             {
-                if (m_timeoutToTeleport > 0)
+                if (m_teleportEnabled)
                 {
-                    m_timeoutToTeleport += Time.deltaTime;
-                    if (m_timeoutToTeleport > TIMEOUT_TO_TELEPORT)
+                    if (m_timeoutToTeleport > 0)
                     {
-                        m_timeoutToTeleport = 0;
-                        BasicSystemEventController.Instance.DispatchBasicSystemEvent(TeleportController.EVENT_TELEPORTCONTROLLER_ACTIVATION);
+                        m_timeoutToTeleport += Time.deltaTime;
+                        if (m_timeoutToTeleport > TIMEOUT_TO_TELEPORT)
+                        {
+                            m_timeoutToTeleport = 0;
+                            BasicSystemEventController.Instance.DispatchBasicSystemEvent(TeleportController.EVENT_TELEPORTCONTROLLER_ACTIVATION);
+                        }
                     }
                 }
 #if ENABLE_WORLDSENSE && !UNITY_EDITOR
-                if (KeysEventInputController.Instance.GetAppButtonDowDaydreamController())
+                if (m_teleportEnabled)
                 {
-                    m_timeoutToTeleport = 0.01f;
+                    if (KeysEventInputController.Instance.GetAppButtonDowDaydreamController())
+                    {
+                        m_timeoutToTeleport = 0.01f;
+                    }
                 }
 #endif
 #if ENABLE_OCULUS && ENABLE_QUEST && !UNITY_EDITOR
-                if (KeysEventInputController.Instance.GetThumbstickDownOculusController())
+                if (m_teleportEnabled)
                 {
-                    m_timeoutToTeleport = TIMEOUT_TO_TELEPORT + 1;
+                    if (KeysEventInputController.Instance.GetThumbstickDownOculusController())
+                    {
+                        m_timeoutToTeleport = TIMEOUT_TO_TELEPORT + 1;
+                    }
                 }
                 if (KeysEventInputController.Instance.GetAppButtonDownOculusController())
                 {
