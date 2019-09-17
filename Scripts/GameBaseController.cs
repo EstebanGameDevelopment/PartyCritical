@@ -1414,7 +1414,7 @@ namespace PartyCritical
             return (m_stateManager.State == STATE_LOADING);
         }
 
-        private int m_globalCounterEnemies = 0;
+        protected int m_globalCounterEnemies = 0;
 
         // -------------------------------------------
         /* 
