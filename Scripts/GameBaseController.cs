@@ -1333,6 +1333,7 @@ namespace PartyCritical
             }                
             bool previousStateIsFirstTimeRun = m_isFirstTimeRun;
             m_isFirstTimeRun = false;
+            BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_GAMECONTROLLER_RESPONSE_IS_GAME_RUNNING, IsGameFakeRunning());
             return previousStateIsFirstTimeRun;
         }
 
