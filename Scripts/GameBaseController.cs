@@ -465,8 +465,21 @@ namespace PartyCritical
                 if (m_level == null)
                 {
 #if ENABLE_ASSET_BUNDLE
-                    m_currentLevel = m_currentLevel % LevelsAssetsNames.Length;
-                    m_level = AssetbundleController.Instance.CreateGameObject(LevelsAssetsNames[m_currentLevel]);
+                    bool loadLevelFromAssetBundle = true;
+#if UNITY_EDITOR
+
+                    if ((m_currentLevel < LevelsPrefab.Length) && (LevelsPrefab[m_currentLevel] != null))
+                    {
+                        m_currentLevel = m_currentLevel % LevelsPrefab.Length;
+                        m_level = Utilities.AddChild(LevelContainer.transform, LevelsPrefab[m_currentLevel]);
+                        loadLevelFromAssetBundle = false;
+                    }
+#endif
+                    if (loadLevelFromAssetBundle)
+                    {
+                        m_currentLevel = m_currentLevel % LevelsAssetsNames.Length;
+                        m_level = AssetbundleController.Instance.CreateGameObject(LevelsAssetsNames[m_currentLevel]);
+                    }
 #else
                     m_currentLevel = m_currentLevel % LevelsPrefab.Length;
                     m_level = Utilities.AddChild(LevelContainer.transform, LevelsPrefab[m_currentLevel]);
