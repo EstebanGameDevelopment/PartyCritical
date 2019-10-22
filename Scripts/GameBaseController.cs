@@ -85,6 +85,7 @@ namespace PartyCritical
         public TextAsset PathfindingData;
         public Material[] SkyboxesLevels;
         public string[] SoundsLevels;
+        public GameObject[] GenericObjects;
 
         // ----------------------------------------------
         // protected MEMBERS
@@ -739,6 +740,9 @@ namespace PartyCritical
                 bool isDirector = bool.Parse((string)_list[1]);
                 if (m_playersReady.IndexOf(networkID) == -1) m_playersReady.Add(networkID);
                 // Debug.LogError("EVENT_SYSTEM_INITIALITZATION_REMOTE_COMPLETED::CONNECTED CLIENT[" + networkID + "] OF TOTAL["+ m_playersReady.Count + "] of EXPECTED[" + m_totalNumberPlayers +"]");
+#if SINGLE_PLAYER
+                m_totalNumberPlayers = 1;
+#endif
                 if ((isDirector) || ((m_totalNumberPlayers <= m_playersReady.Count) && (m_totalNumberPlayers != MultiplayerConfiguration.VALUE_FOR_JOINING)))
                 {
                     m_totalNumberPlayers = m_playersReady.Count;
@@ -770,10 +774,99 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+        * AddNetworkObjectComponent
+        */
+        public void AddNetworkObjectComponent(GameObject _go, string _name, string _visualName, int _networkID, string _mode)
+        {
+            // ADDED NETWORKED FUNCTIONALITY TO KEEP THE SYNCRONIZATION
+            if (_go.GetComponent<NetworkedObject>() == null)
+            {
+                this.transform.gameObject.AddComponent<NetworkedObject>();
+                this.transform.GetComponent<NetworkedObject>().Name = _name;
+                this.transform.GetComponent<NetworkedObject>().VisualsName = _visualName;
+                this.transform.GetComponent<NetworkedObject>().NetIDOwner = _networkID;
+                this.transform.GetComponent<NetworkedObject>().Params = _mode;
+                Debug.LogError("AddNetworkObjectComponent::NAME[" + _name + "]");
+            }
+        }
+
+        // -------------------------------------------
+        /* 
+        * InitializeNetworkedObject
+        */
+        protected void InitializeNetworkedObject()
+        {
+            NetworkedObject[] networkedObjects = GameObject.FindObjectsOfType<NetworkedObject>();
+            for (int i = 0; i < networkedObjects.Length; i++)
+            {
+                networkedObjects[i].Initialize();
+            }
+        }
+
+        // -------------------------------------------
+        /* 
+        * FindNetworkedObject
+        */
+        protected NetworkedObject FindNetworkedObject(string _name)
+        {
+            NetworkedObject[] networkedObjects = GameObject.FindObjectsOfType<NetworkedObject>();
+            for (int i = 0; i < networkedObjects.Length; i++)
+            {
+                if (networkedObjects[i].Name == _name)
+                {
+                    return networkedObjects[i];
+                }
+            }
+            return null;
+        }
+
+        // -------------------------------------------
+        /* 
         * Manager of global events
         */
         protected virtual void OnNetworkEvent(string _nameEvent, bool _isLocalEvent, int _networkOriginID, int _networkTargetID, params object[] _list)
 		{
+            if (_nameEvent == NetworkedObject.EVENT_NETWORKED_REQUEST_EXISTANCE)
+            {
+                if ((_networkOriginID != YourNetworkTools.Instance.GetUniversalNetworkID()) || YourNetworkTools.Instance.IsServer)
+                {
+                    string recvName = (string)_list[0];
+                    NetworkedObject networkedObject = FindNetworkedObject(recvName);
+                   
+                    if (networkedObject == null)
+                    {
+                        NetworkEventController.Instance.DispatchNetworkEvent(NetworkedObject.EVENT_NETWORKED_RESPONSE_EXISTANCE, recvName, false.ToString());
+                    }
+                    else
+                    {
+                        if (networkedObject.NetIDOwner == -1)
+                        {
+                            NetworkEventController.Instance.DispatchNetworkEvent(NetworkedObject.EVENT_NETWORKED_RESPONSE_EXISTANCE, recvName, false.ToString());
+                        }
+                        else
+                        {
+                            NetworkEventController.Instance.DispatchNetworkEvent(NetworkedObject.EVENT_NETWORKED_RESPONSE_EXISTANCE, recvName, true.ToString(), networkedObject.NetIDOwner.ToString());
+                        }
+                    }
+                }
+            }
+            if (_nameEvent == NetworkedObject.EVENT_NETWORKED_OBJECT_UPDATE)
+            {
+                string recvName = (string)_list[0];
+                if (_networkOriginID != YourNetworkTools.Instance.GetUniversalNetworkID())
+                {
+                    NetworkedObject objectInScene = FindNetworkedObject((string)_list[0]);
+                    if (objectInScene == null)
+                    {
+                        // 1 - CREATE PREFAB
+                        // 2 - AddNetworkObjectComponent();
+                    }
+                    else
+                    {
+                        objectInScene.NetIDOwner = _networkOriginID;
+                    }
+                }
+            }
             if (_nameEvent == ClientTCPEventsController.EVENT_CLIENT_TCP_CLOSE_CURRENT_ROOM)
             {
                 UIEventController.Instance.DispatchUIEvent(MenuScreenController.EVENT_FORCE_DESTRUCTION_POPUP);
@@ -845,8 +938,17 @@ namespace PartyCritical
                     nextStateAfterCreateInstanceLevel = STATE_RUNNING;
 #endif
 
-                LoadCurrentGameLevel(-1, nextStateAfterCreateInstanceLevel);
-                UIEventController.Instance.DelayUIEvent(EventSystemController.EVENT_ACTIVATION_INPUT_STANDALONE, 1f, true);
+                if (m_currentLevel >= LevelsAssetsNames.Length)
+                {
+                    BasicSystemEventController.Instance.DelayBasicSystemEvent(EVENT_GAMECONTROLLER_LEVEL_LOAD_COMPLETED, 0.2f, m_currentLevel, nextStateAfterCreateInstanceLevel);
+                    BasicSystemEventController.Instance.DelayBasicSystemEvent(CloudGameAnchorController.EVENT_6DOF_CHANGED_LEVEL_COMPLETED, 0.2f);
+                    UIEventController.Instance.DelayUIEvent(EventSystemController.EVENT_ACTIVATION_INPUT_STANDALONE, 1f, true);
+                }
+                else
+                {
+                    LoadCurrentGameLevel(-1, nextStateAfterCreateInstanceLevel);
+                    UIEventController.Instance.DelayUIEvent(EventSystemController.EVENT_ACTIVATION_INPUT_STANDALONE, 1f, true);
+                }
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_SELECTED_LEVEL)
             {
@@ -973,6 +1075,7 @@ namespace PartyCritical
             if (_nameEvent == EVENT_GAMECONTROLLER_LEVEL_LOAD_COMPLETED)
             {
                 GameHasLoadedLevel(_list);
+                InitializeNetworkedObject();
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_REQUEST_IS_GAME_RUNNING)
             {

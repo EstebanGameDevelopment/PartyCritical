@@ -1364,6 +1364,28 @@ namespace PartyCritical
             {
                 m_enabledCameraInput = (bool)_list[0];
             }
+            if (_nameEvent == GrabNetworkObject.EVENT_GRABOBJECT_REQUEST_RAYCASTING)
+            {
+                GameObject collidedObjectCasting = CheckRaycastAgainst();
+
+                if (collidedObjectCasting != null)
+                {
+                    GameObject targetToFollow = YourVRUIScreenController.Instance.GameCamera.gameObject;
+
+#if ENABLE_OCULUS && !UNITY_EDITOR
+                if ((m_armModel != null) && (m_laserPointer != null))
+                {
+                   targetToFollow = m_laserPointer;
+                }
+#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+                if ((m_armModel != null) && (m_laserPointer != null))
+                {
+                   targetToFollow = m_laserPointer;
+                }
+#endif
+                    BasicSystemEventController.Instance.DispatchBasicSystemEvent(GrabNetworkObject.EVENT_GRABOBJECT_RESPONSE_RAYCASTING, collidedObjectCasting, targetToFollow);
+                }
+            }
 
 #if ENABLE_MULTIPLAYER_TIMELINE
             if (_nameEvent == GameLevelData.EVENT_GAMELEVELDATA_REQUEST_COLLISION_RAY)
@@ -1403,7 +1425,7 @@ namespace PartyCritical
                 }
             }
 #endif
-        }
+    }
 
         // -------------------------------------------
         /* 

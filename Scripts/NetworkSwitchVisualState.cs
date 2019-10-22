@@ -21,6 +21,7 @@ namespace PartyCritical
         public string[] Triggers;
         public int InitialState = 0;
         public string LayerName = "";
+        public GameObject[] GOTriggerers;
 
         // ----------------------------------------------
         // PRIVATE MEMBERS
@@ -147,10 +148,12 @@ namespace PartyCritical
             }
         }
 
+
+
         // -------------------------------------------
         /* 
-		 * OnBasicSystemEvent
-		 */
+         * OnBasicSystemEvent
+         */
         private void OnBasicSystemEvent(string _nameEvent, object[] _list)
         {
             if (_nameEvent == GameBaseController.EVENT_GAMECONTROLLER_LEVEL_LOAD_COMPLETED)
@@ -200,6 +203,24 @@ namespace PartyCritical
                                 NetworkEventController.Instance.DispatchNetworkEvent(EVENT_NETWORKSWITCHSTATE_INCREASE_STATE, Utilities.GetFullPathNameGO(this.gameObject));
                                 return;
                             }
+                        }
+                    }
+                }
+            }
+            if (_nameEvent == CollisionTriggerEvent.EVENT_COLLIDERTRIGGER_ENTER_EVENT)
+            {
+                GameObject collidedObject = (GameObject)_list[0];
+                GameObject targetObject = (GameObject)_list[1];
+                if (Utilities.FindGameObjectInChilds(this.gameObject, collidedObject))
+                {
+                    if (GOTriggerers == null) return;
+                    if (GOTriggerers.Length == 0) return;
+
+                    for (int i = 0; i < GOTriggerers.Length; i++)
+                    {
+                        if (GOTriggerers[i] == targetObject)
+                        {
+                            NetworkEventController.Instance.DispatchNetworkEvent(EVENT_NETWORKSWITCHSTATE_INCREASE_STATE, Utilities.GetFullPathNameGO(this.gameObject), targetObject.name);
                         }
                     }
                 }
