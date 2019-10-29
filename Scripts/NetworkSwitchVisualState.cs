@@ -22,6 +22,7 @@ namespace PartyCritical
         public int InitialState = 0;
         public string LayerName = "";
         public GameObject[] GOTriggerers;
+        public bool DeactivateOnTrigger = false;
 
         // ----------------------------------------------
         // PRIVATE MEMBERS
@@ -209,18 +210,30 @@ namespace PartyCritical
             }
             if (_nameEvent == CollisionTriggerEvent.EVENT_COLLIDERTRIGGER_ENTER_EVENT)
             {
-                GameObject collidedObject = (GameObject)_list[0];
-                GameObject targetObject = (GameObject)_list[1];
-                if (Utilities.FindGameObjectInChilds(this.gameObject, collidedObject))
+                if (m_enableSwitcher)
                 {
-                    if (GOTriggerers == null) return;
-                    if (GOTriggerers.Length == 0) return;
-
-                    for (int i = 0; i < GOTriggerers.Length; i++)
+                    GameObject collidedObject = (GameObject)_list[0];
+                    GameObject targetObject = (GameObject)_list[1];
+                    if (Utilities.FindGameObjectInChilds(this.gameObject, collidedObject))
                     {
-                        if (GOTriggerers[i] == targetObject)
+                        if (GOTriggerers == null) return;
+                        if (GOTriggerers.Length == 0) return;
+
+                        bool objectFound = false;
+                        for (int i = 0; i < GOTriggerers.Length; i++)
                         {
-                            NetworkEventController.Instance.DispatchNetworkEvent(EVENT_NETWORKSWITCHSTATE_INCREASE_STATE, Utilities.GetFullPathNameGO(this.gameObject), targetObject.name);
+                            if (GOTriggerers[i] == targetObject)
+                            {
+                                NetworkEventController.Instance.DispatchNetworkEvent(EVENT_NETWORKSWITCHSTATE_INCREASE_STATE, Utilities.GetFullPathNameGO(this.gameObject), targetObject.name, this.gameObject.name);
+                                objectFound = true;
+                            }
+                        }
+                        if (objectFound)
+                        {
+                            if (DeactivateOnTrigger)
+                            {
+                                m_enableSwitcher = false;
+                            }
                         }
                     }
                 }
