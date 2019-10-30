@@ -1366,11 +1366,13 @@ namespace PartyCritical
             }
             if (_nameEvent == GrabNetworkObject.EVENT_GRABOBJECT_REQUEST_RAYCASTING)
             {
-                GameObject collidedObjectCasting = CheckRaycastAgainst();
-
-                if (collidedObjectCasting != null)
+                if (!DirectorMode)
                 {
-                    GameObject targetToFollow = YourVRUIScreenController.Instance.GameCamera.gameObject;
+                    GameObject collidedObjectCasting = CheckRaycastAgainst();
+
+                    if (collidedObjectCasting != null)
+                    {
+                        GameObject targetToFollow = YourVRUIScreenController.Instance.GameCamera.gameObject;
 
 #if ENABLE_OCULUS && !UNITY_EDITOR
                 if ((m_armModel != null) && (m_laserPointer != null))
@@ -1383,7 +1385,8 @@ namespace PartyCritical
                    targetToFollow = m_laserPointer;
                 }
 #endif
-                    BasicSystemEventController.Instance.DispatchBasicSystemEvent(GrabNetworkObject.EVENT_GRABOBJECT_RESPONSE_RAYCASTING, collidedObjectCasting, targetToFollow);
+                        BasicSystemEventController.Instance.DispatchBasicSystemEvent(GrabNetworkObject.EVENT_GRABOBJECT_RESPONSE_RAYCASTING, collidedObjectCasting, targetToFollow);
+                    }
                 }
             }
 

@@ -13,6 +13,7 @@ namespace PartyCritical
         public const string EVENT_NETWORKSWITCHSTATE_CHANGE_STATE   = "EVENT_NETWORKSWITCHSTATE_CHANGE_STATE";
         public const string EVENT_NETWORKSWITCHSTATE_INCREASE_STATE = "EVENT_NETWORKSWITCHSTATE_INCREASE_STATE";
         public const string EVENT_NETWORKSWITCHSTATE_DECREASE_STATE = "EVENT_NETWORKSWITCHSTATE_DECREASE_STATE";
+        public const string EVENT_NETWORKSWITCHSTATE_ACTIVATION     = "EVENT_NETWORKSWITCHSTATE_ACTIVATION";
 
         // ----------------------------------------------
         // PUBLIC MEMBERS
@@ -210,29 +211,32 @@ namespace PartyCritical
             }
             if (_nameEvent == CollisionTriggerEvent.EVENT_COLLIDERTRIGGER_ENTER_EVENT)
             {
-                if (m_enableSwitcher)
+                if (YourNetworkTools.Instance.IsServer)
                 {
-                    GameObject collidedObject = (GameObject)_list[0];
-                    GameObject targetObject = (GameObject)_list[1];
-                    if (Utilities.FindGameObjectInChilds(this.gameObject, collidedObject))
+                    if (m_enableSwitcher)
                     {
-                        if (GOTriggerers == null) return;
-                        if (GOTriggerers.Length == 0) return;
+                        GameObject collidedObject = (GameObject)_list[0];
+                        GameObject targetObject = (GameObject)_list[1];
+                        if (Utilities.FindGameObjectInChilds(this.gameObject, collidedObject))
+                        {
+                            if (GOTriggerers == null) return;
+                            if (GOTriggerers.Length == 0) return;
 
-                        bool objectFound = false;
-                        for (int i = 0; i < GOTriggerers.Length; i++)
-                        {
-                            if (GOTriggerers[i] == targetObject)
+                            bool objectFound = false;
+                            for (int i = 0; i < GOTriggerers.Length; i++)
                             {
-                                NetworkEventController.Instance.DispatchNetworkEvent(EVENT_NETWORKSWITCHSTATE_INCREASE_STATE, Utilities.GetFullPathNameGO(this.gameObject), targetObject.name, this.gameObject.name);
-                                objectFound = true;
+                                if (GOTriggerers[i] == targetObject)
+                                {
+                                    NetworkEventController.Instance.DispatchNetworkEvent(EVENT_NETWORKSWITCHSTATE_INCREASE_STATE, Utilities.GetFullPathNameGO(this.gameObject), targetObject.name, this.gameObject.name);
+                                    objectFound = true;
+                                }
                             }
-                        }
-                        if (objectFound)
-                        {
-                            if (DeactivateOnTrigger)
+                            if (objectFound)
                             {
-                                m_enableSwitcher = false;
+                                if (DeactivateOnTrigger)
+                                {
+                                    m_enableSwitcher = false;
+                                }
                             }
                         }
                     }
@@ -249,6 +253,10 @@ namespace PartyCritical
             if (_nameEvent == ClientTCPEventsController.EVENT_CLIENT_TCP_CLOSE_CURRENT_ROOM)
             {
                 m_enableSwitcher = true;
+            }
+            if (_nameEvent == EVENT_NETWORKSWITCHSTATE_ACTIVATION)
+            {
+                m_enableSwitcher = bool.Parse((string)_list[0]);
             }
             if (_nameEvent == GameBaseController.EVENT_GAMECONTROLLER_REFRESH_STATES_SWITCHES)
             {
