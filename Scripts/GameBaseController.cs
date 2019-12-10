@@ -589,7 +589,7 @@ namespace PartyCritical
                     }
                 }
                 GameObject prefabScreen = GetScreenPrefabByName((string)_list[0]);
-                YourVRUIScreenController.Instance.CreateScreenLinkedToCamera(prefabScreen, (List<PageInformation>)pages, 1.5f, -1, false, scaleScreen, (UIScreenTypePreviousAction)_list[1], isTemporalScreen);
+                YourVRUIScreenController.Instance.CreateScreenLinkedToCamera(prefabScreen, pages, 1.5f, -1, false, scaleScreen, (UIScreenTypePreviousAction)_list[1], isTemporalScreen);
                 // AUTO-DESTROY THE POP UP WHEN YOU ARE NOT INTERESTED TO OFFER INTERACTION
                 // UIEventController.Instance.DelayUIEvent(ScreenController.EVENT_FORCE_TRIGGER_OK_BUTTON, 5);
                 if ((string)_list[0] == ScreenCreateRoomView.SCREEN_NAME)

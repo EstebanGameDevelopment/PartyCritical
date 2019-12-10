@@ -60,6 +60,7 @@ namespace PartyCritical
         protected float m_timeoutPressed = 0;
         protected float m_timeoutToMove = 0;
         protected float m_timeoutToTeleport = 0;
+        protected bool m_hasBeenTeleported = false;
 
         protected bool m_twoFingersHasBeenPressedOnce = false;
 
@@ -761,6 +762,7 @@ namespace PartyCritical
                         if (m_timeoutToTeleport > TIMEOUT_TO_TELEPORT)
                         {
                             m_timeoutToTeleport = 0;
+                            m_hasBeenTeleported = true;
                             BasicSystemEventController.Instance.DispatchBasicSystemEvent(TeleportController.EVENT_TELEPORTCONTROLLER_ACTIVATION);
                         }
                     }
@@ -800,14 +802,21 @@ namespace PartyCritical
 #if ENABLE_WORLDSENSE && !UNITY_EDITOR
             if (KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false))
             {
-                if (m_teleportAvailable && m_teleportEnabled)
+                if (m_hasBeenTeleported)
                 {
-                    activateInventory = !TeleportController.Instance.ActivateTeleport;
+                    m_hasBeenTeleported = false;
                 }
-                if (activateInventory)
+                else
                 {
-                    m_timeoutToTeleport = 0;
-                    m_timeoutPressed = TIMEOUT_TO_INVENTORY;
+                    if (m_teleportAvailable && m_teleportEnabled)
+                    {
+                        activateInventory = (m_timeoutToTeleport < TIMEOUT_TO_TELEPORT);
+                    }
+                    if (activateInventory)
+                    {
+                        m_timeoutToTeleport = 0;
+                        m_timeoutPressed = TIMEOUT_TO_INVENTORY;
+                    }
                 }
             }
 #endif
@@ -818,7 +827,7 @@ namespace PartyCritical
             {
                 if (m_teleportAvailable && m_teleportEnabled)
                 {
-                    activateInventory = !TeleportController.Instance.ActivateTeleport;
+                    activateInventory = (m_timeoutToTeleport < TIMEOUT_TO_TELEPORT);
                 }
                 if (activateInventory)
                 {
