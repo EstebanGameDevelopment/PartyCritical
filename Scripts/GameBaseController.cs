@@ -79,6 +79,7 @@ namespace PartyCritical
         public GameObject RepositionBall;
         public GameObject DirectorScreen;
         public GameObject SpectatorScreen;
+        public GameObject PlayerScreen;
         public GameObject LaserPointer;
         public GameObject MarkerPlayer;
         public GameObject MarkerDirector;
@@ -596,6 +597,18 @@ namespace PartyCritical
                 {
                     UIEventController.Instance.DispatchUIEvent(ScreenCreateRoomView.EVENT_SCREENCREATEROOM_CREATE_RANDOM_NAME);
                 }
+#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
+                if (!m_directorMode)
+                {
+                    if (!CardboardLoaderVR.LoadEnableCardboard())
+                    {
+                        KeysEventInputController.Instance.EnableInteractions = false;
+                        KeysEventInputController.Instance.EnableActionButton = false;
+                        BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION, false);
+                        UIEventController.Instance.DispatchUIEvent(InteractionController.EVENT_INTERACTIONCONTROLLER_ENABLE_INTERACTION, false);
+                    }
+                }
+#endif
             }
             if (_nameEvent == UIEventController.EVENT_SCREENMANAGER_OPEN_INFORMATION_SCREEN)
             {
@@ -620,6 +633,18 @@ namespace PartyCritical
                 YourVRUIScreenController.Instance.CreateScreenLinkedToCamera(GetScreenPrefabByName((string)_list[0]), pages, 1.5f, -1, false, scaleScreen, previousAction);
                 // AUTO-DESTROY THE POP UP WHEN YOU ARE NOT INTERESTED TO OFFER INTERACTION
                 // UIEventController.Instance.DelayUIEvent(ScreenController.EVENT_FORCE_TRIGGER_OK_BUTTON, 5);
+#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
+                if (!m_directorMode)
+                {
+                    if (!CardboardLoaderVR.LoadEnableCardboard())
+                    {
+                        KeysEventInputController.Instance.EnableInteractions = false;
+                        KeysEventInputController.Instance.EnableActionButton = false;
+                        BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION, false);
+                        UIEventController.Instance.DispatchUIEvent(InteractionController.EVENT_INTERACTIONCONTROLLER_ENABLE_INTERACTION, false);
+                    }
+                }
+#endif
             }
             if (_nameEvent == UIEventController.EVENT_SCREENMANAGER_LOAD_NEW_SCENE)
             {
@@ -627,6 +652,21 @@ namespace PartyCritical
                 {
                     YourVRUIScreenController.Instance.Destroy();
                 }
+            }
+            if ((_nameEvent == UIEventController.EVENT_SCREENMANAGER_DESTROY_SCREEN) || (_nameEvent == UIEventController.EVENT_SCREENMANAGER_DESTROY_ALL_SCREEN))
+            {
+#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
+                if (!m_directorMode)
+                {
+                    if (!CardboardLoaderVR.LoadEnableCardboard())
+                    {
+                        KeysEventInputController.Instance.EnableInteractions = true;
+                        KeysEventInputController.Instance.EnableActionButton = true;
+                        BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION, true);
+                        UIEventController.Instance.DispatchUIEvent(InteractionController.EVENT_INTERACTIONCONTROLLER_ENABLE_INTERACTION, true);
+                    }
+                }
+#endif                
             }
         }
 
@@ -1411,6 +1451,24 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		 * InitializeScreenPlayer
+		 */
+        protected virtual void InitializeScreenPlayer()
+        {
+#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
+            if (PlayerScreen != null)
+            {
+                if (!CardboardLoaderVR.LoadEnableCardboard())
+                {
+                    Instantiate(PlayerScreen);
+                    UIEventController.Instance.DelayUIEvent(EventSystemController.EVENT_ACTIVATION_INPUT_STANDALONE, 1f, true);
+                }
+            }
+#endif
+        }
+
+        // -------------------------------------------
+        /* 
 		 * SetUpStateRunning
 		 */
         protected virtual bool SetUpStateRunning()
@@ -1442,6 +1500,10 @@ namespace PartyCritical
                     NetworkEventController.Instance.PriorityDelayNetworkEvent(GameBaseController.EVENT_GAMECONTROLLER_DIRECTOR_CONNECTED, 1);                    
                 }
                 UIEventController.Instance.DelayUIEvent(InteractionController.EVENT_INTERACTIONCONTROLLER_ENABLE_INTERACTION, 2, false);
+            }
+            else
+            {
+                InitializeScreenPlayer();
             }
             if (m_directorMode || (m_totalNumberPlayers == 1))
             {

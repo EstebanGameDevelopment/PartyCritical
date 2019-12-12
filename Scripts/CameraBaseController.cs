@@ -613,6 +613,13 @@ namespace PartyCritical
          */
         protected virtual void OpenInventory(bool _openedByTimer = true)
         {
+#if !ENABLE_WORLDSENSE && !ENABLE_OCULUS
+            if (!CardboardLoaderVR.LoadEnableCardboard())
+            {
+                return;
+            }            
+#endif
+
             if (m_timeoutPressed > TIMEOUT_TO_INVENTORY)
             {
                 m_timeoutPressed = 0;
@@ -645,6 +652,8 @@ namespace PartyCritical
             }
         }
 
+        private bool m_destroyScreensOnStartMovement = true;
+
         // -------------------------------------------
         /* 
         * RunOnMoveTimeoutPressed
@@ -658,20 +667,25 @@ namespace PartyCritical
 #if UNITY_EDITOR
                 allowMovement = true;
 #endif
+                Vector3 normalForward = CameraLocal.forward.normalized;
+                normalForward = new Vector3(normalForward.x, 0, normalForward.z);
                 if (allowMovement)
 				{
-					Vector3 normalForward = CameraLocal.forward.normalized;
-                    normalForward = new Vector3(normalForward.x, 0, normalForward.z);
                     transform.GetComponent<Rigidbody>().MovePosition(transform.position + normalForward * PLAYER_SPEED * Time.deltaTime);
-                    UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_DESTROY_ALL_SCREEN);
                 }
                 else
                 {
-                    Vector3 normalForward = CameraLocal.forward.normalized;
-                    normalForward = new Vector3(normalForward.x, 0, normalForward.z);
                     m_shiftCameraFromOrigin += normalForward * PLAYER_SPEED * Time.deltaTime;
+                }
+                if (m_destroyScreensOnStartMovement)
+                {
+                    m_destroyScreensOnStartMovement = false;
                     UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_DESTROY_ALL_SCREEN);
                 }
+            }
+            else
+            {
+                m_destroyScreensOnStartMovement = true;
             }
 #endif
         }
@@ -1528,6 +1542,14 @@ namespace PartyCritical
             if (_nameEvent == EVENT_CAMERACONTROLLER_STOP_MOVING)
             {
                 m_timeoutToMove = 0;
+            }
+            if (_nameEvent == ScreenBasePlayerView.EVENT_SCREENPLAYER_OPEN_INVENTORY)
+            {
+                m_timeoutPressed = 0;
+                if (GameObject.FindObjectOfType<ScreenInventoryView>() == null)
+                {
+                    UIEventController.Instance.DispatchUIEvent(GameLevelData.EVENT_GAMELEVELDATA_OPEN_INVENTORY);
+                }
             }
         }
 
