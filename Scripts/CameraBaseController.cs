@@ -614,10 +614,7 @@ namespace PartyCritical
         protected virtual void OpenInventory(bool _openedByTimer = true)
         {
 #if !ENABLE_WORLDSENSE && !ENABLE_OCULUS
-            if (!CardboardLoaderVR.LoadEnableCardboard())
-            {
                 return;
-            }            
 #endif
 
             if (m_timeoutPressed > TIMEOUT_TO_INVENTORY)
