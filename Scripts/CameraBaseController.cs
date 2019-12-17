@@ -395,7 +395,7 @@ namespace PartyCritical
         /* 
          * MoveCamera
          */
-        protected void MoveCamera()
+        protected virtual void MoveCamera()
         {
             this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
             this.gameObject.GetComponent<Rigidbody>().useGravity = true;
@@ -877,7 +877,7 @@ namespace PartyCritical
         /* 
         * ProcessInputCustomer
         */
-        protected void ProcessInputCustomer()
+        protected virtual void ProcessInputCustomer()
         {
             if (IsThereBlockingScreen())
             {

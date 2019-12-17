@@ -740,7 +740,13 @@ namespace PartyCritical
 		 */
         public IEnumerator ShowSplashDelay()
         {
-            yield return new WaitForSeconds(5);
+            yield return new WaitForSeconds(
+#if UNITY_EDITOR
+                0.2f
+#else
+                2
+#endif
+                );
             Destroy();
         }
 
