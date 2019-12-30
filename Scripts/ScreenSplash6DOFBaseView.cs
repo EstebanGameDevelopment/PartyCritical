@@ -349,11 +349,11 @@ namespace PartyCritical
 
             MenuScreenController.Instance.MaxPlayers = TotalNumberOfPlayers + 1;
 
-            float delayShortcutSplash = 4;
+            float delayShortcutSplash = 1;
 #if UNITY_EDITOR
             delayShortcutSplash = 0.1f;
 #else
-            delayShortcutSplash = 4;
+            delayShortcutSplash = 1;
 #endif
 
             // 
