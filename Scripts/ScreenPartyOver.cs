@@ -21,6 +21,11 @@ namespace PartyCritical
         public const string SCREEN_NAME = "SCREEN_PARTY_OVER";
 
         // ----------------------------------------------
+        // PUBLIC MEMBERS
+        // ----------------------------------------------	
+        public AudioClip GameOverCVS2 = null;
+
+        // ----------------------------------------------
         // PRIVATE MEMBERS
         // ----------------------------------------------	
         private Transform m_container;
@@ -36,6 +41,20 @@ namespace PartyCritical
             m_container.Find("Text").GetComponent<Text>().text = LanguageController.Instance.GetText("screen.the.party.is.over");
 
             UIEventController.Instance.UIEvent += new UIEventHandler(OnUIEvent);
+
+            if (GameOverCVS2 != null)
+            {
+                Invoke("PlaySoundGameOver", 0.1f);
+            }
+        }
+
+        // -------------------------------------------
+        /* 
+         * PlaySoundGameOver
+         */
+        public void PlaySoundGameOver()
+        {
+            SoundsController.Instance.PlaySingleSound(GameOverCVS2);
         }
 
         // -------------------------------------------
