@@ -353,7 +353,7 @@ namespace PartyCritical
 #if UNITY_EDITOR
             delayShortcutSplash = 0.1f;
 #else
-            delayShortcutSplash = 1;
+            delayShortcutSplash = 0.4;
 #endif
 
             // 
