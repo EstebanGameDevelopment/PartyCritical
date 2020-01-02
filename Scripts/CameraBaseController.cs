@@ -1376,9 +1376,15 @@ namespace PartyCritical
             }
             if (_nameEvent == GameBaseController.EVENT_GAMECONTROLLER_LEVEL_LOAD_COMPLETED)
             {
-                this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
-                this.gameObject.GetComponent<Rigidbody>().useGravity = true;
-                this.gameObject.GetComponent<Collider>().isTrigger = false;
+                if (this.gameObject.GetComponent<Rigidbody>() != null)
+                {
+                    this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
+                    this.gameObject.GetComponent<Rigidbody>().useGravity = true;
+                }
+                if (this.gameObject.GetComponent<Collider>() != null)
+                {
+                    this.gameObject.GetComponent<Collider>().isTrigger = false;
+                }                
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION)
             {
