@@ -167,7 +167,10 @@ namespace PartyCritical
 		*/
         protected virtual bool CheckCloseGameWithAllConnectedPlayers()
         {
-            if ((m_namesPlayers.Count + m_namesDirectors.Count + m_namesSpectators.Count < TotalNumberPlayers) && YourNetworkTools.Instance.IsServer)
+            if (TotalNumberPlayers == MultiplayerConfiguration.VALUE_FOR_JOINING) return true;
+
+            int totalRegister = m_namesPlayers.Count + m_namesDirectors.Count + m_namesSpectators.Count;
+            if ((totalRegister < TotalNumberPlayers) && YourNetworkTools.Instance.IsServer)
             {
                 return true;
             }
@@ -540,7 +543,7 @@ namespace PartyCritical
             if (_nameEvent == EVENT_GAMEPLAYER_HUMAN_SPECTATOR_NAME)
             {
                 string nameNewSpectator = (string)_list[0];
-                m_allPlayersConnected = true;
+                // m_allPlayersConnected = true;
                 if (!m_namesSpectators.Contains(nameNewSpectator))
                 {
                     m_namesSpectators.Add(nameNewSpectator);
