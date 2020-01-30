@@ -549,6 +549,26 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		 * PostDestroyScreenAction
+		 */
+        protected virtual void PostDestroyScreenAction()
+        {
+#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
+            if (!m_directorMode)
+            {
+                if (!CardboardLoaderVR.LoadEnableCardboard())
+                {
+                    KeysEventInputController.Instance.EnableInteractions = true;
+                    KeysEventInputController.Instance.EnableActionButton = true;
+                    BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION, true);
+                    UIEventController.Instance.DispatchUIEvent(InteractionController.EVENT_INTERACTIONCONTROLLER_ENABLE_INTERACTION, true);
+                }
+            }
+#endif                
+        }
+
+        // -------------------------------------------
+        /* 
 		 * ProcessCustomUIScreenEvent
 		 */
         protected virtual void ProcessCustomUIScreenEvent(string _nameEvent, object[] _list)
@@ -655,18 +675,7 @@ namespace PartyCritical
             }
             if ((_nameEvent == UIEventController.EVENT_SCREENMANAGER_DESTROY_SCREEN) || (_nameEvent == UIEventController.EVENT_SCREENMANAGER_DESTROY_ALL_SCREEN))
             {
-#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
-                if (!m_directorMode)
-                {
-                    if (!CardboardLoaderVR.LoadEnableCardboard())
-                    {
-                        KeysEventInputController.Instance.EnableInteractions = true;
-                        KeysEventInputController.Instance.EnableActionButton = true;
-                        BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION, true);
-                        UIEventController.Instance.DispatchUIEvent(InteractionController.EVENT_INTERACTIONCONTROLLER_ENABLE_INTERACTION, true);
-                    }
-                }
-#endif                
+                PostDestroyScreenAction();
             }
         }
 
