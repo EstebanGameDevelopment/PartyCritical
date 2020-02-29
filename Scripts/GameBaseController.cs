@@ -71,6 +71,7 @@ namespace PartyCritical
         public GameObject[] ModelPrefab;
         public GameObject[] EnemyPrefab;
         public string[] EnemyModelPrefab;
+        public GameObject[] EnemyAnimationPrefab;
         public GameObject[] NPCPrefab;
         public string[] NPCModelPrefab;
         public GameObject[] FXPrefab;
@@ -116,6 +117,7 @@ namespace PartyCritical
         protected bool m_onNetworkRemoteConnection = false;
 
         protected float m_timeGenerationEnemies = 0;
+        protected float m_timoutTotalToGenerateEnemy = -1;
         protected bool m_isCreatorGame = false;
         protected bool m_enableARCore = false;
         protected bool m_directorMode = false;
