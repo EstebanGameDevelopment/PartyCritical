@@ -68,6 +68,7 @@ namespace PartyCritical
         public GameObject[] LevelsPrefab;
         public GameObject[] PlayerPrefab;
         public string[] NameModelPrefab;
+        public GameObject[] ModelPrefab;
         public GameObject[] EnemyPrefab;
         public string[] EnemyModelPrefab;
         public GameObject[] NPCPrefab;
