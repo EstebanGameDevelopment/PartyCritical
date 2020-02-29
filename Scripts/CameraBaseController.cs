@@ -515,6 +515,36 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+         * CheckRaycastCollisionPoint
+         */
+        public Vector3 CheckRaycastCollisionPoint(params string[] _layers)
+        {
+            Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
+            Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
+#if ENABLE_OCULUS && !UNITY_EDITOR
+                if ((m_armModel != null) && (m_laserPointer != null))
+                {
+                    pos = Utilities.Clone(m_originLaser);
+                    fwd = Utilities.Clone(m_forwardLaser);
+                }
+#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+                if ((m_armModel != null) && (m_laserPointer != null))
+                {
+                    pos = Utilities.Clone(m_originLaser);
+                    fwd = Utilities.Clone(m_forwardLaser);
+                }
+#endif
+
+            RaycastHit raycastHit = new RaycastHit();
+            if (Utilities.GetRaycastHitInfoByRayWithMask(pos, fwd, ref raycastHit, _layers))
+            {
+                return raycastHit.point;
+            }
+            return Vector3.zero;
+        }
+
+        // -------------------------------------------
+        /* 
          * SetAMarkerSignal
          */
         protected virtual void SetAMarkerSignal()
