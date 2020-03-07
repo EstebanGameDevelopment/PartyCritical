@@ -11,7 +11,7 @@ using VRPartyValidation;
 #if ENABLE_BITCOIN
 using YourBitcoinController;
 #endif
-#if !UNITY_EDITOR
+#if !UNITY_EDITOR && !ENABLE_OCULUS
 using PartaGames.Android;
 #endif
 
@@ -168,7 +168,7 @@ namespace PartyCritical
 		 */
         public void DoNotRun()
         {
-#if !UNITY_EDITOR
+#if !UNITY_EDITOR && !ENABLE_OCULUS
             PermissionGranterUnity.IsPermissionGranted(WRITE_EXTERNAL_STORAGE);
             PermissionGranterUnity.GrantPermission(WRITE_EXTERNAL_STORAGE, PermissionGrantedCallback);
 #endif
