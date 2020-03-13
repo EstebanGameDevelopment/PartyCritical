@@ -45,6 +45,7 @@ namespace PartyCritical
         public float MatScale = 5;
         public Vector3 DestinationNormal;
         public float LineWidth = 0.05f;
+        public float Curvature = 0.2f;
         public Color GoodDestinationColor = new Color(0, 0.6f, 1f, 0.2f);
         public Color BadDestinationColor = new Color(0.8f, 0, 0, 0.2f);
 
@@ -62,6 +63,9 @@ namespace PartyCritical
 
         private GameObject m_markerDestination;
 
+        private Transform m_forwardDirection;
+        private bool m_forceRotateBecauseHand = false;
+
         private bool m_activateTeleport = false;
         private bool m_calculateParabola = false;
 
@@ -71,6 +75,14 @@ namespace PartyCritical
         public bool ActivateTeleport
         {
             get { return m_activateTeleport; }
+        }
+        public Transform ForwardDirection
+        {
+            get { return m_forwardDirection; }
+            set {
+                m_forwardDirection = value;
+                m_forceRotateBecauseHand = true;
+            }
         }
 
         // -------------------------------------------
@@ -95,6 +107,8 @@ namespace PartyCritical
             m_lineRenderer.material = LineMaterial;
             m_lineRenderer.SetPosition(0, Vector3.zero);
             m_lineRenderer.SetPosition(1, Vector3.zero);
+
+            m_forwardDirection = this.transform;
         }
 
         // -------------------------------------------
@@ -140,7 +154,7 @@ namespace PartyCritical
                 }
 #endif
 #if ENABLE_OCULUS && ENABLE_QUEST && !UNITY_EDITOR
-                if (KeysEventInputController.Instance.GetThumbstickUpOculusController())
+                if (KeysEventInputController.Instance.GetTeleportUpOculusController())
                 {
                     keyReleased = true;
                 }
@@ -181,21 +195,26 @@ namespace PartyCritical
             float totalDistance1 = 0;
 
             //	Variables need for curve
-            Quaternion currentRotation = transform.rotation;
+            Quaternion currentRotation = m_forwardDirection.transform.rotation;
             Vector3 currentPosition = transform.position;
             Vector3 lastPostion;
             positions1.Add(currentPosition);
 
-            lastPostion = transform.position - transform.forward;
-            Vector3 currentDirection = transform.forward;
-            Vector3 downForward = new Vector3(transform.forward.x * 0.01f, -1, transform.forward.z * 0.01f);
+            lastPostion = transform.position - m_forwardDirection.forward;
+            Vector3 currentDirection = m_forwardDirection.forward;
+            Vector3 downForward = new Vector3(m_forwardDirection.forward.x * 0.01f, -1, m_forwardDirection.forward.z * 0.01f);
+            if (m_forceRotateBecauseHand)
+            {
+                Curvature = 1;
+                downForward = new Vector3(m_forwardDirection.forward.x * 0.01f, m_forwardDirection.forward.y * 0.01f, 1);
+            }
             RaycastHit hit = new RaycastHit();
             m_FinalHitLocation = new Vector3(float.MinValue, float.MinValue, float.MinValue);
 
             for (int step = 0; step < PARABOLA_PRECISION; step++)
             {
                 Quaternion downRotation = Quaternion.LookRotation(downForward);
-                currentRotation = Quaternion.RotateTowards(currentRotation, downRotation, 0.2f);
+                currentRotation = Quaternion.RotateTowards(currentRotation, downRotation, Curvature);
 
                 Ray newRay = new Ray(currentPosition, currentPosition - lastPostion);
 
@@ -278,8 +297,8 @@ namespace PartyCritical
             {
                 if (m_calculateParabola)
                 {
-                    ComputeParabola();
                     CheckReleasedKey();
+                    ComputeParabola();
                 }
             }            
         }

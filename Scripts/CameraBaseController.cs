@@ -1,6 +1,9 @@
 ﻿#if ENABLE_GOOGLE_ARCORE
 using GoogleARCore;
 #endif
+#if ENABLE_OCULUS
+using OculusSampleFramework;
+#endif
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -734,8 +737,26 @@ namespace PartyCritical
                 if (GameObject.FindObjectOfType<GvrArmModel>() != null) m_armModel = GameObject.FindObjectOfType<GvrArmModel>().gameObject;
                 if (GameObject.FindObjectOfType<GvrControllerVisual>() != null) m_laserPointer = GameObject.FindObjectOfType<GvrControllerVisual>().gameObject;
 #elif ENABLE_OCULUS
-                m_armModel = new GameObject();
-                if (GameObject.FindObjectOfType<OVRControllerHelper>() != null) m_laserPointer = GameObject.FindObjectOfType<OVRControllerHelper>().gameObject;
+                if (GameObject.FindObjectsOfType<HandRayToolView>() != null)
+                {
+                    HandRayToolView[] handRays = GameObject.FindObjectsOfType<HandRayToolView>();
+                    for (int j = 0; j < handRays.Length; j++)
+                    {
+                        if (handRays[j].EnableState)
+                        {
+                            m_armModel = new GameObject();
+                            m_laserPointer = handRays[j].gameObject;
+                        }
+                    }
+                }
+                else
+                {
+                    if (GameObject.FindObjectOfType<OVRControllerHelper>() != null)
+                    {
+                        m_armModel = new GameObject();
+                        m_laserPointer = GameObject.FindObjectOfType<OVRControllerHelper>().gameObject;
+                    }
+                }
 #endif
             }
             if ((m_armModel != null) && (m_laserPointer != null))
@@ -824,7 +845,7 @@ namespace PartyCritical
 #if ENABLE_OCULUS && ENABLE_QUEST && !UNITY_EDITOR
                 if (m_teleportEnabled)
                 {
-                    if (KeysEventInputController.Instance.GetThumbstickDownOculusController())
+                    if (KeysEventInputController.Instance.GetTeleportOculusController())
                     {
                         m_timeoutToTeleport = TIMEOUT_TO_TELEPORT + 1;
                     }
@@ -990,7 +1011,7 @@ namespace PartyCritical
             }
 #endif
 #else
-            if (false
+                if (false
 #if ENABLE_WORLDSENSE && !UNITY_EDITOR
                 || (KeysEventInputController.Instance.GetActionDaydreamController(true))
 #else
@@ -1449,6 +1470,15 @@ namespace PartyCritical
                     }
                 }
             }
+            if (_nameEvent == KeysEventInputController.EVENT_REQUEST_TELEPORT_AVAILABLE)
+            {
+                m_teleportAvailable = (GameObject.FindObjectOfType<TeleportController>() != null);
+                if (m_teleportAvailable)
+                {
+                    TeleportController.Instance.ForwardDirection = (Transform)_list[0];
+                }
+                // UIEventController.Instance.DelayUIEvent(ScreenDebugLogView.EVENT_SCREEN_DEBUGLOG_NEW_TEXT, 0.1f, false, "IS TELEPORT FOUND["+ m_teleportAvailable + "]["+ m_teleportEnabled + "]::::::::::");
+            }
 
 #if ENABLE_MULTIPLAYER_TIMELINE
             if (_nameEvent == GameLevelData.EVENT_GAMELEVELDATA_REQUEST_COLLISION_RAY)
@@ -1488,7 +1518,7 @@ namespace PartyCritical
                 }
             }
 #endif
-    }
+        }
 
         // -------------------------------------------
         /* 
