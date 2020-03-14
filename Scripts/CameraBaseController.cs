@@ -736,7 +736,9 @@ namespace PartyCritical
 #if ENABLE_WORLDSENSE
                 if (GameObject.FindObjectOfType<GvrArmModel>() != null) m_armModel = GameObject.FindObjectOfType<GvrArmModel>().gameObject;
                 if (GameObject.FindObjectOfType<GvrControllerVisual>() != null) m_laserPointer = GameObject.FindObjectOfType<GvrControllerVisual>().gameObject;
+
 #elif ENABLE_OCULUS
+                bool lookForLaser = true;
                 if (GameObject.FindObjectsOfType<HandRayToolView>() != null)
                 {
                     HandRayToolView[] handRays = GameObject.FindObjectsOfType<HandRayToolView>();
@@ -746,10 +748,11 @@ namespace PartyCritical
                         {
                             m_armModel = new GameObject();
                             m_laserPointer = handRays[j].gameObject;
+                            lookForLaser = false;
                         }
                     }
                 }
-                else
+                if (lookForLaser)
                 {
                     if (GameObject.FindObjectOfType<OVRControllerHelper>() != null)
                     {
