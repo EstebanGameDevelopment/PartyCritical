@@ -343,7 +343,7 @@ namespace PartyCritical
         /* 
          * InitializeWithShortcut
          */
-        protected void InitializeWithShortcut(string _configData)
+        protected virtual void InitializeWithShortcut(string _configData)
         {
             string localConfigData = _configData;
 
@@ -448,7 +448,7 @@ namespace PartyCritical
         /* 
         * Direct2PlayerGame
         */
-        public void Direct2PlayerGame()
+        public virtual void Direct2PlayerGame()
         {
             PlayerPrefs.DeleteAll();
             if (m_enableSocket)

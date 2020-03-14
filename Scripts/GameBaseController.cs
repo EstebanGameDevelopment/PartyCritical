@@ -874,6 +874,15 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+        * ActionsWhenRoomClosed
+        */
+        protected virtual void ActionsWhenRoomClosed()
+        {
+            UIEventController.Instance.DispatchUIEvent(MenuScreenController.EVENT_FORCE_DESTRUCTION_POPUP);
+        }
+        
+        // -------------------------------------------
+        /* 
         * Manager of global events
         */
         protected virtual void OnNetworkEvent(string _nameEvent, bool _isLocalEvent, int _networkOriginID, int _networkTargetID, params object[] _list)
@@ -921,7 +930,7 @@ namespace PartyCritical
             }
             if (_nameEvent == ClientTCPEventsController.EVENT_CLIENT_TCP_CLOSE_CURRENT_ROOM)
             {
-                UIEventController.Instance.DispatchUIEvent(MenuScreenController.EVENT_FORCE_DESTRUCTION_POPUP);
+                ActionsWhenRoomClosed();
             }
             if (_nameEvent == CloudGameAnchorController.EVENT_6DOF_REQUEST_LEVEL_NUMBER)
             {

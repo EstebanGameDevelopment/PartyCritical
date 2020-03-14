@@ -45,6 +45,8 @@ namespace PartyCritical
         public float ScaleMovementXZ = 4;
         public float ScaleMovementY = 2;
 
+        public bool AreOculusHandsEnabled = false;
+
         // ----------------------------------------------
         // protected VARIABLES
         // ----------------------------------------------	
@@ -249,6 +251,7 @@ namespace PartyCritical
 
 #if ENABLE_OCULUS
             m_enableVR = true;
+            AreOculusHandsEnabled = false;
             CameraLocal.gameObject.SetActive(false);
             if (OVRPlayer!=null) OVRPlayer.SetActive(true);
             this.GetComponent<Rigidbody>().useGravity = false;
@@ -749,6 +752,7 @@ namespace PartyCritical
                             m_armModel = new GameObject();
                             m_laserPointer = handRays[j].gameObject;
                             lookForLaser = false;
+                            AreOculusHandsEnabled = true;
                         }
                     }
                 }
