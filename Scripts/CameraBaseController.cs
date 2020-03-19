@@ -41,6 +41,7 @@ namespace PartyCritical
         public GameObject CenterEyeAnchor;
         public GameObject ShotgunContainer;
         public GameObject SubContainerCamera;
+        public GameObject[] HandTrackingObjects;
 
         public float ScaleMovementXZ = 4;
         public float ScaleMovementY = 2;
@@ -249,6 +250,12 @@ namespace PartyCritical
 
             m_teleportAvailable = (GameObject.FindObjectOfType<TeleportController>() != null);
 
+#if ENABLE_WORLDSENSE || ENABLE_OCULUS
+            if (ShotgunContainer != null) ShotgunContainer.SetActive(true);
+#else
+            if (ShotgunContainer != null) ShotgunContainer.SetActive(false);
+#endif
+
 #if ENABLE_OCULUS
             m_enableVR = true;
             AreOculusHandsEnabled = false;
@@ -257,15 +264,39 @@ namespace PartyCritical
             this.GetComponent<Rigidbody>().useGravity = false;
             this.GetComponent<Rigidbody>().isKinematic = true;
             this.GetComponent<Collider>().isTrigger = true;
+
+            if (ScreenOculusControlSelectionView.ControOculusWithHands())
+            {
+                if (ShotgunContainer != null) ShotgunContainer.SetActive(false);
+            }
+            else
+            {
+                if (GameObject.FindObjectsOfType<HandRayToolView>() != null)
+                {
+                    HandRayToolView[] handRays = GameObject.FindObjectsOfType<HandRayToolView>();
+                    for (int j = 0; j < handRays.Length; j++)
+                    {
+                        if (handRays[j] != null)
+                        {
+                            handRays[j].gameObject.SetActive(false);
+                        }
+                    }
+                }
+
+                if (HandTrackingObjects != null)
+                {
+                    for (int k = 0; k < HandTrackingObjects.Length; k++)
+                    {
+                        if (HandTrackingObjects[k] != null)
+                        {
+                            HandTrackingObjects[k].gameObject.SetActive(false);
+                        }
+                    }
+                }
+            }
 #else
             CameraLocal.gameObject.SetActive(true);
             if (OVRPlayer != null) OVRPlayer.SetActive(false);
-#endif
-
-#if ENABLE_WORLDSENSE || ENABLE_OCULUS
-            if (ShotgunContainer != null) ShotgunContainer.SetActive(true);
-#else
-            if (ShotgunContainer != null) ShotgunContainer.SetActive(false);
 #endif
 
             InitialitzationLaserPointer();
@@ -742,7 +773,8 @@ namespace PartyCritical
 
 #elif ENABLE_OCULUS
                 bool lookForLaser = true;
-                if (GameObject.FindObjectsOfType<HandRayToolView>() != null)
+                if (ScreenOculusControlSelectionView.ControOculusWithHands() &&
+                    (GameObject.FindObjectsOfType<HandRayToolView>() != null))
                 {
                     HandRayToolView[] handRays = GameObject.FindObjectsOfType<HandRayToolView>();
                     for (int j = 0; j < handRays.Length; j++)
@@ -756,12 +788,23 @@ namespace PartyCritical
                         }
                     }
                 }
-                if (lookForLaser)
+                if (GameObject.FindObjectOfType<OVRControllerHelper>() != null)
                 {
-                    if (GameObject.FindObjectOfType<OVRControllerHelper>() != null)
+                    if (lookForLaser)
                     {
                         m_armModel = new GameObject();
                         m_laserPointer = GameObject.FindObjectOfType<OVRControllerHelper>().gameObject;
+                        if (m_laserPointer != null)
+                        {
+                            if (GameObject.FindObjectOfType<InteractableOculusHandsCreator>() != null)
+                            {
+                                GameObject.FindObjectOfType<InteractableOculusHandsCreator>().gameObject.SetActive(false);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        GameObject.FindObjectOfType<OVRControllerHelper>().gameObject.SetActive(false);
                     }
                 }
 #endif
@@ -1476,6 +1519,10 @@ namespace PartyCritical
                         BasicSystemEventController.Instance.DispatchBasicSystemEvent(GrabNetworkObject.EVENT_GRABOBJECT_RESPONSE_RAYCASTING, collidedObjectCasting, targetToFollow);
                     }
                 }
+            }
+            if (_nameEvent == TeleportController.EVENT_TELEPORTCONTROLLER_TELEPORT)
+            {
+                NetworkEventController.Instance.PriorityDelayNetworkEvent(TeleportController.EVENT_TELEPORTCONTROLLER_TELEPORT, 0.1f, (string)_list[0]);
             }
             if (_nameEvent == KeysEventInputController.EVENT_REQUEST_TELEPORT_AVAILABLE)
             {

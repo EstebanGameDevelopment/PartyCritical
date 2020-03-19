@@ -208,8 +208,10 @@ namespace PartyCritical
 			Screen.autorotateToLandscapeRight = false;
 			Screen.autorotateToLandscapeLeft = false;
 			Screen.autorotateToPortrait = false;
+#else
+            ScreenOculusControlSelectionView.ShouldCheckTheHandControl = true;
 #endif
-		}
+        }
 
 		// -------------------------------------------
 		/* 
