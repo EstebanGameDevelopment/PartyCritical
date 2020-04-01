@@ -1627,7 +1627,13 @@ namespace PartyCritical
             int indexEnemy = UnityEngine.Random.Range(0, EnemyModelPrefab.Length);
             string initialData = "ENEMY" + m_globalCounterEnemies + "," + "ZOMBIE" + "," + EnemyModelPrefab[indexEnemy] + "," + _position.x + "," + _position.y + "," + _position.z;
             m_globalCounterEnemies++;
+#if !ENABLE_CONFUSION
             YourNetworkTools.Instance.CreateLocalNetworkObject(EnemyPrefab[0].name, initialData, true, 10000, 10000, 10000);
+#else
+            GameObject newZombie = Instantiate(EnemyPrefab[indexEnemy]);
+            newZombie.GetComponent<IGameNetworkActor>().Initialize(initialData);
+#endif
+            
             return true;
         }
 
