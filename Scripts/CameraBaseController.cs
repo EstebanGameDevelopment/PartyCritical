@@ -311,7 +311,7 @@ namespace PartyCritical
             UIEventController.Instance.UIEvent += new UIEventHandler(OnUIEvent);
 
 #if !UNITY_EDITOR && !ENABLE_OCULUS
-		if (!CardboardLoaderVR.LoadEnableCardboard())
+		if (!CardboardLoaderVR.Instance.LoadEnableCardboard())
 		{
 			m_enableGyroscope = true;
 		}
@@ -321,8 +321,12 @@ namespace PartyCritical
 		}
 #endif
 
+#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
+            CardboardLoaderVR.Instance.InitializeCardboard();
+#endif
+
 #if !ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS
-            if (this.gameObject.GetComponentInChildren<Skybox>()!=null) this.gameObject.GetComponentInChildren<Skybox>().enabled = true;
+                if (this.gameObject.GetComponentInChildren<Skybox>()!=null) this.gameObject.GetComponentInChildren<Skybox>().enabled = true;
 #endif
 
             if (EnableARCore)

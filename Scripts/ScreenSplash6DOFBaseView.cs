@@ -477,7 +477,7 @@ namespace PartyCritical
         protected virtual void Direct2PlayerGameConfirmation()
         {
             MultiplayerConfiguration.SaveEnableBackground(true);
-            CardboardLoaderVR.SaveEnableCardboard(true);
+            CardboardLoaderVR.Instance.SaveEnableCardboard(true);
             if (m_isCreatingGame)
             {
                 MenuScreenController.Instance.LoadCustomGameScreenOrCreateGame(false, TotalNumberOfPlayers, null, null, false);
@@ -526,7 +526,7 @@ namespace PartyCritical
         protected virtual void JoinAsOtherPlayerGame_ARCoreConfirmation()
         {
             MultiplayerConfiguration.SaveEnableBackground(!m_enableAugmented);
-            CardboardLoaderVR.SaveEnableCardboard(true);
+            CardboardLoaderVR.Instance.SaveEnableCardboard(true);
             if (m_isCreatingGame)
             {
                 MenuScreenController.Instance.LoadCustomGameScreenOrCreateGame(false, TotalNumberOfPlayers, null, null, false);
@@ -575,7 +575,7 @@ namespace PartyCritical
         protected virtual void JoinAsOtherPlayerGame_GyroConfirmation()
         {
             MultiplayerConfiguration.SaveEnableBackground(!m_enableAugmented);
-            CardboardLoaderVR.SaveEnableCardboard(false);
+            CardboardLoaderVR.Instance.SaveEnableCardboard(false);
             if (m_isCreatingGame)
             {
                 MenuScreenController.Instance.LoadCustomGameScreenOrCreateGame(false, TotalNumberOfPlayers, null, null, false);
@@ -624,7 +624,7 @@ namespace PartyCritical
         protected virtual void JoinAsOtherPlayerGame_NoARCoreConfirmation()
         {
             MultiplayerConfiguration.SaveEnableBackground(true);
-            CardboardLoaderVR.SaveEnableCardboard(true);
+            CardboardLoaderVR.Instance.SaveEnableCardboard(true);
             if (m_isCreatingGame)
             {
                 MenuScreenController.Instance.LoadCustomGameScreenOrCreateGame(false, TotalNumberOfPlayers, null, null, false);
@@ -673,7 +673,7 @@ namespace PartyCritical
         protected virtual void JoinAsDirectorGameConfirmation()
         {
             MultiplayerConfiguration.SaveEnableBackground(true);
-            CardboardLoaderVR.SaveEnableCardboard(false);
+            CardboardLoaderVR.Instance.SaveEnableCardboard(false);
             NetworkEventController.Instance.MenuController_SaveNumberOfPlayers(MultiplayerConfiguration.VALUE_FOR_JOINING);
 #if ENABLE_GOOGLE_ARCORE
             MultiplayerConfiguration.SaveGoogleARCore(MultiplayerConfiguration.GOOGLE_ARCORE_ENABLED);

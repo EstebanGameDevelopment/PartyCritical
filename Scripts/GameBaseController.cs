@@ -561,7 +561,7 @@ namespace PartyCritical
 #if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
             if (!m_directorMode)
             {
-                if (!CardboardLoaderVR.LoadEnableCardboard())
+                if (!CardboardLoaderVR.Instance.LoadEnableCardboard())
                 {
                     KeysEventInputController.Instance.EnableInteractions = true;
                     KeysEventInputController.Instance.EnableActionButton = true;
@@ -569,7 +569,7 @@ namespace PartyCritical
                     UIEventController.Instance.DispatchUIEvent(InteractionController.EVENT_INTERACTIONCONTROLLER_ENABLE_INTERACTION, true);
                 }
             }
-#endif                
+#endif
         }
 
         // -------------------------------------------
@@ -625,7 +625,7 @@ namespace PartyCritical
 #if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
                 if (!m_directorMode)
                 {
-                    if (!CardboardLoaderVR.LoadEnableCardboard())
+                    if (!CardboardLoaderVR.Instance.LoadEnableCardboard())
                     {
                         KeysEventInputController.Instance.EnableInteractions = false;
                         KeysEventInputController.Instance.EnableActionButton = false;
@@ -661,7 +661,7 @@ namespace PartyCritical
 #if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
                 if (!m_directorMode)
                 {
-                    if (!CardboardLoaderVR.LoadEnableCardboard())
+                    if (!CardboardLoaderVR.Instance.LoadEnableCardboard())
                     {
                         KeysEventInputController.Instance.EnableInteractions = false;
                         KeysEventInputController.Instance.EnableActionButton = false;
@@ -1358,7 +1358,7 @@ namespace PartyCritical
                 {
 #if ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS
                     CloudGameAnchorController.Instance.EnableARCore();
-                    if (CardboardLoaderVR.LoadEnableCardboard())
+                    if (CardboardLoaderVR.Instance.LoadEnableCardboard())
                     {
                         CreateFitScanImageScreen();
                     }
@@ -1423,7 +1423,7 @@ namespace PartyCritical
 
 #elif ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS
                             CloudGameAnchorController.Instance.EnableARCore();
-                            if (CardboardLoaderVR.LoadEnableCardboard())
+                            if (CardboardLoaderVR.Instance.LoadEnableCardboard())
                             {
                                 CreateFitScanImageScreen();
                             }
@@ -1481,7 +1481,7 @@ namespace PartyCritical
 #if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
             if (PlayerScreen != null)
             {
-                if (!CardboardLoaderVR.LoadEnableCardboard())
+                if (!CardboardLoaderVR.Instance.LoadEnableCardboard())
                 {
                     Instantiate(PlayerScreen);
                     UIEventController.Instance.DelayUIEvent(EventSystemController.EVENT_ACTIVATION_INPUT_STANDALONE, 1f, true);
