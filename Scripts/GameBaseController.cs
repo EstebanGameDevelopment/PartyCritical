@@ -1247,6 +1247,38 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		* GetPlayerByNetworkID
+		*/
+        public GameObject GetPlayerByNetworkID(int _networkID)
+        {
+            for (int i = 0; i < m_players.Count; i++)
+            {
+                if (m_players[i].GetComponent<ActorTimeline>().NetworkID.NetID == _networkID)
+                {
+                    return m_players[i].gameObject;
+                }
+            }
+            return null;
+        }
+
+        // -------------------------------------------
+        /* 
+		* GetEnemyByNetworkID
+		*/
+        public GameObject GetEnemyByNetworkID(int _uid)
+        {
+            for (int i = 0; i < m_enemies.Count; i++)
+            {
+                if (m_enemies[i].GetComponent<ActorTimeline>().NetworkID.UID == _uid)
+                {
+                    return m_enemies[i].gameObject;
+                }
+            }
+            return null;
+        }
+
+        // -------------------------------------------
+        /* 
 		* FindSpawnPositions
 		*/
         protected void FindSpawnPositions()
