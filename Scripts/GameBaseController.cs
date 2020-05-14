@@ -1253,9 +1253,12 @@ namespace PartyCritical
         {
             for (int i = 0; i < m_players.Count; i++)
             {
-                if (m_players[i].GetComponent<ActorTimeline>().NetworkID.NetID == _networkID)
+                if (m_players[i].GetComponent<ActorTimeline>() != null)
                 {
-                    return m_players[i].gameObject;
+                    if (m_players[i].GetComponent<ActorTimeline>().NetworkID.NetID == _networkID)
+                    {
+                        return m_players[i].gameObject;
+                    }
                 }
             }
             return null;
@@ -1265,16 +1268,61 @@ namespace PartyCritical
         /* 
 		* GetEnemyByNetworkID
 		*/
-        public GameObject GetEnemyByNetworkID(int _uid)
+        public GameObject GetEnemyByNetworkUID(string _id)
         {
             for (int i = 0; i < m_enemies.Count; i++)
             {
-                if (m_enemies[i].GetComponent<ActorTimeline>().NetworkID.UID == _uid)
+                if (m_enemies[i] != null)
                 {
-                    return m_enemies[i].gameObject;
+                    if (m_enemies[i].GetComponent<ActorTimeline>() != null)
+                    {
+                        if (m_enemies[i].GetComponent<ActorTimeline>().NetworkID.GetID() == _id)
+                        {
+                            return m_enemies[i].gameObject;
+                        }
+                    }
                 }
             }
             return null;
+        }
+
+        // -------------------------------------------
+        /* 
+		* GetEnemyClosestInRange
+		*/
+        public GameObject GetEnemyClosestInRange(GameObject _source, float _yaw, float _rangeDistance, float _angleDetection)
+        {
+            float minimumDistance = 1000000;
+            int enemySelected = -1;
+            for (int i = 0; i < m_enemies.Count; i++)
+            {
+                if (m_enemies[i] != null)
+                {
+                    if (m_enemies[i].GetComponent<ActorTimeline>() != null)
+                    {
+                        if (m_enemies[i].GetComponent<ActorTimeline>().Life > 0)
+                        {
+                            float enemyDistance = Utilities.IsInsideCone(_source, _yaw, m_enemies[i].gameObject, _rangeDistance, _angleDetection);
+                            if (enemyDistance != -1)
+                            {
+                                if (enemyDistance < minimumDistance)
+                                {
+                                    minimumDistance = enemyDistance;
+                                    enemySelected = i;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (enemySelected == -1)
+            {
+                return null;
+            }
+            else
+            {
+                return m_enemies[enemySelected].gameObject;
+            }            
         }
 
         // -------------------------------------------
