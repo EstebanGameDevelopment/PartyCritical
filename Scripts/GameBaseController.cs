@@ -1292,7 +1292,7 @@ namespace PartyCritical
 		*/
         public GameObject GetEnemyClosestInRange(GameObject _source, float _yaw, float _rangeDistance, float _angleDetection)
         {
-            float minimumDistance = 1000000;
+            float minimumAngle = 1000000;
             int enemySelected = -1;
             for (int i = 0; i < m_enemies.Count; i++)
             {
@@ -1302,12 +1302,12 @@ namespace PartyCritical
                     {
                         if (m_enemies[i].GetComponent<ActorTimeline>().Life > 0)
                         {
-                            float enemyDistance = Utilities.IsInsideCone(_source, _yaw, m_enemies[i].gameObject, _rangeDistance, _angleDetection);
-                            if (enemyDistance != -1)
+                            Vector2 closestEnemy = Utilities.IsInsideConeExtra(_source, _yaw, m_enemies[i].gameObject, _rangeDistance, _angleDetection);
+                            if (closestEnemy != Vector2.zero)
                             {
-                                if (enemyDistance < minimumDistance)
+                                if (closestEnemy.y < minimumAngle)
                                 {
-                                    minimumDistance = enemyDistance;
+                                    minimumAngle = closestEnemy.y;
                                     enemySelected = i;
                                 }
                             }
