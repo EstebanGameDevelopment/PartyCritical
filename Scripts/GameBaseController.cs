@@ -1290,7 +1290,7 @@ namespace PartyCritical
         /* 
 		* GetEnemyClosestInRange
 		*/
-        public GameObject GetEnemyClosestInRange(GameObject _source, float _yaw, float _rangeDistance, float _angleDetection)
+        public virtual GameObject GetEnemyClosestInRange(GameObject _source, float _yaw, float _rangeDistance, float _angleDetection)
         {
             float minimumAngle = 1000000;
             int enemySelected = -1;
