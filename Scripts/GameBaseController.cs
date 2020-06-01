@@ -140,6 +140,10 @@ namespace PartyCritical
         {
             get { return m_className; }
         }
+        public int CurrentLevel
+        {
+            get { return m_currentLevel; }
+        }
         public int TotalNumberPlayers
         {
             get { return m_totalNumberPlayers; }
