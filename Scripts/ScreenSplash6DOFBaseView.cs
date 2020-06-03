@@ -678,7 +678,15 @@ namespace PartyCritical
         {
             MultiplayerConfiguration.SaveEnableBackground(true);
             CardboardLoaderVR.Instance.SaveEnableCardboard(false);
-            NetworkEventController.Instance.MenuController_SaveNumberOfPlayers(MultiplayerConfiguration.VALUE_FOR_JOINING);
+            // NetworkEventController.Instance.MenuController_SaveNumberOfPlayers(MultiplayerConfiguration.VALUE_FOR_JOINING);
+            if (m_isCreatingGame)
+            {
+                MenuScreenController.Instance.LoadCustomGameScreenOrCreateGame(false, TotalNumberOfPlayers, null, null, false);
+            }
+            else
+            {
+                MenuScreenController.Instance.LoadCustomGameScreenOrCreateGame(false, MultiplayerConfiguration.VALUE_FOR_JOINING, null, null, false);
+            }
 #if ENABLE_GOOGLE_ARCORE
             MultiplayerConfiguration.SaveGoogleARCore(MultiplayerConfiguration.GOOGLE_ARCORE_ENABLED);
 #else
