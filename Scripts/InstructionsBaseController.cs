@@ -99,6 +99,26 @@ namespace PartyCritical
         {
             get { return ""; }
         }
+        public int CurrentLevel
+        {
+            get { return m_currentLevel; }
+            set { m_currentLevel = value; }
+        }
+        public string CurrentTimeline
+        {
+            get { return m_currentTimeline; }
+            set { m_currentTimeline = value; }
+        }
+        public int TimeMarker
+        {
+            get { return m_timeMarker; }
+            set { m_timeMarker = value; }
+        }
+        public int TimeSegment
+        {
+            get { return m_timeSegment; }
+            set { m_timeSegment = value; }
+        }
 
         // -------------------------------------------
         /* 

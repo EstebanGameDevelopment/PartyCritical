@@ -787,6 +787,29 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+        * CloseRoomAndStartGame
+        */
+        protected virtual void CloseRoomAndStartGame()
+        {
+            if (YourNetworkTools.Instance.IsServer)
+            {
+                if (m_stateManager.State != STATE_RUNNING)
+                {
+                    m_totalNumberPlayers = m_playersReady.Count;
+#if ENABLE_CONFUSION
+                NetworkEventController.Instance.DelayLocalEvent(ClientTCPEventsController.EVENT_CLIENT_TCP_CLOSE_CURRENT_ROOM, 0.2f);
+#else
+                    NetworkEventController.Instance.PriorityDelayNetworkEvent(ClientTCPEventsController.EVENT_CLIENT_TCP_CLOSE_CURRENT_ROOM, 0.2f);
+#endif
+
+
+                    StartRunningGame();
+                }
+            }
+        }
+
+        // -------------------------------------------
+        /* 
         * PlayerReadyConfirmation
         */
         protected virtual void PlayerReadyConfirmation(params object[] _list)
@@ -803,14 +826,7 @@ namespace PartyCritical
 #endif
                 if ((isDirector) || ((m_totalNumberPlayers <= m_playersReady.Count) && (m_totalNumberPlayers != MultiplayerConfiguration.VALUE_FOR_JOINING)))
                 {
-                    m_totalNumberPlayers = m_playersReady.Count;
-#if ENABLE_CONFUSION
-                        NetworkEventController.Instance.DelayLocalEvent(ClientTCPEventsController.EVENT_CLIENT_TCP_CLOSE_CURRENT_ROOM, 0.2f);
-#else
-                    NetworkEventController.Instance.PriorityDelayNetworkEvent(ClientTCPEventsController.EVENT_CLIENT_TCP_CLOSE_CURRENT_ROOM, 0.2f);
-#endif
-
-                    StartRunningGame();
+                    CloseRoomAndStartGame();
                 }
             }
 #endif
@@ -1464,6 +1480,7 @@ namespace PartyCritical
 
                 Vector3 initialPosition = m_positionsSpawn[YourNetworkTools.Instance.GetUniversalNetworkID() % m_positionsSpawn.Count];
                 string initialData = initialPosition.x + "," + initialPosition.y + "," + initialPosition.z;
+#if !ONLY_REMOTE_CONNECTION
 #if (ENABLE_WORLDSENSE || ENABLE_QUEST) && !UNITY_EDITOR
                         initialData = 0 + "," + initialPosition.y + "," + 0;
 #elif ENABLE_GOOGLE_ARCORE && !UNITY_EDITOR
@@ -1471,6 +1488,7 @@ namespace PartyCritical
                         {
                             initialData = 0 + "," + initialPosition.y + "," + 0;
                         }
+#endif
 #endif
                 if (m_characterSelected >= PlayerPrefab.Length)
                 {

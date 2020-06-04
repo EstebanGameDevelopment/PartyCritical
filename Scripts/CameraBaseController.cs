@@ -77,9 +77,14 @@ namespace PartyCritical
 
         protected bool m_enabledCameraInput = true;
 
+#if ONLY_REMOTE_CONNECTION
+        protected bool m_teleportAvailable = true;
+        protected bool m_teleportEnabled = true;
+#else
         protected bool m_teleportAvailable = false;
         protected bool m_teleportEnabled = false;
-        
+#endif
+
         protected Vector3 m_shiftCameraFromOrigin = Vector3.zero;
 
 #if ENABLE_WORLDSENSE || ENABLE_OCULUS
@@ -1610,7 +1615,7 @@ namespace PartyCritical
             if (_nameEvent == TeleportController.EVENT_TELEPORTCONTROLLER_TELEPORT)
             {
                 bool applyTeleport = true;
-#if TELEPORT_INDIVIDUAL
+#if TELEPORT_INDIVIDUAL || ONLY_REMOTE_CONNECTION
                 if (YourNetworkTools.Instance.GetUniversalNetworkID() != _networkOriginID)
                 {
                     applyTeleport = false;
