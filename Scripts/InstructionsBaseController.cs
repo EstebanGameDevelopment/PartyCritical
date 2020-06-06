@@ -571,7 +571,7 @@ namespace PartyCritical
             }
             if (_nameEvent == GameBaseController.EVENT_GAMECONTROLLER_LEVEL_LOAD_COMPLETED)
             {
-                Debug.LogError("InstructionsController::EVENT_GAMECONTROLLER_LEVEL_LOAD_COMPLETED!!!!!!!!!!!!!!!!!!!!!!!!");
+                // Debug.LogError("InstructionsController::EVENT_GAMECONTROLLER_LEVEL_LOAD_COMPLETED!!!!!!!!!!!!!!!!!!!!!!!!");
                 CreateNewTimelineForLevel((int)_list[0]);
             }
         }
