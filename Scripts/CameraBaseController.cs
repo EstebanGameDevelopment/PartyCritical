@@ -93,6 +93,7 @@ namespace PartyCritical
         protected float m_timeShotgun = 0;
         protected Vector3 m_originLaser;
         protected Vector3 m_forwardLaser;
+        protected Vector3 m_incrementJoystickTranslation = Vector3.zero;
 #endif
 
 
@@ -466,7 +467,7 @@ namespace PartyCritical
         public Vector3 GetPositionLaser()
         {
             Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
-#if ENABLE_OCULUS && !UNITY_EDITOR
+#if ENABLE_OCULUS
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
                     pos = Utilities.Clone(m_originLaser);
@@ -488,7 +489,7 @@ namespace PartyCritical
         public Vector3 GetForwardLaser()
         {
             Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
-#if ENABLE_OCULUS && !UNITY_EDITOR
+#if ENABLE_OCULUS
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
                     fwd = Utilities.Clone(m_forwardLaser);
@@ -512,7 +513,7 @@ namespace PartyCritical
         {
             Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
             Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
-#if ENABLE_OCULUS && !UNITY_EDITOR
+#if ENABLE_OCULUS
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
                     pos = Utilities.Clone(m_originLaser);
@@ -537,7 +538,7 @@ namespace PartyCritical
         {
             Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
             Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
-#if ENABLE_OCULUS && !UNITY_EDITOR
+#if ENABLE_OCULUS
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
                     pos = Utilities.Clone(m_originLaser);
@@ -567,7 +568,7 @@ namespace PartyCritical
         {
             Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
             Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
-#if ENABLE_OCULUS && !UNITY_EDITOR
+#if ENABLE_OCULUS
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
                     pos = Utilities.Clone(m_originLaser);
@@ -597,7 +598,7 @@ namespace PartyCritical
         {
             Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
             Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
-#if ENABLE_OCULUS && !UNITY_EDITOR
+#if ENABLE_OCULUS
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
                     pos = Utilities.Clone(m_originLaser);
@@ -627,7 +628,7 @@ namespace PartyCritical
         {
             Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
             Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
-#if ENABLE_OCULUS && !UNITY_EDITOR
+#if ENABLE_OCULUS
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
                     pos = Utilities.Clone(m_originLaser);
@@ -658,7 +659,7 @@ namespace PartyCritical
             string position = "";
             string forward = "";
             bool shootDone = false;
-#if ENABLE_OCULUS && !UNITY_EDITOR
+#if ENABLE_OCULUS
 			if ((m_armModel != null) && (m_laserPointer != null))
 			{
 				position = m_originLaser.x + "," + m_originLaser.y + "," + m_originLaser.z;
@@ -901,7 +902,7 @@ namespace PartyCritical
                     }
                 }
 #endif
-#if ENABLE_OCULUS && ENABLE_QUEST && !UNITY_EDITOR
+#if ENABLE_OCULUS && ENABLE_QUEST
                 if (m_teleportEnabled)
                 {
                     if (KeysEventInputController.Instance.GetTeleportOculusController())
@@ -964,7 +965,7 @@ namespace PartyCritical
 #endif
 
             if (keyEventUpToActivateInventory
-#if ENABLE_OCULUS && !UNITY_EDITOR
+#if ENABLE_OCULUS
                 || KeysEventInputController.Instance.GetAppButtonDownOculusController() || KeysEventInputController.Instance.GetActionCurrentStateOculusController()
 #elif ENABLE_WORLDSENSE && !UNITY_EDITOR
                 || KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false) || KeysEventInputController.Instance.GetActionCurrentStateDaydreamController()
@@ -989,49 +990,10 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
-        * ProcessInputCustomer
+        * ProcessOculusCustomerInput
         */
-        protected virtual void ProcessInputCustomer()
+        protected virtual void ProcessOculusCustomerInput()
         {
-            if (IsThereBlockingScreen())
-            {
-                UpdateLogicTeleportInventory(false);
-                return;
-            }
-            
-            // INPUTS FOR THE IN-GAME, NOT THE SCREENS
-            if (false
-#if ENABLE_OCULUS && !UNITY_EDITOR
-                || KeysEventInputController.Instance.GetActionOculusController(false)
-#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
-                || KeysEventInputController.Instance.GetActionDaydreamController(false)
-#else
-                || KeysEventInputController.Instance.GetActionDefaultController(false)
-#endif
-                )
-            {
-                ActionShootPlayer();
-
-                m_timeoutPressed = 0;
-#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
-                m_timeoutToMove = 0;
-#endif
-
-#if ENABLE_OCULUS && !UNITY_EDITOR
-                if (KeysEventInputController.Instance.EnableActionOnMouseDown)
-                {
-                    UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_UP);
-                }
-                else
-                {
-                    UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_DOWN);
-                }
-#else
-                UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_UP);
-#endif
-            }
-
-#if ENABLE_OCULUS && !UNITY_EDITOR
             if (KeysEventInputController.Instance.GetActionOculusController(true))
             {
                 m_timeoutPressed = 0;
@@ -1048,7 +1010,20 @@ namespace PartyCritical
                     SetAMarkerSignal();
                 }
             }
-#if !ENABLE_QUEST
+
+#if ENABLE_QUEST
+#if TELEPORT_INDIVIDUAL || ONLY_REMOTE_CONNECTION
+            Vector2 axisValueRight = OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick, OVRInput.Controller.RTouch);
+            if (axisValueRight.sqrMagnitude > 0.2f)
+            {
+                Vector3 forward = axisValueRight.y * CenterEyeAnchor.transform.forward * PLAYER_SPEED * Time.deltaTime;
+                Vector3 lateral = axisValueRight.x * CenterEyeAnchor.transform.right * PLAYER_SPEED * Time.deltaTime;
+
+                m_incrementJoystickTranslation = forward + lateral;
+                m_incrementJoystickTranslation.y = 0;
+            }
+#endif
+#else
             if (OVRInput.GetDown(OVRInput.Button.PrimaryTouchpad))
             {
                 m_timeoutToMove = TIMEOUT_TO_MOVE;
@@ -1069,8 +1044,58 @@ namespace PartyCritical
                 }
             }
 #endif
+        }
+
+        // -------------------------------------------
+        /* 
+        * ProcessInputCustomer
+        */
+        protected virtual void ProcessInputCustomer()
+        {
+            if (IsThereBlockingScreen())
+            {
+                UpdateLogicTeleportInventory(false);
+                return;
+            }
+            
+            // INPUTS FOR THE IN-GAME, NOT THE SCREENS
+            if (false
+#if ENABLE_OCULUS
+                || KeysEventInputController.Instance.GetActionOculusController(false)
+#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+                || KeysEventInputController.Instance.GetActionDaydreamController(false)
 #else
-                if (false
+                || KeysEventInputController.Instance.GetActionDefaultController(false)
+#endif
+                )
+            {
+                ActionShootPlayer();
+
+                m_timeoutPressed = 0;
+#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
+                m_timeoutToMove = 0;
+#endif
+
+                // #if ENABLE_OCULUS && !UNITY_EDITOR
+#if ENABLE_OCULUS
+                if (KeysEventInputController.Instance.EnableActionOnMouseDown)
+                {
+                    UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_UP);
+                }
+                else
+                {
+                    UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_DOWN);
+                }
+#else
+                UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_UP);
+#endif
+            }
+
+
+#if ENABLE_OCULUS
+            ProcessOculusCustomerInput();
+#else
+            if (false
 #if ENABLE_WORLDSENSE && !UNITY_EDITOR
                 || (KeysEventInputController.Instance.GetActionDaydreamController(true))
 #else
@@ -1266,7 +1291,7 @@ namespace PartyCritical
         {
             Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
             Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
-#if ENABLE_OCULUS && !UNITY_EDITOR
+#if ENABLE_OCULUS
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
                     pos = Utilities.Clone(m_originLaser);
@@ -1383,7 +1408,7 @@ namespace PartyCritical
         {
             Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
             Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
-#if ENABLE_OCULUS && !UNITY_EDITOR
+#if ENABLE_OCULUS
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
                     pos = Utilities.Clone(m_originLaser);
@@ -1514,7 +1539,7 @@ namespace PartyCritical
                     {
                         GameObject targetToFollow = YourVRUIScreenController.Instance.GameCamera.gameObject;
 
-#if ENABLE_OCULUS && !UNITY_EDITOR
+#if ENABLE_OCULUS
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
                    targetToFollow = m_laserPointer;
@@ -1792,6 +1817,8 @@ namespace PartyCritical
 
             Vector3 posWorld = Utilities.Clone(CenterEyeAnchor.transform.localPosition);
             Vector3 centerLevel = new Vector3(0, transform.position.y, 0);
+            m_shiftCameraFromOrigin += m_incrementJoystickTranslation;
+            m_incrementJoystickTranslation = Vector3.zero;
             transform.position = centerLevel 
                                     + new Vector3(posWorld.x * ScaleMovementXZ, 0, posWorld.z * ScaleMovementXZ) 
                                     + m_shiftCameraFromOrigin;
@@ -1883,7 +1910,7 @@ namespace PartyCritical
                         return;
                     }
 
-#if UNITY_EDITOR
+#if UNITY_EDITOR && !ENABLE_OCULUS
                     MoveCamera();
                     RotateCamera();
 #else
