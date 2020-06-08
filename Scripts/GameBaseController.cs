@@ -44,6 +44,7 @@ namespace PartyCritical
         public const string EVENT_GAMECONTROLLER_RECALCULATE_COLLISIONS     = "EVENT_GAMECONTROLLER_RECALCULATE_COLLISIONS";
         public const string EVENT_GAMECONTROLLER_PARTY_OVER                 = "EVENT_GAMECONTROLLER_PARTY_OVER";
         public const string EVENT_GAMECONTROLLER_DIRECTOR_CONNECTED         = "EVENT_GAMECONTROLLER_DIRECTOR_CONNECTED";
+        public const string EVENT_GAMECONTROLLER_DIRECTOR_CLOSES_ROOM       = "EVENT_GAMECONTROLLER_DIRECTOR_CLOSES_ROOM";
 
         public const string SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL = "SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL";
 
@@ -89,6 +90,7 @@ namespace PartyCritical
         public Material[] SkyboxesLevels;
         public string[] SoundsLevels;
         public GameObject[] GenericObjects;
+        public GameObject CloseRoomScreen;
 
         // ----------------------------------------------
         // protected MEMBERS
@@ -344,7 +346,7 @@ namespace PartyCritical
 		/* 
 		 * Create the loading screen
 		 */
-		protected void CreateLoadingScreen(bool _considerForce = true)
+		protected virtual void CreateLoadingScreen(bool _considerForce = true)
 		{
             bool displayScreen = true;
             if (_considerForce)
@@ -954,6 +956,10 @@ namespace PartyCritical
             {
                 ActionsWhenRoomClosed();
             }
+            if (_nameEvent == EVENT_GAMECONTROLLER_DIRECTOR_CLOSES_ROOM)
+            {
+                CloseRoomAndStartGame();
+            }
             if (_nameEvent == CloudGameAnchorController.EVENT_6DOF_REQUEST_LEVEL_NUMBER)
             {
                 NetworkEventController.Instance.PriorityDelayNetworkEvent(CloudGameAnchorController.EVENT_6DOF_RESPONSE_LEVEL_NUMBER, 0.1f, m_currentLevel.ToString(), m_totalNumberOfLevels.ToString());
@@ -1131,6 +1137,11 @@ namespace PartyCritical
             {
                 if ((bool)_list[0])
                 {
+                    if (DirectorMode)
+                    {
+                        UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_DESTROY_ALL_SCREEN);
+                        Instantiate(CloseRoomScreen);
+                    }
                     NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), IsRealDirectorMode.ToString());
                 }
 #if !UNITY_EDITOR
@@ -1451,6 +1462,8 @@ namespace PartyCritical
                 m_namePlayer = MultiplayerConfiguration.DIRECTOR_NAME + timelineID;
                 if (!m_enableARCore)
                 {
+                    UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_DESTROY_ALL_SCREEN);
+                    Instantiate(CloseRoomScreen);
                     NetworkEventController.Instance.DelayNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, 0.2f, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), IsRealDirectorMode.ToString());
                     YourNetworkTools.Instance.ActivateTransformUpdate = true;
                 }

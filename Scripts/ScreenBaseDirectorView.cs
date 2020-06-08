@@ -173,6 +173,7 @@ namespace PartyCritical
         protected virtual void KillThisParty()
         {
             NetworkEventController.Instance.PriorityDelayNetworkEvent(GameBaseController.EVENT_GAMECONTROLLER_PARTY_OVER, 0.1f);
+            NetworkEventController.Instance.PriorityDelayNetworkEvent(NetworkEventController.EVENT_STREAMSERVER_REPORT_CLOSED_STREAM, 0.5f, YourNetworkTools.Instance.GetUniversalNetworkID().ToString());
         }
 
         // -------------------------------------------

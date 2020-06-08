@@ -994,6 +994,7 @@ namespace PartyCritical
         */
         protected virtual void ProcessOculusCustomerInput()
         {
+#if ENABLE_OCULUS
             if (KeysEventInputController.Instance.GetActionOculusController(true))
             {
                 m_timeoutPressed = 0;
@@ -1043,6 +1044,7 @@ namespace PartyCritical
                     transform.GetComponent<Rigidbody>().MovePosition(transform.position + normalForward * PLAYER_SPEED * Time.deltaTime);
                 }
             }
+#endif
 #endif
         }
 
