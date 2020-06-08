@@ -65,7 +65,8 @@ namespace PartyCritical
 		*/
         protected void OnMenuEvent(string _nameEvent, params object[] _list)
 		{
-            if (_nameEvent == UIEventController.EVENT_SCREENMANAGER_DESTROY_ALL_SCREEN)
+            if ((_nameEvent == UIEventController.EVENT_SCREENMANAGER_DESTROY_ALL_SCREEN) 
+                || (_nameEvent == MenuScreenController.EVENT_FORCE_DESTRUCTION_POPUP))
             {
                 UIEventController.Instance.UIEvent -= OnMenuEvent;
                 GameObject.Destroy(this.gameObject);

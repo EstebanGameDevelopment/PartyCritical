@@ -1140,7 +1140,10 @@ namespace PartyCritical
                     if (DirectorMode)
                     {
                         UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_DESTROY_ALL_SCREEN);
-                        Instantiate(CloseRoomScreen);
+                        if (GameObject.FindObjectOfType<ScreenBaseDirectorView>() == null)
+                        {
+                            Instantiate(CloseRoomScreen);
+                        }
                     }
                     NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), IsRealDirectorMode.ToString());
                 }
@@ -1463,7 +1466,10 @@ namespace PartyCritical
                 if (!m_enableARCore)
                 {
                     UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_DESTROY_ALL_SCREEN);
-                    Instantiate(CloseRoomScreen);
+                    if (GameObject.FindObjectOfType<ScreenBaseDirectorView>() == null)
+                    {
+                        Instantiate(CloseRoomScreen);
+                    }
                     NetworkEventController.Instance.DelayNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, 0.2f, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), IsRealDirectorMode.ToString());
                     YourNetworkTools.Instance.ActivateTransformUpdate = true;
                 }
