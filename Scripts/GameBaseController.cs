@@ -1524,7 +1524,7 @@ namespace PartyCritical
                 YourNetworkTools.Instance.ActivateTransformUpdate = true;
 #else
                 GameObject myOwnPlayer = Instantiate(PlayerPrefab[m_characterSelected]);
-                if (myOwnPlayer.GetComponent<ActorTimeline>() != null) myOwnPlayer.GetComponent<ActorTimeline>().InitializeWithData(initialData);
+                if (myOwnPlayer.GetComponent<ActorTimeline>() != null) myOwnPlayer.GetComponent<ActorTimeline>().InitializeLocalData(initialData);
 #endif
 
                 YourVRUIScreenController.Instance.DestroyScreens();

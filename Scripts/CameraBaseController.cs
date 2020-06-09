@@ -1912,7 +1912,7 @@ namespace PartyCritical
                         return;
                     }
 
-#if UNITY_EDITOR && !ENABLE_OCULUS
+#if (UNITY_EDITOR && !ENABLE_OCULUS) || UNITY_WEBGL
                     MoveCamera();
                     RotateCamera();
 #else
