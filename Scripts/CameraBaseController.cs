@@ -990,6 +990,25 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+        * LogicTeleportQuest
+        */
+        protected virtual void LogicTeleportQuest()
+        {
+#if ENABLE_OCULUS
+            Vector2 axisValueRight = OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick, OVRInput.Controller.RTouch);
+            if (axisValueRight.sqrMagnitude > 0.2f)
+            {
+                Vector3 forward = axisValueRight.y * CenterEyeAnchor.transform.forward * PLAYER_SPEED * Time.deltaTime;
+                Vector3 lateral = axisValueRight.x * CenterEyeAnchor.transform.right * PLAYER_SPEED * Time.deltaTime;
+
+                m_incrementJoystickTranslation = forward + lateral;
+                m_incrementJoystickTranslation.y = 0;
+            }
+#endif
+        }
+
+        // -------------------------------------------
+        /* 
         * ProcessOculusCustomerInput
         */
         protected virtual void ProcessOculusCustomerInput()
@@ -1014,15 +1033,7 @@ namespace PartyCritical
 
 #if ENABLE_QUEST
 #if TELEPORT_INDIVIDUAL || ONLY_REMOTE_CONNECTION
-            Vector2 axisValueRight = OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick, OVRInput.Controller.RTouch);
-            if (axisValueRight.sqrMagnitude > 0.2f)
-            {
-                Vector3 forward = axisValueRight.y * CenterEyeAnchor.transform.forward * PLAYER_SPEED * Time.deltaTime;
-                Vector3 lateral = axisValueRight.x * CenterEyeAnchor.transform.right * PLAYER_SPEED * Time.deltaTime;
-
-                m_incrementJoystickTranslation = forward + lateral;
-                m_incrementJoystickTranslation.y = 0;
-            }
+            LogicTeleportQuest();
 #endif
 #else
             if (OVRInput.GetDown(OVRInput.Button.PrimaryTouchpad))
@@ -1897,7 +1908,7 @@ namespace PartyCritical
         /* 
 		 * Update
 		 */
-        void Update()
+        public virtual void Update()
         {
             if (IsGameFakeRunning()
 #if ENABLE_WORLDSENSE || ENABLE_QUEST || ENABLE_GOOGLE_ARCORE
