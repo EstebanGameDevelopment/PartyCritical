@@ -1089,7 +1089,6 @@ namespace PartyCritical
                 m_timeoutToMove = 0;
 #endif
 
-                // #if ENABLE_OCULUS && !UNITY_EDITOR
 #if ENABLE_OCULUS
                 if (KeysEventInputController.Instance.EnableActionOnMouseDown)
                 {
