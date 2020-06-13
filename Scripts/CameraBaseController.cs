@@ -30,6 +30,7 @@ namespace PartyCritical
         public const string EVENT_CAMERACONTROLLER_OPEN_INVENTORY           = "EVENT_CAMERACONTROLLER_OPEN_INVENTORY";
         public const string EVENT_CAMERACONTROLLER_START_MOVING             = "EVENT_CAMERACONTROLLER_START_MOVING";
         public const string EVENT_CAMERACONTROLLER_STOP_MOVING              = "EVENT_CAMERACONTROLLER_STOP_MOVING";
+        public const string EVENT_CAMERACONTROLLER_FIX_DIRECTOR_CAMERA      = "EVENT_CAMERACONTROLLER_FIX_DIRECTOR_CAMERA";
 
         public const string EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN      = "EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN";
         public const string EVENT_CAMERACONTROLLER_GENERIC_ACTION_UP        = "EVENT_CAMERACONTROLLER_GENERIC_ACTION_UP";
@@ -71,7 +72,7 @@ namespace PartyCritical
         protected float m_timeoutToTeleport = 0;
         protected bool m_hasBeenTeleported = false;
 
-        protected bool m_twoFingersHasBeenPressedOnce = false;
+        protected bool m_enableFreeMovementCamera = false;
 
         protected bool m_activateMovement = false;
 
@@ -89,6 +90,8 @@ namespace PartyCritical
 #endif
 
         protected Vector3 m_shiftCameraFromOrigin = Vector3.zero;
+        protected Vector3 m_fixedCameraPosition;
+        protected Vector3 m_fixedCameraForward;
 
 #if ENABLE_WORLDSENSE || ENABLE_OCULUS
         protected GameObject m_armModel;
@@ -313,6 +316,9 @@ namespace PartyCritical
             if (DirectorMode)
             {
                 if (ShotgunContainer != null) ShotgunContainer.SetActive(false);
+
+                m_fixedCameraPosition = new Vector3(6.1f, 7.4f, -5.1f);
+                m_fixedCameraForward = new Vector3(-0.6f, -0.7f, 0.4f);
             }
 
             BasicSystemEventController.Instance.BasicSystemEvent += new BasicSystemEventHandler(OnBasicSystemEvent);
@@ -598,6 +604,22 @@ namespace PartyCritical
                 return raycastHit.point;
             }
             return Vector3.zero;
+        }
+
+        // -------------------------------------------
+        /* 
+         * SetDirectorMarkerSignal
+         */
+        protected virtual void SetDirectorMarkerSignal(float _x, float _y)
+        {
+            Ray rayCamera = CameraLocal.GetComponent<Camera>().ScreenPointToRay(new Vector3(_x, _y, 0));
+
+            RaycastHit raycastHit = new RaycastHit();
+            if (Utilities.GetRaycastHitInfoByRay(rayCamera, ref raycastHit, ActorTimeline.LAYER_PLAYERS))
+            {
+                Vector3 pc = Utilities.Clone(raycastHit.point);
+                NetworkEventController.Instance.PriorityDelayNetworkEvent(EVENT_GAMECONTROLLER_MARKER_BALL, 0.1f, DirectorMode.ToString(), pc.x.ToString(), pc.y.ToString(), pc.z.ToString());
+            }
         }
 
         // -------------------------------------------
@@ -1166,20 +1188,13 @@ namespace PartyCritical
          */
         protected virtual void InitialPositionCameraDirector()
         {
-            if (!m_twoFingersHasBeenPressedOnce)
+            if (!m_enableFreeMovementCamera)
             {
                 if (!EnableARCore)
                 {
-                    this.gameObject.transform.position = new Vector3(6.1f, 7.4f, -5.1f);
-                    CameraLocal.forward = new Vector3(-0.6f, -0.7f, 0.4f);
+                    this.gameObject.transform.position = m_fixedCameraPosition;
+                    CameraLocal.forward = m_fixedCameraForward;
                 }
-                else
-                {
-                    m_twoFingersHasBeenPressedOnce = true;
-                }
-#if UNITY_EDITOR
-                m_twoFingersHasBeenPressedOnce = true;
-#endif
             }
         }
 
@@ -1194,74 +1209,78 @@ namespace PartyCritical
             transform.GetComponent<Rigidbody>().useGravity = false;
             transform.GetComponent<Rigidbody>().isKinematic = true;
 
-            bool twoFingersInScreen = false;
-#if !UNITY_EDITOR
-            // PINCH ZOOM
-            if (Input.touchCount == 2)
-            {
-                twoFingersInScreen = true;
-                m_twoFingersHasBeenPressedOnce = true;
-                Touch touchZero = Input.GetTouch(0);
-                Touch touchOne = Input.GetTouch(1);
-                Vector2 touchZeroPrevPos = touchZero.position - touchZero.deltaPosition;
-                Vector2 touchOnePrevPos = touchOne.position - touchOne.deltaPosition;
-                float prevTouchDeltaMag = (touchZeroPrevPos - touchOnePrevPos).magnitude;
-                float touchDeltaMag = (touchZero.position - touchOne.position).magnitude;
-
-                float deltaMagnitudeDiff = prevTouchDeltaMag - touchDeltaMag;
-
-                // If the camera is orthographic...
-                if (!EnableARCore)
-                {
-                    if (deltaMagnitudeDiff > 0)
-                    {
-                        transform.GetComponent<Rigidbody>().MovePosition(transform.position + normalForward);
-                    }
-                    else
-                    {
-                        if (deltaMagnitudeDiff < 0)
-                        {
-                            transform.GetComponent<Rigidbody>().MovePosition(transform.position - normalForward);
-                        }
-                    }
-                }
-            }
-#else
-
-            if (Input.GetAxis("Mouse ScrollWheel") > 0)
-            {
-                transform.GetComponent<Rigidbody>().MovePosition(transform.position + normalForward * 30);
-            }
-            else
-            {
-                if (Input.GetAxis("Mouse ScrollWheel") < 0)
-                {
-                    transform.GetComponent<Rigidbody>().MovePosition(transform.position - normalForward * 30);
-                }
-            }
-#endif
-
             InitialPositionCameraDirector();
 
-            // USE ARROW KEYS TO MOVE
-            if (!twoFingersInScreen)
+            bool twoFingersInScreen = false;
+            if (m_enableFreeMovementCamera)
             {
-                if (Input.GetButton("Fire1") || Input.GetKey(KeyCode.LeftControl) || Input.GetMouseButton(0))
+#if !UNITY_EDITOR
+                // PINCH ZOOM
+                if (Input.touchCount == 2)
                 {
-                    m_timeoutPressed += Time.deltaTime;
+                    twoFingersInScreen = true;
+                    Touch touchZero = Input.GetTouch(0);
+                    Touch touchOne = Input.GetTouch(1);
+                    Vector2 touchZeroPrevPos = touchZero.position - touchZero.deltaPosition;
+                    Vector2 touchOnePrevPos = touchOne.position - touchOne.deltaPosition;
+                    float prevTouchDeltaMag = (touchZeroPrevPos - touchOnePrevPos).magnitude;
+                    float touchDeltaMag = (touchZero.position - touchOne.position).magnitude;
+
+                    float deltaMagnitudeDiff = prevTouchDeltaMag - touchDeltaMag;
+
+                    // If the camera is orthographic...
                     if (!EnableARCore)
                     {
-                        if (m_timeoutPressed > TIMEOUT_TO_MOVE)
+                        if (deltaMagnitudeDiff > 0)
                         {
                             transform.GetComponent<Rigidbody>().MovePosition(transform.position + normalForward);
                         }
+                        else
+                        {
+                            if (deltaMagnitudeDiff < 0)
+                            {
+                                transform.GetComponent<Rigidbody>().MovePosition(transform.position - normalForward);
+                            }
+                        }
                     }
                 }
+#else
 
+                if (Input.GetAxis("Mouse ScrollWheel") > 0)
+                {
+                    transform.GetComponent<Rigidbody>().MovePosition(transform.position + normalForward * 30);
+                }
+                else
+                {
+                    if (Input.GetAxis("Mouse ScrollWheel") < 0)
+                    {
+                        transform.GetComponent<Rigidbody>().MovePosition(transform.position - normalForward * 30);
+                    }
+                }
+#endif
+                // USE ARROW KEYS TO MOVE
+                if (!twoFingersInScreen)
+                {
+                    if (Input.GetButton("Fire1") || Input.GetKey(KeyCode.LeftControl) || Input.GetMouseButton(0))
+                    {
+                        m_timeoutPressed += Time.deltaTime;
+                        if (!EnableARCore)
+                        {
+                            if (m_timeoutPressed > TIMEOUT_TO_MOVE)
+                            {
+                                transform.GetComponent<Rigidbody>().MovePosition(transform.position + normalForward);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!twoFingersInScreen)
+            {
                 if (Input.GetButtonDown("Fire1") || Input.GetKeyDown(KeyCode.LeftControl) || Input.GetMouseButtonDown(0))
                 {
                     m_timeoutPressed = 0;
-                    SetAMarkerSignal();
+                    SetDirectorMarkerSignal(Input.mousePosition.x, Input.mousePosition.y);
                     UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_DOWN);
                 }
                 if (Input.GetButtonUp("Fire1") || Input.GetKeyUp(KeyCode.LeftControl) || Input.GetMouseButtonUp(0))
@@ -1588,6 +1607,15 @@ namespace PartyCritical
                     TeleportController.Instance.ForwardDirection = (Transform)_list[0];
                 }
                 // UIEventController.Instance.DelayUIEvent(ScreenDebugLogView.EVENT_SCREEN_DEBUGLOG_NEW_TEXT, 0.1f, false, "IS TELEPORT FOUND["+ m_teleportAvailable + "]["+ m_teleportEnabled + "]::::::::::");
+            }
+            if (_nameEvent == EVENT_CAMERACONTROLLER_FIX_DIRECTOR_CAMERA)
+            {
+                if (!(bool)_list[0])
+                {
+                    m_fixedCameraPosition = this.gameObject.transform.position;
+                    m_fixedCameraForward = CameraLocal.forward;
+                }
+                m_enableFreeMovementCamera = (bool)_list[0];
             }
 
 #if ENABLE_MULTIPLAYER_TIMELINE
