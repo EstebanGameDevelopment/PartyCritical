@@ -31,6 +31,9 @@ namespace PartyCritical
         public const string EVENT_CAMERACONTROLLER_START_MOVING             = "EVENT_CAMERACONTROLLER_START_MOVING";
         public const string EVENT_CAMERACONTROLLER_STOP_MOVING              = "EVENT_CAMERACONTROLLER_STOP_MOVING";
 
+        public const string EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN      = "EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN";
+        public const string EVENT_CAMERACONTROLLER_GENERIC_ACTION_UP        = "EVENT_CAMERACONTROLLER_GENERIC_ACTION_UP";
+
         public const string MARKER_NAME = "MARKER";
 
         // ----------------------------------------------
@@ -868,7 +871,7 @@ namespace PartyCritical
                 if (allowBlocking || (m_timeoutToMove < 1))
                 {
                     return true;
-                }                
+                }
 #endif
             }
             else
@@ -1712,6 +1715,14 @@ namespace PartyCritical
             if (_nameEvent == EVENT_CAMERACONTROLLER_START_MOVING)
             {
                 m_timeoutToMove = TIMEOUT_TO_MOVE + 1;
+            }
+            if (_nameEvent == EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN)
+            {
+                UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_DOWN);
+            }
+            if (_nameEvent == EVENT_CAMERACONTROLLER_GENERIC_ACTION_UP)
+            {
+                SetAMarkerSignal();
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_STOP_MOVING)
             {
