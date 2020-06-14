@@ -1137,12 +1137,15 @@ namespace PartyCritical
             {
                 if ((bool)_list[0])
                 {
-                    if (DirectorMode)
+                    if (DirectorMode && !SpectatorMode)
                     {
-                        UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_DESTROY_ALL_SCREEN);
-                        if (GameObject.FindObjectOfType<ScreenBaseDirectorView>() == null)
+                        if (CloseRoomScreen != null)
                         {
-                            Instantiate(CloseRoomScreen);
+                            UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_DESTROY_ALL_SCREEN);
+                            if (GameObject.FindObjectOfType<ScreenBaseDirectorView>() == null)
+                            {
+                                Instantiate(CloseRoomScreen);
+                            }
                         }
                     }
                     NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), IsRealDirectorMode.ToString());
@@ -1465,12 +1468,15 @@ namespace PartyCritical
                 m_namePlayer = MultiplayerConfiguration.DIRECTOR_NAME + timelineID;
                 if (!m_enableARCore)
                 {
-                    UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_DESTROY_ALL_SCREEN);
                     if (CloseRoomScreen != null)
                     {
-                        if (GameObject.FindObjectOfType<ScreenBaseDirectorView>() == null)
+                        if (!SpectatorMode)
                         {
-                            Instantiate(CloseRoomScreen);
+                            if (GameObject.FindObjectOfType<ScreenBaseDirectorView>() == null)
+                            {
+                                UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_DESTROY_ALL_SCREEN);
+                                Instantiate(CloseRoomScreen);
+                            }
                         }
                     }
                     NetworkEventController.Instance.DelayNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, 0.2f, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), IsRealDirectorMode.ToString());
