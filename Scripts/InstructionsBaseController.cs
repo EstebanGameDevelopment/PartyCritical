@@ -335,7 +335,7 @@ namespace PartyCritical
             m_timeMarker += (m_timeSegment + 500);
 
             // YourVRUIScreenController.Instance.DestroyScreens();
-            UIEventController.Instance.DelayUIEvent(ScreenController.EVENT_FORCE_DESTRUCTION_POPUP, 0.4f);
+            UIEventController.Instance.DelayUIEvent(ScreenController.EVENT_FORCE_DESTRUCTION_POPUP, 0.01f);
         }
 #endif
 
