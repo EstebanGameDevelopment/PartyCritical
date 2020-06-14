@@ -44,6 +44,22 @@ namespace PartyCritical
 
         private List<GameObject> m_players;
 
+        protected bool m_cameraFixedEnabled = true;
+        protected GameObject m_stopFixCamera;
+
+        protected bool CameraFixedEnabled
+        {
+            get { return m_cameraFixedEnabled; }
+            set
+            {
+                m_cameraFixedEnabled = value;
+                if (m_stopFixCamera != null)
+                {
+                    m_stopFixCamera.SetActive(m_cameraFixedEnabled);
+                }
+            }
+        }
+
         // -------------------------------------------
         /* 
 		* Constructor
@@ -67,6 +83,14 @@ namespace PartyCritical
 
 			UIEventController.Instance.UIEvent += new UIEventHandler(OnMenuEvent);
             BasicSystemEventController.Instance.BasicSystemEvent += new BasicSystemEventHandler(OnBasicSystemEvent);
+
+            if (m_container.Find("FixCamera") != null)
+            {
+                GameObject fixCameraButton = m_container.Find("FixCamera").gameObject;
+                fixCameraButton.GetComponent<Button>().onClick.AddListener(FixCameraChanged);
+                m_stopFixCamera = m_container.Find("FixCamera/Stop").gameObject;
+                CameraFixedEnabled = true;
+            }
 
             Invoke("LoadRightCamera", 2);
         }
@@ -124,6 +148,16 @@ namespace PartyCritical
                 m_textCamera.text = "PLAYER-" + m_playerIndexSelected;
                 BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_SPECTATOR_CHANGE_CAMERA_TO_PLAYER, m_playerIndexSelected);
             }
+        }
+
+        // -------------------------------------------
+        /* 
+		* FixCameraChanged
+		*/
+        private void FixCameraChanged()
+        {
+            CameraFixedEnabled = !CameraFixedEnabled;
+            BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_FIX_DIRECTOR_CAMERA, !m_cameraFixedEnabled);
         }
 
         // -------------------------------------------
