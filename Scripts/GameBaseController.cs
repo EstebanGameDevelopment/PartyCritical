@@ -240,7 +240,8 @@ namespace PartyCritical
 			NetworkEventController.Instance.NetworkEvent += new NetworkEventHandler(OnNetworkEvent);
 
             m_totalNumberPlayers = MultiplayerConfiguration.LoadNumberOfPlayers();
-            m_totalNumberOfLevels = MultiplayerConfiguration.LoadTotalNumberOfLevels();
+            // m_totalNumberOfLevels = MultiplayerConfiguration.LoadTotalNumberOfLevels();
+            m_totalNumberOfLevels = LevelsAssetsNames.Length;
             m_directorMode = (MultiplayerConfiguration.LoadDirectorMode(-1) == MultiplayerConfiguration.DIRECTOR_MODE_ENABLED);
             m_spectatorMode = (MultiplayerConfiguration.LoadSpectatorMode(-1) == MultiplayerConfiguration.SPECTATOR_MODE_ENABLED);
             m_isCreatorGame = (NetworkEventController.Instance.MenuController_LoadNumberOfPlayers() != MultiplayerConfiguration.VALUE_FOR_JOINING);
