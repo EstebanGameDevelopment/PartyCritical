@@ -30,8 +30,8 @@ namespace PartyCritical
         // ----------------------------------------------
         // PRIVATE MEMBERS
         // ----------------------------------------------	
-        private GameObject m_root;
-		private Transform m_container;
+        protected GameObject m_root;
+        protected Transform m_container;
 
         // -------------------------------------------
         /* 

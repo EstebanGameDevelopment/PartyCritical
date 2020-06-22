@@ -407,6 +407,8 @@ namespace PartyCritical
                 }
             }            
 #endif
+
+            BasicSystemEventController.Instance.DelayBasicSystemEvent(GameBaseController.EVENT_GAMECONTROLLER_REPORT_GYROSCOPE_MODE, 0.1f, m_enableGyroscope);
         }
 
         // -------------------------------------------

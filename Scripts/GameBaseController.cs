@@ -45,6 +45,7 @@ namespace PartyCritical
         public const string EVENT_GAMECONTROLLER_PARTY_OVER                 = "EVENT_GAMECONTROLLER_PARTY_OVER";
         public const string EVENT_GAMECONTROLLER_DIRECTOR_CONNECTED         = "EVENT_GAMECONTROLLER_DIRECTOR_CONNECTED";
         public const string EVENT_GAMECONTROLLER_DIRECTOR_CLOSES_ROOM       = "EVENT_GAMECONTROLLER_DIRECTOR_CLOSES_ROOM";
+        public const string EVENT_GAMECONTROLLER_REPORT_GYROSCOPE_MODE      = "EVENT_GAMECONTROLLER_REPORT_GYROSCOPE_MODE";
 
         public const string SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL = "SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL";
 
@@ -126,6 +127,7 @@ namespace PartyCritical
         protected bool m_spectatorMode = false;
         protected bool m_enableEnemyAutoGeneration = false;
         protected bool m_enableBackgroundVR = true;
+        protected bool m_isGyroscopeMode = false;
 
         protected bool m_isFirstTimeRun = true;
 
@@ -798,7 +800,12 @@ namespace PartyCritical
             {
                 if (m_stateManager.State != STATE_RUNNING)
                 {
-                    m_totalNumberPlayers = m_playersReady.Count;
+                    m_totalNumberPlayers = m_players.Count;
+                    if (m_totalNumberPlayers == 0)
+                    {
+                        m_totalNumberPlayers = m_playersReady.Count;
+                    }
+                    
 #if ENABLE_CONFUSION
                 NetworkEventController.Instance.DelayLocalEvent(ClientTCPEventsController.EVENT_CLIENT_TCP_CLOSE_CURRENT_ROOM, 0.2f);
 #else
@@ -1169,6 +1176,10 @@ namespace PartyCritical
             {
                 
             }
+            if (_nameEvent == EVENT_GAMECONTROLLER_REPORT_GYROSCOPE_MODE)
+            {
+                m_isGyroscopeMode = (bool)_list[0];
+            }            
             if (_nameEvent == EVENT_GAMECONTROLLER_COLLIDED_REPOSITION_BALL)
             {
                 NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_COLLIDED_REPOSITION_BALL, YourNetworkTools.Instance.GetUniversalNetworkID().ToString());
@@ -1198,7 +1209,7 @@ namespace PartyCritical
 #if UNITY_EDITOR
             isDirector = false;
 #endif
-            if ((YourVRUIScreenController.Instance == null) || (isDirector))
+            if ((YourVRUIScreenController.Instance == null) || isDirector || m_isGyroscopeMode)
             {
                 ProcessScreenEvents(_nameEvent, _list);
             }
@@ -1615,7 +1626,10 @@ namespace PartyCritical
             {
                 if (!CardboardLoaderVR.Instance.LoadEnableCardboard())
                 {
-                    Instantiate(PlayerScreen);
+                    if (GameObject.FindObjectOfType<ScreenBasePlayerView>() == null)
+                    {
+                        Instantiate(PlayerScreen);
+                    }
                     UIEventController.Instance.DelayUIEvent(EventSystemController.EVENT_ACTIVATION_INPUT_STANDALONE, 1f, true);
                 }
             }
