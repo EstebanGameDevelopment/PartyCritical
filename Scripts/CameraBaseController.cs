@@ -65,6 +65,7 @@ namespace PartyCritical
         protected GameObject m_avatar;
 
         protected bool m_enableGyroscope = false;
+        protected bool m_isTouchMode = false;
         protected bool m_enableVR = false;
         protected bool m_rotatedTo90 = false;
         protected float m_timeoutPressed = 0;
@@ -147,6 +148,14 @@ namespace PartyCritical
                 }
 #endif
             }
+            set
+            {
+                m_enableGyroscope = value;
+            }
+        }
+        public bool IsTouchMode
+        {
+            get { return m_isTouchMode; }
         }
         public virtual bool DirectorMode
         {
@@ -428,34 +437,41 @@ namespace PartyCritical
 		 */
         protected void RotateCamera()
         {
-            RotationAxes axes = RotationAxes.None;
-
-            if ((Input.GetAxis("Mouse X") != 0) || (Input.GetAxis("Mouse Y") != 0))
+            if (m_isTouchMode)
             {
-                axes = RotationAxes.MouseXAndY;
+
             }
-
-            if ((axes != RotationAxes.Controller) && (axes != RotationAxes.None))
+            else
             {
-                if (axes == RotationAxes.MouseXAndY)
+                RotationAxes axes = RotationAxes.None;
+
+                if ((Input.GetAxis("Mouse X") != 0) || (Input.GetAxis("Mouse Y") != 0))
                 {
-                    float rotationX = CameraLocal.localEulerAngles.y + Input.GetAxis("Mouse X") * m_sensitivityX;
-
-                    m_rotationY += Input.GetAxis("Mouse Y") * m_sensitivityY;
-                    m_rotationY = Mathf.Clamp(m_rotationY, m_minimumY, m_maximumY);
-
-                    CameraLocal.localEulerAngles = new Vector3(-m_rotationY, rotationX, 0);
+                    axes = RotationAxes.MouseXAndY;
                 }
-                else if (axes == RotationAxes.MouseX)
-                {
-                    CameraLocal.Rotate(0, Input.GetAxis("Mouse X") * m_sensitivityX, 0);
-                }
-                else
-                {
-                    m_rotationY += Input.GetAxis("Mouse Y") * m_sensitivityY;
-                    m_rotationY = Mathf.Clamp(m_rotationY, m_minimumY, m_maximumY);
 
-                    CameraLocal.localEulerAngles = new Vector3(-m_rotationY, transform.localEulerAngles.y, 0);
+                if ((axes != RotationAxes.Controller) && (axes != RotationAxes.None))
+                {
+                    if (axes == RotationAxes.MouseXAndY)
+                    {
+                        float rotationX = CameraLocal.localEulerAngles.y + Input.GetAxis("Mouse X") * m_sensitivityX;
+
+                        m_rotationY += Input.GetAxis("Mouse Y") * m_sensitivityY;
+                        m_rotationY = Mathf.Clamp(m_rotationY, m_minimumY, m_maximumY);
+
+                        CameraLocal.localEulerAngles = new Vector3(-m_rotationY, rotationX, 0);
+                    }
+                    else if (axes == RotationAxes.MouseX)
+                    {
+                        CameraLocal.Rotate(0, Input.GetAxis("Mouse X") * m_sensitivityX, 0);
+                    }
+                    else
+                    {
+                        m_rotationY += Input.GetAxis("Mouse Y") * m_sensitivityY;
+                        m_rotationY = Mathf.Clamp(m_rotationY, m_minimumY, m_maximumY);
+
+                        CameraLocal.localEulerAngles = new Vector3(-m_rotationY, transform.localEulerAngles.y, 0);
+                    }
                 }
             }
         }
@@ -466,16 +482,23 @@ namespace PartyCritical
          */
         protected virtual void MoveCamera()
         {
-            this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
-            this.gameObject.GetComponent<Rigidbody>().useGravity = true;
-            this.gameObject.GetComponent<Collider>().isTrigger = false;
+            if (m_isTouchMode)
+            {
 
-            Vector3 forward = Input.GetAxis("Vertical") * CameraLocal.forward * PLAYER_SPEED * Time.deltaTime;
-            Vector3 lateral = Input.GetAxis("Horizontal") * CameraLocal.right * PLAYER_SPEED * Time.deltaTime;
+            }
+            else
+            {
+                this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
+                this.gameObject.GetComponent<Rigidbody>().useGravity = true;
+                this.gameObject.GetComponent<Collider>().isTrigger = false;
 
-            Vector3 increment = forward + lateral;
-            increment.y = 0;
-            transform.GetComponent<Rigidbody>().MovePosition(transform.position + increment);
+                Vector3 forward = Input.GetAxis("Vertical") * CameraLocal.forward * PLAYER_SPEED * Time.deltaTime;
+                Vector3 lateral = Input.GetAxis("Horizontal") * CameraLocal.right * PLAYER_SPEED * Time.deltaTime;
+
+                Vector3 increment = forward + lateral;
+                increment.y = 0;
+                transform.GetComponent<Rigidbody>().MovePosition(transform.position + increment);
+            }
         }
 
         // -------------------------------------------
@@ -1415,21 +1438,27 @@ namespace PartyCritical
         {
             if (m_enableGyroscope)
             {
-                if (!m_rotatedTo90)
+                if (m_isTouchMode)
                 {
-                    m_rotatedTo90 = true;
-                    if (DirectorMode || (SubContainerCamera==null))
-                    {
-                        transform.Rotate(Vector3.right, 90);
-                    }
-                    else
-                    {
-                        if (SubContainerCamera!=null) SubContainerCamera.transform.Rotate(Vector3.right, 90);
-                    }
                 }
+                else
+                {
+                    if (!m_rotatedTo90)
+                    {
+                        m_rotatedTo90 = true;
+                        if (DirectorMode || (SubContainerCamera == null))
+                        {
+                            transform.Rotate(Vector3.right, 90);
+                        }
+                        else
+                        {
+                            if (SubContainerCamera != null) SubContainerCamera.transform.Rotate(Vector3.right, 90);
+                        }
+                    }
 
-                Quaternion rotFix = new Quaternion(Input.gyro.attitude.x, Input.gyro.attitude.y, -Input.gyro.attitude.z, -Input.gyro.attitude.w);
-                CameraLocal.localRotation = rotFix;
+                    Quaternion rotFix = new Quaternion(Input.gyro.attitude.x, Input.gyro.attitude.y, -Input.gyro.attitude.z, -Input.gyro.attitude.w);
+                    CameraLocal.localRotation = rotFix;
+                }
             }
         }
 
