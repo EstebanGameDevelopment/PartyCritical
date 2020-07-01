@@ -31,6 +31,7 @@ namespace PartyCritical
         public const string EVENT_CAMERACONTROLLER_START_MOVING             = "EVENT_CAMERACONTROLLER_START_MOVING";
         public const string EVENT_CAMERACONTROLLER_STOP_MOVING              = "EVENT_CAMERACONTROLLER_STOP_MOVING";
         public const string EVENT_CAMERACONTROLLER_FIX_DIRECTOR_CAMERA      = "EVENT_CAMERACONTROLLER_FIX_DIRECTOR_CAMERA";
+        public const string EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER     = "EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER";
 
         public const string EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN      = "EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN";
         public const string EVENT_CAMERACONTROLLER_GENERIC_ACTION_UP        = "EVENT_CAMERACONTROLLER_GENERIC_ACTION_UP";
@@ -94,10 +95,10 @@ namespace PartyCritical
         protected Vector3 m_fixedCameraPosition;
         protected Vector3 m_fixedCameraForward;
 
+        protected float m_timeShotgun = 0;
 #if ENABLE_WORLDSENSE || ENABLE_OCULUS
         protected GameObject m_armModel;
         protected GameObject m_laserPointer;
-        protected float m_timeShotgun = 0;
         protected Vector3 m_originLaser;
         protected Vector3 m_forwardLaser;
         protected Vector3 m_incrementJoystickTranslation = Vector3.zero;
@@ -245,7 +246,7 @@ namespace PartyCritical
          */
         protected virtual void InitialitzationLaserPointer()
         {
-            if (YourVRUIScreenController.Instance.LaserPointer != null) YourVRUIScreenController.Instance.LaserPointer.SetActive(false);
+            BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER, false);
         }
 
 
@@ -482,7 +483,11 @@ namespace PartyCritical
          */
         protected virtual void MoveCamera()
         {
-            if (m_isTouchMode)
+            bool considerTouchMode = true;
+#if UNITY_EDITOR
+            considerTouchMode = false;
+#endif
+            if (m_isTouchMode && considerTouchMode)
             {
 
             }
@@ -543,6 +548,23 @@ namespace PartyCritical
 #endif
 
             return fwd;
+        }
+
+
+        // -------------------------------------------
+        /* 
+         * GetRightLaser
+         */
+        public Vector3 GetRightLaser()
+        {
+            Vector3 rightLaser = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.right);
+#if ENABLE_OCULUS
+            rightLaser = m_laserPointer.transform.right;
+#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+            rightLaser = m_armModel.GetComponent<GvrArmModel>().ControllerRotationFromHead * Vector3.right;
+#endif
+
+            return rightLaser.normalized;
         }
 
 
@@ -1745,17 +1767,13 @@ namespace PartyCritical
             if (_nameEvent == ScreenInformationView.EVENT_SCREEN_INFORMATION_DISPLAYED)
             {
                 m_enableShootAction = false;
-#if ENABLE_WORLDSENSE || ENABLE_OCULUS
-                if (YourVRUIScreenController.Instance.LaserPointer!=null) YourVRUIScreenController.Instance.LaserPointer.SetActive(true);
-#endif
+                BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER, true);
             }
             if (_nameEvent == ScreenInformationView.EVENT_SCREEN_INFORMATION_CLOSED)
             {
                 m_enableShootAction = true;
                 m_ignoreNextShootAction = true;
-#if ENABLE_WORLDSENSE || ENABLE_OCULUS
-                if (YourVRUIScreenController.Instance.LaserPointer!=null) YourVRUIScreenController.Instance.LaserPointer.SetActive(false);
-#endif
+                BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER, false);
             }
         }
 

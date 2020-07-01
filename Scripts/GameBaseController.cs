@@ -552,10 +552,12 @@ namespace PartyCritical
         /* 
 		 * EnableLaserVR
 		 */
-        protected virtual void EnableLaserVR(bool _enable)
+        public virtual void EnableLaserVR(bool _enable)
         {
-#if ENABLE_WORLDSENSE || ENABLE_OCULUS
-            if (LaserPointer!=null) LaserPointer.SetActive(_enable);
+#if ENABLE_OCULUS
+            if ((LaserPointer != null) && (LaserPointer.GetComponent<Renderer>() != null)) LaserPointer.GetComponent<Renderer>().enabled = _enable;
+#elif ENABLE_WORLDSENSE
+            if (YourVRUIScreenController.Instance.LaserPointer != null) YourVRUIScreenController.Instance.LaserPointer.SetActive(_enable);
 #else
             if (LaserPointer!=null) LaserPointer.SetActive(false);
 #endif
@@ -1196,6 +1198,10 @@ namespace PartyCritical
             if (_nameEvent == EVENT_GAMECONTROLLER_SELECT_SKYBOX)
             {
                 SelectedSkybox((int)_list[0]);
+            }
+            if (_nameEvent == CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER)
+            {
+                EnableLaserVR((bool)_list[0]);
             }
         }
 
