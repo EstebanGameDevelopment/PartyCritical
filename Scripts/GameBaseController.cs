@@ -1736,7 +1736,6 @@ namespace PartyCritical
                 ///////////////////////////////////////
                 case STATE_LEVEL_END:
                     if (DEBUG) Debug.LogError("STATE_LEVEL_END+++++++++++++++++++++++++++++++++++++++++++++++++");
-                    UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_INFORMATION_SCREEN, ScreenInformationView.SCREEN_INFORMATION, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, LanguageController.Instance.GetText("message.info"), LanguageController.Instance.GetText("message.level.end.completed"), null, "");
                     break;
             }
         }
@@ -1902,6 +1901,15 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		* GameLogicLevelEnd
+		*/
+        protected virtual void GameLogicLevelEnd()
+        {
+
+        }
+
+        // -------------------------------------------
+        /* 
 		* Update
 		*/
         public override void Update()
@@ -1944,6 +1952,7 @@ namespace PartyCritical
 
                 ///////////////////////////////////////
                 case STATE_LEVEL_END:
+                    GameLogicLevelEnd();
                     break;
             }
 		}
