@@ -557,7 +557,7 @@ namespace PartyCritical
 #if ENABLE_OCULUS
             if ((LaserPointer != null) && (LaserPointer.GetComponent<Renderer>() != null)) LaserPointer.GetComponent<Renderer>().enabled = _enable;
 #elif ENABLE_WORLDSENSE
-            if (YourVRUIScreenController.Instance.LaserPointer != null) YourVRUIScreenController.Instance.LaserPointer.SetActive(_enable);
+            if ((YourVRUIScreenController.Instance.LaserPointer != null) && (YourVRUIScreenController.Instance.LaserPointer.GetComponent<LineRenderer>()!=null)) YourVRUIScreenController.Instance.LaserPointer.GetComponent<LineRenderer>().enabled = _enable;
 #else
             if (LaserPointer!=null) LaserPointer.SetActive(false);
 #endif
