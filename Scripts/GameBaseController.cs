@@ -46,19 +46,21 @@ namespace PartyCritical
         public const string EVENT_GAMECONTROLLER_DIRECTOR_CONNECTED         = "EVENT_GAMECONTROLLER_DIRECTOR_CONNECTED";
         public const string EVENT_GAMECONTROLLER_DIRECTOR_CLOSES_ROOM       = "EVENT_GAMECONTROLLER_DIRECTOR_CLOSES_ROOM";
         public const string EVENT_GAMECONTROLLER_REPORT_GYROSCOPE_MODE      = "EVENT_GAMECONTROLLER_REPORT_GYROSCOPE_MODE";
+        public const string EVENT_GAMECONTROLLER_PAUSE_ACTION               = "EVENT_GAMECONTROLLER_PAUSE_ACTION";
 
         public const string SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL = "SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL";
 
         // ----------------------------------------------
         // CONSTANTS
-        // ----------------------------------------------	
-        public const int STATE_CONNECTING = 0;
-        public const int STATE_LEVEL_LOAD = 1;
-        public const int STATE_LOADING = 2;
-        public const int STATE_REPOSITION = 3;
-        public const int STATE_RUNNING = 4;
-        public const int STATE_LEVEL_END = 5;
-        public const int STATE_NULL = -1000;
+        // ----------------------------------------------
+        public const int STATE_CONNECTING   = 0;
+        public const int STATE_LEVEL_LOAD   = 1;
+        public const int STATE_LOADING      = 2;
+        public const int STATE_REPOSITION   = 3;
+        public const int STATE_RUNNING      = 4;
+        public const int STATE_LEVEL_END    = 5;
+        public const int STATE_PAUSE        = 6;
+        public const int STATE_NULL         = -1000;
 
         // ----------------------------------------------
         // PUBLIC MEMBERS
@@ -119,6 +121,7 @@ namespace PartyCritical
         protected bool m_isInitialConnectionEstablished = false;
         protected bool m_onNetworkRemoteConnection = false;
 
+        protected bool m_initializationRunningDone = false;
         protected float m_timeGenerationEnemies = 0;
         protected float m_timoutTotalToGenerateEnemy = -1;
         protected bool m_isCreatorGame = false;
@@ -557,6 +560,7 @@ namespace PartyCritical
 #if ENABLE_OCULUS
             if ((LaserPointer != null) && (LaserPointer.GetComponent<Renderer>() != null)) LaserPointer.GetComponent<Renderer>().enabled = _enable;
 #elif ENABLE_WORLDSENSE
+            if (LaserPointer != null) LaserPointer.SetActive(true);
             if ((YourVRUIScreenController.Instance.LaserPointer != null) && (YourVRUIScreenController.Instance.LaserPointer.GetComponent<LineRenderer>()!=null)) YourVRUIScreenController.Instance.LaserPointer.GetComponent<LineRenderer>().enabled = _enable;
 #else
             if (LaserPointer!=null) LaserPointer.SetActive(false);
@@ -1648,46 +1652,53 @@ namespace PartyCritical
 		 */
         protected virtual bool SetUpStateRunning()
         {
-            UpdateSkyboxWithNewLevel();
-            UIEventController.Instance.DispatchUIEvent(MenuScreenController.EVENT_FORCE_DESTRUCTION_POPUP);
-            m_endLevelConfirmedPlayers.Clear();
-            if (m_directorMode)
+            if (!m_initializationRunningDone)
             {
-                if (m_spectatorMode)
+                UpdateSkyboxWithNewLevel();
+                UIEventController.Instance.DispatchUIEvent(MenuScreenController.EVENT_FORCE_DESTRUCTION_POPUP);
+                m_endLevelConfirmedPlayers.Clear();
+                if (m_directorMode)
                 {
-                    if (GameObject.FindObjectOfType<ScreenBaseSpectatorView>() == null)
+                    if (m_spectatorMode)
                     {
-                        Instantiate(SpectatorScreen);
-                        BasicSystemEventController.Instance.DelayBasicSystemEvent(ScreenBaseSpectatorView.EVENT_SPECTATOR_SET_UP_PLAYERS, 1f, m_players);
-                        UIEventController.Instance.DelayUIEvent(EventSystemController.EVENT_ACTIVATION_INPUT_STANDALONE, 1f, true);
-                        NetworkEventController.Instance.DispatchNetworkEvent(ActorTimeline.EVENT_GAMEPLAYER_HUMAN_SPECTATOR_NAME, m_namePlayer);
+                        if (GameObject.FindObjectOfType<ScreenBaseSpectatorView>() == null)
+                        {
+                            Instantiate(SpectatorScreen);
+                            BasicSystemEventController.Instance.DelayBasicSystemEvent(ScreenBaseSpectatorView.EVENT_SPECTATOR_SET_UP_PLAYERS, 1f, m_players);
+                            UIEventController.Instance.DelayUIEvent(EventSystemController.EVENT_ACTIVATION_INPUT_STANDALONE, 1f, true);
+                            NetworkEventController.Instance.DispatchNetworkEvent(ActorTimeline.EVENT_GAMEPLAYER_HUMAN_SPECTATOR_NAME, m_namePlayer);
+                        }
                     }
+                    else
+                    {
+                        if (GameObject.FindObjectOfType<ScreenBaseDirectorView>() == null)
+                        {
+                            Instantiate(DirectorScreen);
+                            BasicSystemEventController.Instance.DelayBasicSystemEvent(ScreenBaseDirectorView.EVENT_DIRECTOR_SET_UP_PLAYERS, 1f, m_players);
+                            UIEventController.Instance.DelayUIEvent(EventSystemController.EVENT_ACTIVATION_INPUT_STANDALONE, 1f, true);
+                            NetworkEventController.Instance.DispatchNetworkEvent(ActorTimeline.EVENT_GAMEPLAYER_HUMAN_DIRECTOR_NAME, m_namePlayer);
+                        }
+                        NetworkEventController.Instance.PriorityDelayNetworkEvent(GameBaseController.EVENT_GAMECONTROLLER_DIRECTOR_CONNECTED, 1);
+                    }
+                    UIEventController.Instance.DelayUIEvent(InteractionController.EVENT_INTERACTIONCONTROLLER_ENABLE_INTERACTION, 2, false);
                 }
                 else
                 {
-                    if (GameObject.FindObjectOfType<ScreenBaseDirectorView>() == null)
-                    {
-                        Instantiate(DirectorScreen);
-                        BasicSystemEventController.Instance.DelayBasicSystemEvent(ScreenBaseDirectorView.EVENT_DIRECTOR_SET_UP_PLAYERS, 1f, m_players);
-                        UIEventController.Instance.DelayUIEvent(EventSystemController.EVENT_ACTIVATION_INPUT_STANDALONE, 1f, true);
-                        NetworkEventController.Instance.DispatchNetworkEvent(ActorTimeline.EVENT_GAMEPLAYER_HUMAN_DIRECTOR_NAME, m_namePlayer);
-                    }
-                    NetworkEventController.Instance.PriorityDelayNetworkEvent(GameBaseController.EVENT_GAMECONTROLLER_DIRECTOR_CONNECTED, 1);                    
+                    InitializeScreenPlayer();
                 }
-                UIEventController.Instance.DelayUIEvent(InteractionController.EVENT_INTERACTIONCONTROLLER_ENABLE_INTERACTION, 2, false);
+                if (m_directorMode || (m_totalNumberPlayers == 1))
+                {
+                    PlayerSoundWithNewLevel();
+                }
+                bool previousStateIsFirstTimeRun = m_isFirstTimeRun;
+                m_isFirstTimeRun = false;
+                BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_GAMECONTROLLER_RESPONSE_IS_GAME_RUNNING, IsGameFakeRunning());
+                return previousStateIsFirstTimeRun;
             }
             else
             {
-                InitializeScreenPlayer();
+                return true;
             }
-            if (m_directorMode || (m_totalNumberPlayers == 1))
-            {
-                PlayerSoundWithNewLevel();
-            }                
-            bool previousStateIsFirstTimeRun = m_isFirstTimeRun;
-            m_isFirstTimeRun = false;
-            BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_GAMECONTROLLER_RESPONSE_IS_GAME_RUNNING, IsGameFakeRunning());
-            return previousStateIsFirstTimeRun;
         }
 
         // -------------------------------------------
@@ -1910,6 +1921,15 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		* GameLogicPause
+		*/
+        protected virtual void GameLogicPause()
+        {
+
+        }
+
+        // -------------------------------------------
+        /* 
 		* Update
 		*/
         public override void Update()
@@ -1953,6 +1973,11 @@ namespace PartyCritical
                 ///////////////////////////////////////
                 case STATE_LEVEL_END:
                     GameLogicLevelEnd();
+                    break;
+
+                ///////////////////////////////////////
+                case STATE_PAUSE:
+                    GameLogicPause();
                     break;
             }
 		}

@@ -70,6 +70,7 @@ namespace PartyCritical
         protected bool m_enableVR = false;
         protected bool m_rotatedTo90 = false;
         protected float m_timeoutPressed = 0;
+        protected float m_timeoutForPause = 0;
         protected float m_timeoutToMove = 0;
         protected float m_timeoutToTeleport = 0;
         protected bool m_hasBeenTeleported = false;
@@ -223,6 +224,10 @@ namespace PartyCritical
             get { return -1; }
         }
         public virtual float TIMEOUT_TO_INVENTORY
+        {
+            get { return -1; }
+        }
+        public virtual float TIMEOUT_FOR_PAUSE
         {
             get { return -1; }
         }
@@ -655,6 +660,27 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+         * CheckRaycastCollisionPoint
+         */
+        public Vector3 CheckWorldsenseRaycastCollisionPoint(params string[] _layers)
+        {
+#if ENABLE_WORLDSENSE && !UNITY_EDITOR
+            if ((m_armModel != null) && (m_laserPointer != null))
+            {
+                Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.LaserPointer.transform.position);
+                Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.LaserPointer.transform.forward);
+                RaycastHit raycastHit = new RaycastHit();
+                if (Utilities.GetRaycastHitInfoByRayWithMask(pos, fwd, ref raycastHit, _layers))
+                {
+                    return raycastHit.point;
+                }
+            }
+#endif
+            return Vector3.zero;
+        }
+
+        // -------------------------------------------
+        /* 
          * SetDirectorMarkerSignal
          */
         protected virtual void SetDirectorMarkerSignal(float _x, float _y)
@@ -806,6 +832,22 @@ namespace PartyCritical
                 }
 #endif
 #endif
+            }
+        }
+
+        // -------------------------------------------
+        /* 
+         * OpenPause
+         */
+        protected virtual void OpenPause()
+        {
+            m_timeoutForPause += Time.deltaTime;
+            if (m_timeoutForPause > TIMEOUT_FOR_PAUSE)
+            {
+                m_timeoutForPause = 0;
+                m_timeoutPressed = 0;
+
+                NetworkEventController.Instance.PriorityDelayNetworkEvent(GameBaseController.EVENT_GAMECONTROLLER_PAUSE_ACTION, 0.01f, true.ToString());
             }
         }
 
@@ -1064,6 +1106,28 @@ namespace PartyCritical
 #endif
                     RunMoveOnTimeoutPressed();
                 }
+            }
+
+            if (false
+#if ENABLE_OCULUS
+                KeysEventInputController.Instance.GetAppButtonDownOculusController(null, false)
+#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+                || KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false, false)
+#else
+                || KeysEventInputController.Instance.GetActionCurrentStateDefaultController()
+#endif
+                )
+            {
+                m_timeoutForPause += Time.deltaTime;
+
+                if (_openInventory)
+                {
+                    OpenPause();
+                }
+            }
+            else
+            {
+                m_timeoutForPause = 0;
             }
         }
 
