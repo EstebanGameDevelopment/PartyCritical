@@ -1110,7 +1110,7 @@ namespace PartyCritical
 
             if (false
 #if ENABLE_OCULUS
-                KeysEventInputController.Instance.GetAppButtonDownOculusController(null, false)
+                || KeysEventInputController.Instance.GetAppButtonDownOculusController(null, false)
 #elif ENABLE_WORLDSENSE && !UNITY_EDITOR
                 || KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false, false)
 #else

@@ -98,6 +98,7 @@ namespace PartyCritical
         // ----------------------------------------------
         // protected MEMBERS
         // ----------------------------------------------	
+        protected bool m_isSinglePlayer = false;
         protected string m_namePlayer = "";
         protected string m_className = "";
         protected StateManager m_stateManager;
@@ -139,6 +140,10 @@ namespace PartyCritical
         // ----------------------------------------------
         // GETTERS/SETTERS
         // ----------------------------------------------	
+        public bool IsSinglePlayer
+        {
+            get { return m_isSinglePlayer; }
+        }
         public string NamePlayer
         {
             get { return m_namePlayer; }
@@ -250,6 +255,12 @@ namespace PartyCritical
             m_directorMode = (MultiplayerConfiguration.LoadDirectorMode(-1) == MultiplayerConfiguration.DIRECTOR_MODE_ENABLED);
             m_spectatorMode = (MultiplayerConfiguration.LoadSpectatorMode(-1) == MultiplayerConfiguration.SPECTATOR_MODE_ENABLED);
             m_isCreatorGame = (NetworkEventController.Instance.MenuController_LoadNumberOfPlayers() != MultiplayerConfiguration.VALUE_FOR_JOINING);
+
+            m_isSinglePlayer = (m_totalNumberPlayers == 1);
+#if ENABLE_CONFUSION
+            m_isSinglePlayer = true;
+            m_totalNumberPlayers = 1;
+#endif
 
 #if ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS
             CloudAnchorReference.SetActive(true);
@@ -812,12 +823,14 @@ namespace PartyCritical
                         m_totalNumberPlayers = m_playersReady.Count;
                     }
                     
-#if ENABLE_CONFUSION
-                NetworkEventController.Instance.DelayLocalEvent(ClientTCPEventsController.EVENT_CLIENT_TCP_CLOSE_CURRENT_ROOM, 0.2f);
-#else
-                    NetworkEventController.Instance.PriorityDelayNetworkEvent(ClientTCPEventsController.EVENT_CLIENT_TCP_CLOSE_CURRENT_ROOM, 0.2f);
-#endif
-
+                    if (IsSinglePlayer)
+                    {
+                        NetworkEventController.Instance.DelayLocalEvent(ClientTCPEventsController.EVENT_CLIENT_TCP_CLOSE_CURRENT_ROOM, 0.2f);
+                    }
+                    else
+                    {
+                        NetworkEventController.Instance.PriorityDelayNetworkEvent(ClientTCPEventsController.EVENT_CLIENT_TCP_CLOSE_CURRENT_ROOM, 0.2f);
+                    }
 
                     StartRunningGame();
                 }
@@ -1476,13 +1489,15 @@ namespace PartyCritical
             int timelineID = YourNetworkTools.Instance.GetUniversalNetworkID();
             if (YourNetworkTools.Instance.IsLocalGame)
             {
-#if !ENABLE_CONFUSION
-                timelineID = (timelineID - (int)(CommunicationsController.Instance.NetworkID / 2));
-#else
-                timelineID = (timelineID - (int)(1 / 2));
-#endif
+                if (!IsSinglePlayer)
+                {
+                    timelineID = (timelineID - (int)(CommunicationsController.Instance.NetworkID / 2));
+                }
+                else
+                {
+                    timelineID = (timelineID - (int)(1 / 2));
+                }
             }
-
             if (m_directorMode)
             {
                 SetUpInitialGamePlayerData("");
@@ -1550,13 +1565,16 @@ namespace PartyCritical
 
                 // TO FORCE REPOSITION ON EDITOR
                 // initialData = m_namePlayer + "," + NameModelPrefab[m_characterSelected] + "," + 0 + "," + initialPosition.y + "," + 0;
-#if !ENABLE_CONFUSION
-                YourNetworkTools.Instance.CreateLocalNetworkObject(PlayerPrefab[m_characterSelected].name, initialData, false);
-                YourNetworkTools.Instance.ActivateTransformUpdate = true;
-#else
-                GameObject myOwnPlayer = Instantiate(PlayerPrefab[m_characterSelected]);
-                if (myOwnPlayer.GetComponent<ActorTimeline>() != null) myOwnPlayer.GetComponent<ActorTimeline>().InitializeLocalData(initialData);
-#endif
+                if (!IsSinglePlayer)
+                {
+                    YourNetworkTools.Instance.CreateLocalNetworkObject(PlayerPrefab[m_characterSelected].name, initialData, false);
+                    YourNetworkTools.Instance.ActivateTransformUpdate = true;
+                }
+                else
+                {
+                    GameObject myOwnPlayer = Instantiate(PlayerPrefab[m_characterSelected]);
+                    if (myOwnPlayer.GetComponent<ActorTimeline>() != null) myOwnPlayer.GetComponent<ActorTimeline>().InitializeLocalData(initialData);
+                }
 
                 YourVRUIScreenController.Instance.DestroyScreens();
                 if (!m_enableARCore)
@@ -1778,6 +1796,15 @@ namespace PartyCritical
             return (m_stateManager.State == STATE_LOADING);
         }
 
+        // -------------------------------------------
+        /* 
+		* IsPaused
+		*/
+        public bool IsPaused()
+        {
+            return (m_stateManager.State == STATE_PAUSE);
+        }
+
         protected int m_globalCounterEnemies = 0;
 
         // -------------------------------------------
@@ -1789,13 +1816,15 @@ namespace PartyCritical
             int indexEnemy = UnityEngine.Random.Range(0, EnemyModelPrefab.Length);
             string initialData = "ENEMY" + m_globalCounterEnemies + "," + "ZOMBIE" + "," + EnemyModelPrefab[indexEnemy] + "," + _position.x + "," + _position.y + "," + _position.z;
             m_globalCounterEnemies++;
-#if !ENABLE_CONFUSION
-            YourNetworkTools.Instance.CreateLocalNetworkObject(EnemyPrefab[0].name, initialData, true, 10000, 10000, 10000);
-#else
-            GameObject newZombie = Instantiate(EnemyPrefab[indexEnemy]);
-            newZombie.GetComponent<IGameNetworkActor>().Initialize(initialData);
-#endif
-            
+            if (!IsSinglePlayer)
+            {
+                YourNetworkTools.Instance.CreateLocalNetworkObject(EnemyPrefab[0].name, initialData, true, 10000, 10000, 10000);
+            }
+            else
+            {
+                GameObject newZombie = Instantiate(EnemyPrefab[indexEnemy]);
+                newZombie.GetComponent<IGameNetworkActor>().Initialize(initialData);
+            }
             return true;
         }
 
