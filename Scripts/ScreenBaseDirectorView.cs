@@ -25,12 +25,11 @@ namespace PartyCritical
         // ----------------------------------------------
         // EVENTS
         // ----------------------------------------------	
-        public const string EVENT_DIRECTOR_SET_UP_PLAYERS          = "EVENT_DIRECTOR_SET_UP_PLAYERS";
-
+        public const string EVENT_DIRECTOR_SET_UP_PLAYERS           = "EVENT_DIRECTOR_SET_UP_PLAYERS";
         public const string EVENT_DIRECTOR_RESET_CAMERA_TO_DIRECTOR = "EVENT_DIRECTOR_RESET_CAMERA_TO_DIRECTOR";
         public const string EVENT_DIRECTOR_CHANGE_CAMERA_TO_PLAYER  = "EVENT_DIRECTOR_CHANGE_CAMERA_TO_PLAYER";
-
-        public const string EVENT_DIRECTOR_TELEPORT_ENABLE  = "EVENT_DIRECTOR_TELEPORT_ENABLE";
+        public const string EVENT_DIRECTOR_TELEPORT_ENABLE          = "EVENT_DIRECTOR_TELEPORT_ENABLE";
+        public const string EVENT_DIRECTOR_HIDE_PANEL               = "EVENT_DIRECTOR_HIDE_PANEL";
 
         // ----------------------------------------------
         // PRIVATE MEMBERS
@@ -51,6 +50,8 @@ namespace PartyCritical
 
         protected bool m_cameraFixedEnabled = true;
         protected GameObject m_stopFixCamera;
+
+        protected bool m_enablePanelInteraction = true;
 
         protected bool TeleportEnabled
         {
@@ -160,6 +161,7 @@ namespace PartyCritical
 		*/
         protected virtual void ChangeToPlayerCamera()
 		{
+            if (!m_enablePanelInteraction) return;
             if (m_players == null) return;
 
             m_playerIndexSelected++;
@@ -195,6 +197,8 @@ namespace PartyCritical
 		*/
         protected virtual void KillThisParty()
         {
+            if (!m_enablePanelInteraction) return;
+
             NetworkEventController.Instance.PriorityDelayNetworkEvent(GameBaseController.EVENT_GAMECONTROLLER_PARTY_OVER, 0.1f);
             NetworkEventController.Instance.PriorityDelayNetworkEvent(NetworkEventController.EVENT_STREAMSERVER_REPORT_CLOSED_STREAM, 0.5f, YourNetworkTools.Instance.GetUniversalNetworkID().ToString());
         }
@@ -224,6 +228,8 @@ namespace PartyCritical
 		*/
         protected void TeleportChanged()
         {
+            if (!m_enablePanelInteraction) return;
+
             TeleportEnabled = !TeleportEnabled;
             NetworkEventController.Instance.DispatchNetworkEvent(EVENT_DIRECTOR_TELEPORT_ENABLE, TeleportEnabled.ToString());            
         }
@@ -234,6 +240,8 @@ namespace PartyCritical
 		*/
         private void FixCameraChanged()
         {
+            if (!m_enablePanelInteraction) return;
+
             CameraFixedEnabled = !CameraFixedEnabled;
             BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_FIX_DIRECTOR_CAMERA, !m_cameraFixedEnabled);
         }
@@ -246,9 +254,20 @@ namespace PartyCritical
 		{
             if (_nameEvent == KeysEventInputController.ACTION_BUTTON_DOWN)
             {
-                if (!m_container.gameObject.activeSelf)
+                if (m_enablePanelInteraction)
                 {
-                    m_container.gameObject.SetActive(true);
+                    if (!m_container.gameObject.activeSelf)
+                    {
+                        m_container.gameObject.SetActive(true);
+                    }
+                }
+            }
+            if (_nameEvent == EVENT_DIRECTOR_HIDE_PANEL)
+            {
+                m_enablePanelInteraction = !(bool)_list[0];
+                if (!m_enablePanelInteraction)
+                {
+                    HidePanel();
                 }
             }
 		}
