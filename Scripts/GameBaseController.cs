@@ -91,6 +91,7 @@ namespace PartyCritical
         public GameObject MarkerDirector;
         public TextAsset PathfindingData;
         public Material[] SkyboxesLevels;
+        public string[] SkyboxesNames;
         public string[] SoundsLevels;
         public GameObject[] GenericObjects;
         public GameObject CloseRoomScreen;
@@ -421,16 +422,39 @@ namespace PartyCritical
 		 */
         protected virtual void UpdateSkyboxWithNewLevel()
         {
+            bool useAssetBundle = true;
             if (SkyboxesLevels != null)
             {
                 if (m_currentLevel < SkyboxesLevels.Length)
                 {
                     if (SkyboxesLevels[m_currentLevel] != null)
                     {
+                        useAssetBundle = false;
                         RenderSettings.skybox = SkyboxesLevels[m_currentLevel];
                         if (GameObject.FindObjectOfType<Skybox>() != null)
                         {
                             GameObject.FindObjectOfType<Skybox>().material = SkyboxesLevels[m_currentLevel];
+                        }
+                    }
+                }
+            }
+            if (useAssetBundle)
+            {
+                if (SkyboxesNames != null)
+                {
+                    if (m_currentLevel < SkyboxesNames.Length)
+                    {
+                        if (SkyboxesNames[m_currentLevel].Length > 0)
+                        {
+                            Material skyBoxAssetLevel = AssetbundleController.Instance.CreateMaterial(SkyboxesNames[m_currentLevel]);
+                            if (skyBoxAssetLevel != null)
+                            {
+                                RenderSettings.skybox = skyBoxAssetLevel;
+                                if (GameObject.FindObjectOfType<Skybox>() != null)
+                                {
+                                    GameObject.FindObjectOfType<Skybox>().material = skyBoxAssetLevel;
+                                }
+                            }
                         }
                     }
                 }
