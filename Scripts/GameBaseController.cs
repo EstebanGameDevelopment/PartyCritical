@@ -428,6 +428,10 @@ namespace PartyCritical
                     if (SkyboxesLevels[m_currentLevel] != null)
                     {
                         RenderSettings.skybox = SkyboxesLevels[m_currentLevel];
+                        if (GameObject.FindObjectOfType<Skybox>() != null)
+                        {
+                            GameObject.FindObjectOfType<Skybox>().material = SkyboxesLevels[m_currentLevel];
+                        }
                     }
                 }
             }
