@@ -841,13 +841,16 @@ namespace PartyCritical
          */
         protected virtual void OpenPause()
         {
-            m_timeoutForPause += Time.deltaTime;
-            if (m_timeoutForPause > TIMEOUT_FOR_PAUSE)
+            if (!m_enableGyroscope && !m_isTouchMode)
             {
-                m_timeoutForPause = 0;
-                m_timeoutPressed = 0;
+                m_timeoutForPause += Time.deltaTime;
+                if (m_timeoutForPause > TIMEOUT_FOR_PAUSE)
+                {
+                    m_timeoutForPause = 0;
+                    m_timeoutPressed = 0;
 
-                NetworkEventController.Instance.PriorityDelayNetworkEvent(GameBaseController.EVENT_GAMECONTROLLER_PAUSE_ACTION, 0.01f, true.ToString());
+                    NetworkEventController.Instance.PriorityDelayNetworkEvent(GameBaseController.EVENT_GAMECONTROLLER_PAUSE_ACTION, 0.01f, true.ToString());
+                }
             }
         }
 
@@ -1204,16 +1207,10 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
-        * ProcessInputCustomer
+        * ProcessActionInputCustomer
         */
-        protected virtual void ProcessInputCustomer()
+        protected virtual void ProcessActionInputCustomer()
         {
-            if (IsThereBlockingScreen())
-            {
-                UpdateLogicTeleportInventory(false);
-                return;
-            }
-            
             // INPUTS FOR THE IN-GAME, NOT THE SCREENS
             if (false
 #if ENABLE_OCULUS
@@ -1245,7 +1242,21 @@ namespace PartyCritical
                 UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_UP);
 #endif
             }
+        }
 
+        // -------------------------------------------
+        /* 
+        * ProcessInputCustomer
+        */
+        protected virtual void ProcessInputCustomer()
+        {
+            if (IsThereBlockingScreen())
+            {
+                UpdateLogicTeleportInventory(false);
+                return;
+            }
+
+            ProcessActionInputCustomer();
 
 #if ENABLE_OCULUS
             ProcessOculusCustomerInput();
