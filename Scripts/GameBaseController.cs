@@ -1081,8 +1081,17 @@ namespace PartyCritical
 #else
                     nextStateAfterCreateInstanceLevel = STATE_RUNNING;
 #endif
-
-                if (m_currentLevel >= LevelsAssetsNames.Length)
+                bool reloadCurrentLevel = (m_currentLevel >= LevelsAssetsNames.Length);
+#if UNITY_EDITOR
+                if (LevelsPrefab != null)
+                {
+                    if ((LevelsPrefab.Length > 0) && (LevelsAssetsNames.Length == 0))
+                    {
+                        reloadCurrentLevel = (m_currentLevel >= LevelsPrefab.Length);
+                    }
+                }
+#endif
+                if (reloadCurrentLevel)
                 {
                     BasicSystemEventController.Instance.DelayBasicSystemEvent(EVENT_GAMECONTROLLER_LEVEL_LOAD_COMPLETED, 0.2f, m_currentLevel, nextStateAfterCreateInstanceLevel);
                     BasicSystemEventController.Instance.DelayBasicSystemEvent(CloudGameAnchorController.EVENT_6DOF_CHANGED_LEVEL_COMPLETED, 0.2f);
