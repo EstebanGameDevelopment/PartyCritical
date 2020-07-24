@@ -469,30 +469,33 @@ namespace PartyCritical
         {
             if (SoundsLevels != null)
             {
-                if (m_currentLevel < SoundsLevels.Length)
+                if (m_currentLevel >= 0)
                 {
-                    if (SoundsLevels[m_currentLevel] != null)
+                    if (m_currentLevel < SoundsLevels.Length)
                     {
-                        string nextMelody = SoundsLevels[m_currentLevel];
-                        if (nextMelody != m_currentMelody)
+                        if (SoundsLevels[m_currentLevel] != null)
                         {
-                            SoundsController.Instance.StopAllSounds();
-                            m_currentMelody = nextMelody;
-                            SoundsController.Instance.PlaySoundLoop(AssetbundleController.Instance.CreateAudioclip(m_currentMelody));
+                            string nextMelody = SoundsLevels[m_currentLevel];
+                            if (nextMelody != m_currentMelody)
+                            {
+                                SoundsController.Instance.StopAllSounds();
+                                m_currentMelody = nextMelody;
+                                SoundsController.Instance.PlaySoundLoop(AssetbundleController.Instance.CreateAudioclip(m_currentMelody));
+                            }
                         }
                     }
-                }
-                else
-                {
-                    if (SoundsLevels.Length == 1)
+                    else
                     {
-                        string nextMelody = SoundsLevels[0];
-                        if (nextMelody != m_currentMelody)
+                        if (SoundsLevels.Length == 1)
                         {
-                            SoundsController.Instance.StopAllSounds();
-                            m_currentMelody = nextMelody;
-                            SoundsController.Instance.PlaySoundLoop(AssetbundleController.Instance.CreateAudioclip(m_currentMelody));
-                        }                        
+                            string nextMelody = SoundsLevels[0];
+                            if (nextMelody != m_currentMelody)
+                            {
+                                SoundsController.Instance.StopAllSounds();
+                                m_currentMelody = nextMelody;
+                                SoundsController.Instance.PlaySoundLoop(AssetbundleController.Instance.CreateAudioclip(m_currentMelody));
+                            }
+                        }
                     }
                 }
             }
