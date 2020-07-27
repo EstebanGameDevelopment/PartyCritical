@@ -962,7 +962,43 @@ namespace PartyCritical
         {
             UIEventController.Instance.DispatchUIEvent(MenuScreenController.EVENT_FORCE_DESTRUCTION_POPUP);
         }
-        
+
+        // -------------------------------------------
+        /* 
+        * LoadNextLevelAction
+        */
+        protected virtual void LoadNextLevelAction()
+        {
+            int nextStateAfterCreateInstanceLevel = STATE_RUNNING;
+#if FORCE_REPOSITION
+                    nextStateAfterCreateInstanceLevel = STATE_REPOSITION;
+#else
+            nextStateAfterCreateInstanceLevel = STATE_RUNNING;
+#endif
+            bool reloadCurrentLevel = (m_currentLevel >= LevelsAssetsNames.Length);
+#if UNITY_EDITOR
+            if (LevelsPrefab != null)
+            {
+                if ((LevelsPrefab.Length > 0) && (LevelsAssetsNames.Length == 0))
+                {
+                    reloadCurrentLevel = (m_currentLevel >= LevelsPrefab.Length);
+                }
+            }
+#endif
+
+            if (reloadCurrentLevel)
+            {
+                BasicSystemEventController.Instance.DelayBasicSystemEvent(EVENT_GAMECONTROLLER_LEVEL_LOAD_COMPLETED, 0.2f, m_currentLevel, nextStateAfterCreateInstanceLevel);
+                BasicSystemEventController.Instance.DelayBasicSystemEvent(CloudGameAnchorController.EVENT_6DOF_CHANGED_LEVEL_COMPLETED, 0.2f);
+                UIEventController.Instance.DelayUIEvent(EventSystemController.EVENT_ACTIVATION_INPUT_STANDALONE, 1f, true);
+            }
+            else
+            {
+                LoadCurrentGameLevel(-1, nextStateAfterCreateInstanceLevel);
+                UIEventController.Instance.DelayUIEvent(EventSystemController.EVENT_ACTIVATION_INPUT_STANDALONE, 1f, true);
+            }
+        }
+
         // -------------------------------------------
         /* 
         * Manager of global events
@@ -1077,34 +1113,7 @@ namespace PartyCritical
             if (_nameEvent == EVENT_GAMECONTROLLER_NUMBER_LEVEL_TO_LOAD)
             {
                 m_currentLevel = int.Parse((string)_list[0]);
-
-                int nextStateAfterCreateInstanceLevel = STATE_RUNNING;
-#if FORCE_REPOSITION
-                    nextStateAfterCreateInstanceLevel = STATE_REPOSITION;
-#else
-                    nextStateAfterCreateInstanceLevel = STATE_RUNNING;
-#endif
-                bool reloadCurrentLevel = (m_currentLevel >= LevelsAssetsNames.Length);
-#if UNITY_EDITOR
-                if (LevelsPrefab != null)
-                {
-                    if ((LevelsPrefab.Length > 0) && (LevelsAssetsNames.Length == 0))
-                    {
-                        reloadCurrentLevel = (m_currentLevel >= LevelsPrefab.Length);
-                    }
-                }
-#endif
-                if (reloadCurrentLevel)
-                {
-                    BasicSystemEventController.Instance.DelayBasicSystemEvent(EVENT_GAMECONTROLLER_LEVEL_LOAD_COMPLETED, 0.2f, m_currentLevel, nextStateAfterCreateInstanceLevel);
-                    BasicSystemEventController.Instance.DelayBasicSystemEvent(CloudGameAnchorController.EVENT_6DOF_CHANGED_LEVEL_COMPLETED, 0.2f);
-                    UIEventController.Instance.DelayUIEvent(EventSystemController.EVENT_ACTIVATION_INPUT_STANDALONE, 1f, true);
-                }
-                else
-                {
-                    LoadCurrentGameLevel(-1, nextStateAfterCreateInstanceLevel);
-                    UIEventController.Instance.DelayUIEvent(EventSystemController.EVENT_ACTIVATION_INPUT_STANDALONE, 1f, true);
-                }
+                LoadNextLevelAction();
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_SELECTED_LEVEL)
             {
@@ -1378,6 +1387,25 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		* GetPlayerByOwner
+		*/
+        public GameObject GetPlayerByOwner(int _owner)
+        {
+            for (int i = 0; i < m_players.Count; i++)
+            {
+                if (m_players[i].GetComponent<ActorTimeline>() != null)
+                {
+                    if (m_players[i].GetComponent<ActorTimeline>().Owner == _owner)
+                    {
+                        return m_players[i].gameObject;
+                    }
+                }
+            }
+            return null;
+        }
+
+        // -------------------------------------------
+        /* 
 		* GetEnemyByNetworkID
 		*/
         public GameObject GetEnemyByNetworkUID(string _id)
@@ -1577,13 +1605,13 @@ namespace PartyCritical
             {
                 m_namePlayer = MultiplayerConfiguration.HUMAN_NAME + timelineID;
 
-                // Debug.LogError("+++++++++++++++++m_positionsSpawn=" + m_positionsSpawn.Count);
                 if (m_positionsSpawn.Count == 0)
                 {
                     m_positionsSpawn.Add(new Vector3(0, 5, 0));
                 }
 
-                Vector3 initialPosition = m_positionsSpawn[YourNetworkTools.Instance.GetUniversalNetworkID() % m_positionsSpawn.Count];
+                int indexPosSpawnToStart = GameObject.FindObjectsOfType<Actor>().Length % m_positionsSpawn.Count;
+                Vector3 initialPosition = m_positionsSpawn[indexPosSpawnToStart];
                 string initialData = initialPosition.x + "," + initialPosition.y + "," + initialPosition.z;
 #if !ONLY_REMOTE_CONNECTION
 #if (ENABLE_WORLDSENSE || ENABLE_QUEST) && !UNITY_EDITOR
