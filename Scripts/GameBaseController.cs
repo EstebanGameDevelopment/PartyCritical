@@ -827,7 +827,17 @@ namespace PartyCritical
         {
             m_currentLevel = _level;
 #if ENABLE_ASSET_BUNDLE
-            m_currentLevel = m_currentLevel % LevelsAssetsNames.Length;
+            if (LevelsAssetsNames.Length > 0)
+            {
+                m_currentLevel = m_currentLevel % LevelsAssetsNames.Length;
+            }
+            else
+            {
+                if (LevelsPrefab.Length > 0)
+                {
+                    m_currentLevel = m_currentLevel % LevelsPrefab.Length;
+                }
+            }
 #else
             m_currentLevel = m_currentLevel % LevelsPrefab.Length;
 #endif
