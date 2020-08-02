@@ -47,6 +47,7 @@ namespace PartyCritical
         public const string EVENT_GAMECONTROLLER_DIRECTOR_CLOSES_ROOM       = "EVENT_GAMECONTROLLER_DIRECTOR_CLOSES_ROOM";
         public const string EVENT_GAMECONTROLLER_REPORT_GYROSCOPE_MODE      = "EVENT_GAMECONTROLLER_REPORT_GYROSCOPE_MODE";
         public const string EVENT_GAMECONTROLLER_PAUSE_ACTION               = "EVENT_GAMECONTROLLER_PAUSE_ACTION";
+        public const string EVENT_GAMECONTROLLER_GAME_WITH_DIRECTOR         = "EVENT_GAMECONTROLLER_GAME_WITH_DIRECTOR";
 
         public const string SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL = "SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL";
 
@@ -138,6 +139,8 @@ namespace PartyCritical
 
         protected string m_currentMelody = "";
 
+        protected bool m_gameWithDirector = false;
+
         // ----------------------------------------------
         // GETTERS/SETTERS
         // ----------------------------------------------	
@@ -212,7 +215,10 @@ namespace PartyCritical
                 }
             }
         }
-
+        public bool GameWithDirector
+        {
+            get { return m_gameWithDirector; }
+        }
 
         // -------------------------------------------
         /* 
@@ -1206,6 +1212,10 @@ namespace PartyCritical
                 KeysEventInputController.Instance.EnableInteractions = false;
                 UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN, ScreenPartyOver.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false, null);
                 Invoke("KillGameParty", 10);
+            }
+            if (_nameEvent == EVENT_GAMECONTROLLER_GAME_WITH_DIRECTOR)
+            {
+                m_gameWithDirector = true;
             }
 
             OnNetworkEventEnemy(_nameEvent, _isLocalEvent, _networkOriginID, _networkTargetID, _list);
