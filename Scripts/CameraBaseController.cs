@@ -133,11 +133,7 @@ namespace PartyCritical
         {
             get {
 #if UNITY_EDITOR
-#if ENABLE_IAP
-                return true;
-#else
                 return m_enableGyroscope;
-#endif
 #else
 
                 if (EnableARCore && !m_enableVR)
