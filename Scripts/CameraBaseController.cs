@@ -437,7 +437,7 @@ namespace PartyCritical
         /* 
 		 * RotateCamera
 		 */
-        protected void RotateCamera()
+        protected virtual void RotateCamera()
         {
             if (m_isTouchMode)
             {
