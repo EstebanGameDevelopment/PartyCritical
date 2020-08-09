@@ -45,6 +45,8 @@ namespace PartyCritical
         public GameObject OVRPlayer;
         public GameObject CenterEyeAnchor;
         public GameObject ShotgunContainer;
+        public GameObject ShotgunRightContainer;
+        public GameObject ShotgunLeftContainer;
         public GameObject SubContainerCamera;
         public GameObject[] HandTrackingObjects;
 
@@ -262,6 +264,24 @@ namespace PartyCritical
 #endif
         }
 
+#if ENABLE_OCULUS
+        // -------------------------------------------
+        /* 
+		 * IsRightie
+		 */
+        private bool IsRightie()
+        {
+            OVRPlugin.Handedness handedness = OVRPlugin.GetDominantHand();
+            if (handedness == OVRPlugin.Handedness.RightHanded)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+#endif
 
         // -------------------------------------------
         /* 
@@ -272,6 +292,26 @@ namespace PartyCritical
             InitialitzeHMDHeight();
 
             m_teleportAvailable = (GameObject.FindObjectOfType<TeleportController>() != null);
+
+#if ENABLE_OCULUS
+            if (IsRightie())
+            {
+                ShotgunContainer = ShotgunRightContainer;
+                ShotgunLeftContainer.SetActive(false);
+            }
+            else
+            {
+                ShotgunContainer = ShotgunLeftContainer;
+                ShotgunRightContainer.SetActive(false);
+            }
+#else
+            if (ShotgunLeftContainer != null) ShotgunLeftContainer.SetActive(false);
+            if (ShotgunRightContainer != null)
+            {
+                ShotgunRightContainer.SetActive(true);
+                ShotgunContainer = ShotgunRightContainer;
+            }
+#endif
 
 #if ENABLE_WORLDSENSE || ENABLE_OCULUS
             if (ShotgunContainer != null) ShotgunContainer.SetActive(true);
