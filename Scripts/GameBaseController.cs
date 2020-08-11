@@ -1348,10 +1348,6 @@ namespace PartyCritical
          */
         protected override void OnUIEvent(string _nameEvent, object[] _list)
         {
-            if (_nameEvent == KeysEventInputController.ACTION_BACK_BUTTON)
-            {
-                Application.Quit();
-            }
             if (_nameEvent == ScreenController.EVENT_APP_LOST_FOCUS)
             {
 #if ENABLE_WORLDSENSE
