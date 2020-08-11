@@ -877,7 +877,11 @@ namespace PartyCritical
          */
         protected virtual void OpenPause()
         {
-            if (!m_enableGyroscope && !m_isTouchMode)
+            bool force = false;
+#if ENABLE_WORLDSENSE || ENABLE_OCULUS
+            force = true;
+#endif
+            if ((!m_enableGyroscope && !m_isTouchMode) || force)
             {
                 m_timeoutForPause += Time.deltaTime;
                 if (m_timeoutForPause > TIMEOUT_FOR_PAUSE)
@@ -1157,8 +1161,6 @@ namespace PartyCritical
 #endif
                 )
             {
-                m_timeoutForPause += Time.deltaTime;
-
                 if (_openInventory)
                 {
                     OpenPause();
