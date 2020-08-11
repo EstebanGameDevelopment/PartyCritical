@@ -271,6 +271,9 @@ namespace PartyCritical
 		 */
         private bool IsRightie()
         {
+#if ENABLE_QUEST
+            return true;
+#else
             OVRPlugin.Handedness handedness = OVRPlugin.GetDominantHand();
             if (handedness == OVRPlugin.Handedness.RightHanded)
             {
@@ -280,6 +283,7 @@ namespace PartyCritical
             {
                 return false;
             }
+#endif
         }
 #endif
 
