@@ -760,6 +760,15 @@ namespace PartyCritical
                 2
 #endif
                 );
+            CheckDomainOrDestroy();
+        }
+
+        // -------------------------------------------
+        /* 
+		 * CheckDomainOrDestroy
+		 */
+        protected virtual void CheckDomainOrDestroy()
+        {
             Destroy();
         }
 
