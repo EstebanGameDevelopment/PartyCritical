@@ -557,7 +557,11 @@ namespace PartyCritical
          */
         public Vector3 GetPositionLaser()
         {
+#if ENABLE_YOURVRUI
             Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
+#else
+            Vector3 pos = Utilities.Clone(CameraLocal.transform.position);            
+#endif
 #if ENABLE_OCULUS
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
@@ -579,7 +583,11 @@ namespace PartyCritical
          */
         public Vector3 GetForwardLaser()
         {
+#if ENABLE_YOURVRUI
             Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
+#else
+            Vector3 fwd = Utilities.Clone(CameraLocal.transform.forward);
+#endif
 #if ENABLE_OCULUS
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
@@ -602,7 +610,11 @@ namespace PartyCritical
          */
         public Vector3 GetRightLaser()
         {
+#if ENABLE_YOURVRUI
             Vector3 rightLaser = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.right);
+#else
+            Vector3 rightLaser = Utilities.Clone(CameraLocal.transform.right);
+#endif
 #if ENABLE_OCULUS
             rightLaser = m_laserPointer.transform.right;
 #elif ENABLE_WORLDSENSE && !UNITY_EDITOR
@@ -619,8 +631,13 @@ namespace PartyCritical
          */
         public Vector3 GetForwardPoint(float _distance)
         {
+#if ENABLE_YOURVRUI
             Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
             Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
+#else
+            Vector3 pos = Utilities.Clone(CameraLocal.transform.position);
+            Vector3 fwd = Utilities.Clone(CameraLocal.transform.forward.normalized);
+#endif
 #if ENABLE_OCULUS
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
@@ -644,8 +661,13 @@ namespace PartyCritical
          */
         public GameObject CheckRaycastAgainst(params string[] _layers)
         {
+#if ENABLE_YOURVRUI
             Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
             Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
+#else
+            Vector3 pos = Utilities.Clone(CameraLocal.transform.position);
+            Vector3 fwd = Utilities.Clone(CameraLocal.transform.forward.normalized);
+#endif
 #if ENABLE_OCULUS
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
@@ -674,8 +696,13 @@ namespace PartyCritical
          */
         public Vector3 CheckRaycastCollisionPoint(params string[] _layers)
         {
+#if ENABLE_YOURVRUI
             Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
             Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
+#else
+            Vector3 pos = Utilities.Clone(CameraLocal.transform.position);
+            Vector3 fwd = Utilities.Clone(CameraLocal.transform.forward.normalized);
+#endif
 #if ENABLE_OCULUS
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
@@ -741,8 +768,13 @@ namespace PartyCritical
          */
         protected virtual void SetAMarkerSignal()
         {
+#if ENABLE_YOURVRUI
             Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
             Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
+#else
+            Vector3 pos = Utilities.Clone(CameraLocal.transform.position);
+            Vector3 fwd = Utilities.Clone(CameraLocal.transform.forward.normalized);
+#endif
 #if ENABLE_OCULUS
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
@@ -771,8 +803,13 @@ namespace PartyCritical
          */
         public virtual Vector3 GetCollisionPointOfLaser(params string[] _layerIgnore)
         {
+#if ENABLE_YOURVRUI
             Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
             Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
+#else
+            Vector3 pos = Utilities.Clone(CameraLocal.transform.position);
+            Vector3 fwd = Utilities.Clone(CameraLocal.transform.forward.normalized);
+#endif
 #if ENABLE_OCULUS
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
@@ -819,8 +856,13 @@ namespace PartyCritical
 				shootDone = true;
 			}
 #else
+#if ENABLE_YOURVRUI
             Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
             Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
+#else
+            Vector3 pos = Utilities.Clone(CameraLocal.transform.position);
+            Vector3 fwd = Utilities.Clone(CameraLocal.transform.forward.normalized);
+#endif
             position = pos.x + "," + pos.y + "," + pos.z;
             forward = fwd.x + "," + fwd.y + "," + fwd.z;
             shootDone = true;
@@ -1012,6 +1054,9 @@ namespace PartyCritical
         */
         protected virtual bool IsThereBlockingScreen()
         {
+#if !ENABLE_YOURVRUI
+            return false;
+#else
             // ENABLE DEFAULT INPUTS WHEN THERE ARE SCREEN ACTIVATED
             if (YourVRUIScreenController.Instance.ScreensTemporal.Count > 0)
             {
@@ -1037,6 +1082,7 @@ namespace PartyCritical
                 KeysEventInputController.Instance.EnableActionButton = false;
             }
             return false;
+#endif
         }
 
         // -------------------------------------------

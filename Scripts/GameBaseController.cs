@@ -1691,7 +1691,9 @@ namespace PartyCritical
                     if (myOwnPlayer.GetComponent<ActorTimeline>() != null) myOwnPlayer.GetComponent<ActorTimeline>().InitializeLocalData(initialData);
                 }
 
+#if ENABLE_YOURVRUI
                 YourVRUIScreenController.Instance.DestroyScreens();
+#endif
                 if (!m_enableARCore)
                 {
                     CreateLoadingScreen();
