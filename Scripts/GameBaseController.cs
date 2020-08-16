@@ -132,6 +132,7 @@ namespace PartyCritical
         protected bool m_directorMode = false;
         protected bool m_spectatorMode = false;
         protected bool m_enableEnemyAutoGeneration = false;
+        protected bool m_enableListenToPauseEvent = false;
         protected bool m_enableBackgroundVR = true;
         protected bool m_isGyroscopeMode = false;
 
@@ -193,6 +194,10 @@ namespace PartyCritical
         {
             get { return m_enableEnemyAutoGeneration; }
         }
+        public bool EnableListenToPauseEvent
+        {
+            get { return m_enableListenToPauseEvent; }
+        }        
         public virtual GameObject CurrentGameCamera
         {
             get { return null; }
@@ -1563,7 +1568,7 @@ namespace PartyCritical
                     return;
                 }
                 */
-                NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_CHANGE_STATE, _newState.ToString());
+                NetworkEventController.Instance.PriorityDelayNetworkEvent(EVENT_GAMECONTROLLER_CHANGE_STATE, 0.01f, _newState.ToString());
             }
         }
 
