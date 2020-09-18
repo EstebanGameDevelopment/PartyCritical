@@ -518,6 +518,7 @@ namespace PartyCritical
             }
             if (_nameEvent == GameBaseController.EVENT_GAMECONTROLLER_RECALCULATE_COLLISIONS)
             {
+#if ENABLE_MULTIPLAYER_TIMELINE
                 m_pathfindingInitialized = false;
                 float totalTimeToRender = 0;
                 if (_list.Length > 0)
@@ -525,6 +526,7 @@ namespace PartyCritical
                     totalTimeToRender = float.Parse((string)_list[0]);
                 }
                 CalculateCollisionsPathfinding(totalTimeToRender);
+#endif
             }
         }
 
