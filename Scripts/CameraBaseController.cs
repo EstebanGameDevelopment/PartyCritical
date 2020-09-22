@@ -221,6 +221,10 @@ namespace PartyCritical
         {
             get { return -1; }
         }
+        public virtual float TIMEOUT_TO_MOVE_DIRECTOR
+        {
+            get { return 1; }
+        }
         public virtual float TIMEOUT_TO_INVENTORY
         {
             get { return -1; }
@@ -1476,7 +1480,7 @@ namespace PartyCritical
                         m_timeoutPressed += Time.deltaTime;
                         if (!EnableARCore)
                         {
-                            if (m_timeoutPressed > TIMEOUT_TO_MOVE)
+                            if (m_timeoutPressed > TIMEOUT_TO_MOVE_DIRECTOR)
                             {
                                 transform.GetComponent<Rigidbody>().MovePosition(transform.position + normalForward);
                             }
