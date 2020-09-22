@@ -85,8 +85,8 @@ namespace PartyCritical
         protected bool m_ignoreNextShootAction = false;
 
         protected bool m_enabledCameraInput = true;
-
-#if ONLY_REMOTE_CONNECTION && (ENABLE_QUEST || ENABLE_WORLSENSE)
+        
+#if (ONLY_REMOTE_CONNECTION || TELEPORT_INDIVIDUAL) && (ENABLE_QUEST || ENABLE_WORLSENSE)
         protected bool m_teleportAvailable = true;
         protected bool m_teleportEnabled = true;
 #else
