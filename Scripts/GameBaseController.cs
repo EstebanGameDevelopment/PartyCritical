@@ -268,6 +268,11 @@ namespace PartyCritical
             m_spectatorMode = (MultiplayerConfiguration.LoadSpectatorMode(-1) == MultiplayerConfiguration.SPECTATOR_MODE_ENABLED);
             m_isCreatorGame = (NetworkEventController.Instance.MenuController_LoadNumberOfPlayers() != MultiplayerConfiguration.VALUE_FOR_JOINING);
 
+            if (m_directorMode)
+            {
+                YourVRUIScreenController.Instance.EnableRaycastDetection = false;
+            }            
+
             m_isSinglePlayer = (m_totalNumberPlayers == 1);
 #if ENABLE_CONFUSION
             m_isSinglePlayer = true;

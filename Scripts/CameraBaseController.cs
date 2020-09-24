@@ -304,13 +304,29 @@ namespace PartyCritical
 #if ENABLE_OCULUS
             if (IsRightie())
             {
-                ShotgunContainer = ShotgunRightContainer;
-                ShotgunLeftContainer.SetActive(false);
+                if (ShotgunRightContainer != null)
+                {
+                    ShotgunContainer = ShotgunRightContainer;
+                    if (ShotgunLeftContainer != null) ShotgunLeftContainer.SetActive(false);
+                }
+                else
+                {
+                    ShotgunContainer = ShotgunLeftContainer;
+                    if (ShotgunRightContainer != null) ShotgunRightContainer.SetActive(false);
+                }
             }
             else
             {
-                ShotgunContainer = ShotgunLeftContainer;
-                ShotgunRightContainer.SetActive(false);
+                if (ShotgunLeftContainer != null)
+                {
+                    ShotgunContainer = ShotgunLeftContainer;
+                    if (ShotgunRightContainer != null) ShotgunRightContainer.SetActive(false);
+                }
+                else
+                {
+                    ShotgunContainer = ShotgunRightContainer;
+                    if (ShotgunLeftContainer != null) ShotgunLeftContainer.SetActive(false);
+                }
             }
 #else
             if (ShotgunLeftContainer != null) ShotgunLeftContainer.SetActive(false);
@@ -1915,12 +1931,16 @@ namespace PartyCritical
                 {
                     applyTeleport = false;
                 }
+                else
+                {
+                    transform.position = new Vector3(0, transform.position.y, 0);
+                }
 #endif
                 if (applyTeleport)
                 {
                     Vector3 shiftTeleport = Utilities.StringToVector3((string)_list[0]);
                     m_shiftCameraFromOrigin += new Vector3(shiftTeleport.x, 0, shiftTeleport.z);
-                    Debug.LogError("CameraBaseController::EVENT_TELEPORTCONTROLLER_TELEPORT::m_shiftCameraFromOrigin=" + m_shiftCameraFromOrigin.ToString());
+                    // Debug.LogError("CameraBaseController::EVENT_TELEPORTCONTROLLER_TELEPORT::m_shiftCameraFromOrigin=" + m_shiftCameraFromOrigin.ToString());
                 }
             }
         }
