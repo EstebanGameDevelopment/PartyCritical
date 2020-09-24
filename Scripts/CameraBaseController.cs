@@ -32,6 +32,7 @@ namespace PartyCritical
         public const string EVENT_CAMERACONTROLLER_STOP_MOVING              = "EVENT_CAMERACONTROLLER_STOP_MOVING";
         public const string EVENT_CAMERACONTROLLER_FIX_DIRECTOR_CAMERA      = "EVENT_CAMERACONTROLLER_FIX_DIRECTOR_CAMERA";
         public const string EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER     = "EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER";
+        public const string EVENT_CAMERACONTROLLER_ACTIVATE_SKYBOX          = "EVENT_CAMERACONTROLLER_ACTIVATE_SKYBOX";
 
         public const string EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN      = "EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN";
         public const string EVENT_CAMERACONTROLLER_GENERIC_ACTION_UP        = "EVENT_CAMERACONTROLLER_GENERIC_ACTION_UP";
@@ -1737,6 +1738,18 @@ namespace PartyCritical
                 }
             }
 #endif
+            if (_nameEvent == EVENT_CAMERACONTROLLER_ACTIVATE_SKYBOX)
+            {
+#if !ENABLE_OCULUS
+                CameraLocal.GetComponent<Camera>().clearFlags = CameraClearFlags.Skybox;
+#else                
+                Camera[] oculusCameras = OVRPlayer.GetComponentsInChildren<Camera>();
+                for (int i = 0; i < oculusCameras.Length; i++)
+                {
+                    oculusCameras[i].clearFlags = CameraClearFlags.Skybox;
+                }
+#endif
+            }
             if (_nameEvent == ActorTimeline.EVENT_GAMEPLAYER_SETUP_AVATAR)
             {
                 if (!DirectorMode)

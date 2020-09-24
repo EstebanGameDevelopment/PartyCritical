@@ -1397,6 +1397,7 @@ namespace PartyCritical
                 {
                     if (SkyboxesLevels[selectedSkybox] != null)
                     {
+                        BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_ACTIVATE_SKYBOX);
                         RenderSettings.skybox = SkyboxesLevels[selectedSkybox];
                     }
                 }
