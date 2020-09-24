@@ -1743,11 +1743,7 @@ namespace PartyCritical
 #if !ENABLE_OCULUS
                 CameraLocal.GetComponent<Camera>().clearFlags = CameraClearFlags.Skybox;
 #else                
-                Camera[] oculusCameras = OVRPlayer.GetComponentsInChildren<Camera>();
-                for (int i = 0; i < oculusCameras.Length; i++)
-                {
-                    oculusCameras[i].clearFlags = CameraClearFlags.Skybox;
-                }
+                CenterEyeAnchor.GetComponent<Camera>().clearFlags = CameraClearFlags.Skybox;
 #endif
             }
             if (_nameEvent == ActorTimeline.EVENT_GAMEPLAYER_SETUP_AVATAR)
