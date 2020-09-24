@@ -1144,6 +1144,10 @@ namespace PartyCritical
                     {
                         m_timeoutToTeleport = TIMEOUT_TO_TELEPORT + 1;
                     }
+                    if (KeysEventInputController.Instance.GetTeleportUpOculusController())
+                    {
+                        m_timeoutToTeleport = 0;
+                    }
                 }
                 if (KeysEventInputController.Instance.GetAppButtonDownOculusController())
                 {
