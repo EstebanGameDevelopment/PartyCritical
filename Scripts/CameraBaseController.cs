@@ -1938,23 +1938,32 @@ namespace PartyCritical
             }
             if (_nameEvent == TeleportController.EVENT_TELEPORTCONTROLLER_TELEPORT)
             {
-                bool applyTeleport = true;
+                ApplyTeleport(_networkOriginID, (string)_list[0]);
+            }
+        }
+
+        // -------------------------------------------
+        /* 
+		 * ApplyTeleport
+		 */
+        protected virtual void ApplyTeleport(int _networkOriginID, string _shift)
+        {
+            bool applyTeleport = true;
 #if TELEPORT_INDIVIDUAL || ONLY_REMOTE_CONNECTION
-                if (YourNetworkTools.Instance.GetUniversalNetworkID() != _networkOriginID)
-                {
-                    applyTeleport = false;
-                }
-                else
-                {
-                    transform.position = new Vector3(0, transform.position.y, 0);
-                }
+            if (YourNetworkTools.Instance.GetUniversalNetworkID() != _networkOriginID)
+            {
+                applyTeleport = false;
+            }
+            else
+            {
+                transform.position = new Vector3(0, transform.position.y, 0);
+            }
 #endif
-                if (applyTeleport)
-                {
-                    Vector3 shiftTeleport = Utilities.StringToVector3((string)_list[0]);
-                    m_shiftCameraFromOrigin += new Vector3(shiftTeleport.x, 0, shiftTeleport.z);
-                    // Debug.LogError("CameraBaseController::EVENT_TELEPORTCONTROLLER_TELEPORT::m_shiftCameraFromOrigin=" + m_shiftCameraFromOrigin.ToString());
-                }
+            if (applyTeleport)
+            {
+                Vector3 shiftTeleport = Utilities.StringToVector3(_shift);
+                m_shiftCameraFromOrigin += new Vector3(shiftTeleport.x, 0, shiftTeleport.z);
+                // Debug.LogError("CameraBaseController::EVENT_TELEPORTCONTROLLER_TELEPORT::m_shiftCameraFromOrigin=" + m_shiftCameraFromOrigin.ToString());
             }
         }
 
