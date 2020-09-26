@@ -87,7 +87,7 @@ namespace PartyCritical
 
         protected bool m_enabledCameraInput = true;
         
-#if (ONLY_REMOTE_CONNECTION || TELEPORT_INDIVIDUAL) && (ENABLE_QUEST || ENABLE_WORLSENSE)
+#if (ONLY_REMOTE_CONNECTION || TELEPORT_INDIVIDUAL) && (ENABLE_OCULUS || ENABLE_WORLDSENSE)
         protected bool m_teleportAvailable = true;
         protected bool m_teleportEnabled = true;
 #else
@@ -264,7 +264,7 @@ namespace PartyCritical
 		 */
         protected virtual void InitialitzeHMDHeight()
         {
-#if ENABLE_OCULUS && ENABLE_QUEST
+#if ENABLE_OCULUS
             this.gameObject.GetComponentInChildren<OVRCameraRig>().gameObject.transform.position = -new Vector3(0, 6*(CAMERA_SHIFT_HEIGHT_WORLDSENSE/10), 0);
 #endif
         }
@@ -1137,14 +1137,14 @@ namespace PartyCritical
                     }
                 }
 #endif
-#if ENABLE_OCULUS && ENABLE_QUEST
+#if ENABLE_OCULUS && (ONLY_REMOTE_CONNECTION || TELEPORT_INDIVIDUAL)
                 if (m_teleportEnabled)
                 {
-                    if (KeysEventInputController.Instance.GetTeleportOculusController())
+                    if (KeysEventInputController.Instance.GetHandTriggerOculusController())
                     {
                         m_timeoutToTeleport = TIMEOUT_TO_TELEPORT + 1;
                     }
-                    if (KeysEventInputController.Instance.GetTeleportUpOculusController())
+                    if (!KeysEventInputController.Instance.GetHandTriggerOculusController())
                     {
                         m_timeoutToTeleport = 0;
                     }
@@ -1244,6 +1244,37 @@ namespace PartyCritical
             else
             {
                 m_timeoutForPause = 0;
+            }
+
+            CheckReleasedKeyForTeleport();
+        }
+
+        // -------------------------------------------
+        /* 
+        * CheckReleasedKeyForTeleport
+        */
+        protected virtual void CheckReleasedKeyForTeleport()
+        {
+            if (m_hasBeenTeleported)
+            {
+#if ENABLE_WORLDSENSE && !UNITY_EDITOR
+                if (KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false))
+                {
+                    BasicSystemEventController.Instance.DispatchBasicSystemEvent(TeleportController.EVENT_TELEPORTCONTROLLER_KEY_RELEASED);
+                }
+#endif
+#if ENABLE_OCULUS && ENABLE_QUEST
+                if (!KeysEventInputController.Instance.GetHandTriggerOculusController())
+                {
+                    BasicSystemEventController.Instance.DispatchBasicSystemEvent(TeleportController.EVENT_TELEPORTCONTROLLER_KEY_RELEASED);
+                }
+#endif
+#if UNITY_EDITOR
+                if (Input.GetKeyUp(KeyCode.RightControl))
+                {
+                    BasicSystemEventController.Instance.DispatchBasicSystemEvent(TeleportController.EVENT_TELEPORTCONTROLLER_KEY_RELEASED);
+                }
+#endif
             }
         }
 
@@ -2084,38 +2115,11 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
-         * UpdateLogicOculusGo
-         */
-        private bool UpdateLogicOculusGo()
-        {
-#if ENABLE_OCULUS && !ENABLE_QUEST
-            OVRInput.Update();
-
-            this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
-            this.gameObject.GetComponent<Rigidbody>().useGravity = true;
-            this.gameObject.GetComponent<Collider>().isTrigger = false;
-
-            if (m_avatar != null)
-            {
-                // m_avatar.transform.position = new Vector3(transform.position.x, -CAMERA_SHIFT_HEIGHT_WORLDSENSE + transform.position.y, transform.position.z);
-                m_avatar.transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z);
-                m_avatar.transform.forward = new Vector3(CenterEyeAnchor.transform.forward.x, 0, CenterEyeAnchor.transform.forward.z);
-                m_avatar.GetComponent<Actor>().ForwardPlayer = CenterEyeAnchor.transform.forward;
-                m_avatar.GetComponent<Actor>().PositionPlayer = CenterEyeAnchor.transform.position;
-            }
-            return true;
-#else
-            return false;
-#endif
-        }
-
-        // -------------------------------------------
-        /* 
          * UpdateLogicOculusQuest
          */
-        private bool UpdateLogicOculusQuest()
+        private bool UpdateLogicOculus()
         {
-#if ENABLE_OCULUS && ENABLE_QUEST
+#if ENABLE_OCULUS
             OVRInput.Update();
 
             this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
@@ -2153,12 +2157,7 @@ namespace PartyCritical
          */
         protected virtual void UpdateDefaultLogic()
         {
-            if (UpdateLogicOculusGo())
-            {
-                return;
-            }
-            else
-            if (UpdateLogicOculusQuest())
+            if (UpdateLogicOculus())
             {
                 return;
             }
