@@ -1947,7 +1947,7 @@ namespace PartyCritical
             }
             else
             {
-                GameObject newZombie = Instantiate(EnemyPrefab[indexEnemy]);
+                GameObject newZombie = Instantiate(EnemyPrefab[0]);
                 newZombie.GetComponent<IGameNetworkActor>().Initialize(initialData);
             }
             return true;
