@@ -1017,7 +1017,7 @@ namespace PartyCritical
         */
         protected virtual void ActionsWhenRoomClosed()
         {
-            UIEventController.Instance.DispatchUIEvent(MenuScreenController.EVENT_FORCE_DESTRUCTION_POPUP);
+            UIEventController.Instance.DispatchUIEvent(MenuScreenController.EVENT_FORCE_TRIGGER_OK_BUTTON);
         }
 
         // -------------------------------------------
@@ -1702,9 +1702,6 @@ namespace PartyCritical
                     if (myOwnPlayer.GetComponent<ActorTimeline>() != null) myOwnPlayer.GetComponent<ActorTimeline>().InitializeLocalData(initialData);
                 }
 
-#if ENABLE_YOURVRUI
-                YourVRUIScreenController.Instance.DestroyScreens();
-#endif
                 if (!m_enableARCore)
                 {
                     CreateLoadingScreen();
