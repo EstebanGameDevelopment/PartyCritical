@@ -702,8 +702,16 @@ namespace PartyCritical
                         isTemporalScreen = (bool)_list[indexToCheck + 5];
                     }
                 }
+                bool isOrtographicScreen = false;
+                if (_list.Length > indexToCheck + 6)
+                {
+                    if (_list[indexToCheck + 6] is bool)
+                    {
+                        isOrtographicScreen = (bool)_list[indexToCheck + 6];
+                    }
+                }
                 GameObject prefabScreen = GetScreenPrefabByName((string)_list[indexToCheck]);
-                YourVRUIScreenController.Instance.CreateScreenLinkedToCamera(prefabScreen, pages, 1.5f, -1, false, scaleScreen, (UIScreenTypePreviousAction)_list[indexToCheck + 1], isTemporalScreen);
+                YourVRUIScreenController.Instance.CreateScreenLinkedToCamera(prefabScreen, pages, 1.5f, -1, isOrtographicScreen, scaleScreen, (UIScreenTypePreviousAction)_list[indexToCheck + 1], isTemporalScreen);
                 // AUTO-DESTROY THE POP UP WHEN YOU ARE NOT INTERESTED TO OFFER INTERACTION
                 // UIEventController.Instance.DelayUIEvent(ScreenController.EVENT_FORCE_TRIGGER_OK_BUTTON, 5);
                 if ((string)_list[indexToCheck] == ScreenCreateRoomView.SCREEN_NAME)

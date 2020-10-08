@@ -961,7 +961,7 @@ namespace PartyCritical
             }
         }
 
-        private bool m_destroyScreensOnStartMovement = true;
+        protected bool m_destroyScreensOnStartMovement = true;
 
         // -------------------------------------------
         /* 
