@@ -588,7 +588,7 @@ namespace PartyCritical
                 {
                     pos = Utilities.Clone(m_originLaser);
                 }
-#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+#elif ENABLE_WORLDSENSE
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
                     pos = Utilities.Clone(m_originLaser);
@@ -614,7 +614,7 @@ namespace PartyCritical
                 {
                     fwd = Utilities.Clone(m_forwardLaser);
                 }
-#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+#elif ENABLE_WORLDSENSE
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
                     fwd = Utilities.Clone(m_forwardLaser);
@@ -638,7 +638,7 @@ namespace PartyCritical
 #endif
 #if ENABLE_OCULUS
             rightLaser = m_laserPointer.transform.right;
-#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+#elif ENABLE_WORLDSENSE
             rightLaser = m_armModel.GetComponent<GvrArmModel>().ControllerRotationFromHead * Vector3.right;
 #endif
 
@@ -665,7 +665,7 @@ namespace PartyCritical
                     pos = Utilities.Clone(m_originLaser);
                     fwd = Utilities.Clone(m_forwardLaser);
                 }
-#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+#elif ENABLE_WORLDSENSE
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
                     pos = Utilities.Clone(m_originLaser);
@@ -695,7 +695,7 @@ namespace PartyCritical
                     pos = Utilities.Clone(m_originLaser);
                     fwd = Utilities.Clone(m_forwardLaser);
                 }
-#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+#elif ENABLE_WORLDSENSE
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
                     pos = Utilities.Clone(m_originLaser);
@@ -730,7 +730,7 @@ namespace PartyCritical
                     pos = Utilities.Clone(m_originLaser);
                     fwd = Utilities.Clone(m_forwardLaser);
                 }
-#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+#elif ENABLE_WORLDSENSE
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
                     pos = Utilities.Clone(m_originLaser);
@@ -752,7 +752,7 @@ namespace PartyCritical
          */
         public Vector3 CheckWorldsenseRaycastCollisionPoint(params string[] _layers)
         {
-#if ENABLE_WORLDSENSE && !UNITY_EDITOR
+#if ENABLE_WORLDSENSE
             if ((m_armModel != null) && (m_laserPointer != null))
             {
                 Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.LaserPointer.transform.position);
@@ -802,7 +802,7 @@ namespace PartyCritical
                     pos = Utilities.Clone(m_originLaser);
                     fwd = Utilities.Clone(m_forwardLaser);
                 }
-#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+#elif ENABLE_WORLDSENSE
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
                     pos = Utilities.Clone(m_originLaser);
@@ -837,7 +837,7 @@ namespace PartyCritical
                     pos = Utilities.Clone(m_originLaser);
                     fwd = Utilities.Clone(m_forwardLaser);
                 }
-#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+#elif ENABLE_WORLDSENSE
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
                     pos = Utilities.Clone(m_originLaser);
@@ -869,7 +869,7 @@ namespace PartyCritical
 				forward = m_forwardLaser.x + "," + m_forwardLaser.y + "," + m_forwardLaser.z;
 				shootDone = true;
 			}
-#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+#elif ENABLE_WORLDSENSE
 			if ((m_armModel != null) && (m_laserPointer != null))
 			{
 				position = m_originLaser.x + "," + m_originLaser.y + "," + m_originLaser.z;
@@ -1128,7 +1128,7 @@ namespace PartyCritical
                         }
                     }
                 }
-#if ENABLE_WORLDSENSE && !UNITY_EDITOR
+#if ENABLE_WORLDSENSE
                 if (m_teleportEnabled)
                 {
                     if (KeysEventInputController.Instance.GetAppButtonDowDaydreamController())
@@ -1164,7 +1164,7 @@ namespace PartyCritical
 
             bool activateInventory = true;
 
-#if ENABLE_WORLDSENSE && !UNITY_EDITOR
+#if ENABLE_WORLDSENSE
             if (KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false))
             {
                 if (m_hasBeenTeleported)
@@ -1206,7 +1206,7 @@ namespace PartyCritical
             if (keyEventUpToActivateInventory
 #if ENABLE_OCULUS
                 || KeysEventInputController.Instance.GetAppButtonDownOculusController() || KeysEventInputController.Instance.GetActionCurrentStateOculusController()
-#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+#elif ENABLE_WORLDSENSE
                 || KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false) || KeysEventInputController.Instance.GetActionCurrentStateDaydreamController()
 #else
                 || KeysEventInputController.Instance.GetActionCurrentStateDefaultController()
@@ -1229,7 +1229,7 @@ namespace PartyCritical
             if (false
 #if ENABLE_OCULUS
                 || KeysEventInputController.Instance.GetAppButtonDownOculusController(null, false) || KeysEventInputController.Instance.GetActionCurrentStateOculusController()
-#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+#elif ENABLE_WORLDSENSE
                 || KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false, false)
 #else
                 || KeysEventInputController.Instance.GetActionCurrentStateDefaultController()
@@ -1257,13 +1257,13 @@ namespace PartyCritical
         {
             if (m_hasBeenTeleported)
             {
-#if ENABLE_WORLDSENSE && !UNITY_EDITOR
+#if ENABLE_WORLDSENSE
                 if (KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false))
                 {
                     BasicSystemEventController.Instance.DispatchBasicSystemEvent(TeleportController.EVENT_TELEPORTCONTROLLER_KEY_RELEASED);
                 }
 #endif
-#if ENABLE_OCULUS && ENABLE_QUEST
+#if ENABLE_OCULUS
                 if (!KeysEventInputController.Instance.GetHandTriggerOculusController())
                 {
                     BasicSystemEventController.Instance.DispatchBasicSystemEvent(TeleportController.EVENT_TELEPORTCONTROLLER_KEY_RELEASED);
@@ -1359,7 +1359,7 @@ namespace PartyCritical
             if (false
 #if ENABLE_OCULUS
                 || KeysEventInputController.Instance.GetActionOculusController(false)
-#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+#elif ENABLE_WORLDSENSE
                 || KeysEventInputController.Instance.GetActionDaydreamController(false)
 #else
                 || KeysEventInputController.Instance.GetActionDefaultController(false)
@@ -1406,7 +1406,7 @@ namespace PartyCritical
             ProcessOculusCustomerInput();
 #else
             if (false
-#if ENABLE_WORLDSENSE && !UNITY_EDITOR
+#if ENABLE_WORLDSENSE
                 || (KeysEventInputController.Instance.GetActionDaydreamController(true))
 #else
                 || KeysEventInputController.Instance.GetActionDefaultController(true)
@@ -1604,7 +1604,7 @@ namespace PartyCritical
                     pos = Utilities.Clone(m_originLaser);
                     fwd = Utilities.Clone(m_forwardLaser);
                 }
-#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+#elif ENABLE_WORLDSENSE
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
                     pos = Utilities.Clone(m_originLaser);
@@ -1727,7 +1727,7 @@ namespace PartyCritical
                     pos = Utilities.Clone(m_originLaser);
                     fwd = Utilities.Clone(m_forwardLaser);
                 }
-#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+#elif ENABLE_WORLDSENSE
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
                     pos = Utilities.Clone(m_originLaser);
@@ -1865,7 +1865,7 @@ namespace PartyCritical
                 {
                    targetToFollow = m_laserPointer;
                 }
-#elif ENABLE_WORLDSENSE && !UNITY_EDITOR
+#elif ENABLE_WORLDSENSE
                 if ((m_armModel != null) && (m_laserPointer != null))
                 {
                    targetToFollow = m_laserPointer;
@@ -2091,7 +2091,7 @@ namespace PartyCritical
          */
         protected virtual void LogicDaydream6DOF()
         {
-#if ENABLE_WORLDSENSE && !UNITY_EDITOR
+#if ENABLE_WORLDSENSE
             this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
             this.gameObject.GetComponent<Rigidbody>().useGravity = true;
             this.gameObject.GetComponent<Collider>().isTrigger = false;
@@ -2198,7 +2198,7 @@ namespace PartyCritical
 		 */
         void LateUpdate()
         {
-#if ENABLE_WORLDSENSE && !UNITY_EDITOR
+#if ENABLE_WORLDSENSE
             if (ShotgunContainer != null)
             {
                 ShotgunContainer.transform.rotation = Quaternion.identity;
