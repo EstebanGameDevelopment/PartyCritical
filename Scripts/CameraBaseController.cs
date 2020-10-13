@@ -1994,6 +1994,7 @@ namespace PartyCritical
             {
                 Vector3 shiftTeleport = Utilities.StringToVector3(_shift);
                 m_shiftCameraFromOrigin += new Vector3(shiftTeleport.x, 0, shiftTeleport.z);
+                BasicSystemEventController.Instance.DispatchBasicSystemEvent(TeleportController.EVENT_TELEPORTCONTROLLER_COMPLETED);
                 // Debug.LogError("CameraBaseController::EVENT_TELEPORTCONTROLLER_TELEPORT::m_shiftCameraFromOrigin=" + m_shiftCameraFromOrigin.ToString());
             }
         }
