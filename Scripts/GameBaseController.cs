@@ -48,6 +48,7 @@ namespace PartyCritical
         public const string EVENT_GAMECONTROLLER_REPORT_GYROSCOPE_MODE      = "EVENT_GAMECONTROLLER_REPORT_GYROSCOPE_MODE";
         public const string EVENT_GAMECONTROLLER_PAUSE_ACTION               = "EVENT_GAMECONTROLLER_PAUSE_ACTION";
         public const string EVENT_GAMECONTROLLER_GAME_WITH_DIRECTOR         = "EVENT_GAMECONTROLLER_GAME_WITH_DIRECTOR";
+        public const string EVENT_GAMECONTROLLER_GAME_SPAWN_POSITIONS       = "EVENT_GAMECONTROLLER_GAME_SPAWN_POSITIONS";
 
         public const string SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL = "SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL";
 
@@ -1562,7 +1563,8 @@ namespace PartyCritical
                         GameObject.Destroy(objectsSpawn[k].gameObject);
                     }                        
                 }
-                // Debug.LogError("FindSpawnPositions::TOTAL FOUND[" + m_positionsSpawn.Count + "]::TOTAL LEFT["+ GameObject.FindObjectsOfType<ClassFinder>().Length + "]+++++++++++++++++++++++++++++++");
+                BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_GAMECONTROLLER_GAME_SPAWN_POSITIONS, m_positionsSpawn);
+                // Debug.LogError("FindSpawnPositions::TOTAL FOUND[" + m_positionsSpawn.Count + "]+++++++++++++++++++++++++++++++");
             }
         }
 
@@ -1610,6 +1612,26 @@ namespace PartyCritical
                 output = m_namePlayer + "," + NameModelPrefab[m_characterSelected] + "," + _initialData;
             }
             return output;
+        }
+
+        // -------------------------------------------
+        /* 
+		 * GetInitialPositionSpawn
+		 */
+        protected virtual string GetInitialPositionSpawn(Vector3 _initialPosition)
+        {
+            string initialData = _initialPosition.x + "," + _initialPosition.y + "," + _initialPosition.z;
+#if !ONLY_REMOTE_CONNECTION
+#if (ENABLE_WORLDSENSE || ENABLE_QUEST) && !UNITY_EDITOR
+                initialData = 0 + "," + _initialPosition.y + "," + 0;
+#elif ENABLE_GOOGLE_ARCORE && !UNITY_EDITOR
+            if (m_enableARCore)
+            {
+                initialData = 0 + "," + _initialPosition.y + "," + 0;
+            }
+#endif
+#endif
+            return initialData;
         }
 
         // -------------------------------------------
@@ -1678,17 +1700,8 @@ namespace PartyCritical
 
                 int indexPosSpawnToStart = GameObject.FindObjectsOfType<Actor>().Length % m_positionsSpawn.Count;
                 Vector3 initialPosition = m_positionsSpawn[indexPosSpawnToStart];
-                string initialData = initialPosition.x + "," + initialPosition.y + "," + initialPosition.z;
-#if !ONLY_REMOTE_CONNECTION
-#if (ENABLE_WORLDSENSE || ENABLE_QUEST) && !UNITY_EDITOR
-                        initialData = 0 + "," + initialPosition.y + "," + 0;
-#elif ENABLE_GOOGLE_ARCORE && !UNITY_EDITOR
-                        if (m_enableARCore)
-                        {
-                            initialData = 0 + "," + initialPosition.y + "," + 0;
-                        }
-#endif
-#endif
+                string initialData = GetInitialPositionSpawn(initialPosition);
+
                 if (m_characterSelected >= PlayerPrefab.Length)
                 {
                     m_characterSelected = 0;
