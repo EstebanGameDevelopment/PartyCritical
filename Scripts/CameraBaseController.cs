@@ -2118,7 +2118,7 @@ namespace PartyCritical
         /* 
          * UpdateLogicOculusQuest
          */
-        private bool UpdateLogicOculus()
+        protected virtual bool UpdateLogicOculus()
         {
 #if ENABLE_OCULUS
             OVRInput.Update();
