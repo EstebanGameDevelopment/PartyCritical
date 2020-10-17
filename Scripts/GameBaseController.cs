@@ -115,6 +115,7 @@ namespace PartyCritical
         protected int m_totalNumberOfLevels = -1;
 
         protected List<Vector3> m_positionsSpawn = new List<Vector3>();
+        protected List<Vector3> m_forwardSpawn = new List<Vector3>();
 
         protected GameObject m_level;
         protected int m_currentLevel = -1;
@@ -1536,7 +1537,7 @@ namespace PartyCritical
         /* 
 		* FindSpawnPositions
 		*/
-        protected void FindSpawnPositions()
+        protected virtual void FindSpawnPositions()
         {
             ClassFinder[] objectsSpawn = GameObject.FindObjectsOfType<ClassFinder>();
             m_positionsSpawn = new List<Vector3>();
@@ -1636,6 +1637,17 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		 * GetInitialPositionSpawn
+		 */
+        protected virtual string GetPositionBySpawnGO()
+        {
+            int indexPosSpawnToStart = GameObject.FindObjectsOfType<Actor>().Length % m_positionsSpawn.Count;
+            Vector3 initialPosition = m_positionsSpawn[indexPosSpawnToStart];
+            return GetInitialPositionSpawn(initialPosition);
+        }
+
+        // -------------------------------------------
+        /* 
          * SetUpStateLoading
          */
         protected virtual void SetUpStateLoading()
@@ -1698,9 +1710,7 @@ namespace PartyCritical
                     m_positionsSpawn.Add(new Vector3(0, 5, 0));
                 }
 
-                int indexPosSpawnToStart = GameObject.FindObjectsOfType<Actor>().Length % m_positionsSpawn.Count;
-                Vector3 initialPosition = m_positionsSpawn[indexPosSpawnToStart];
-                string initialData = GetInitialPositionSpawn(initialPosition);
+                string initialData = GetPositionBySpawnGO();
 
                 if (m_characterSelected >= PlayerPrefab.Length)
                 {
