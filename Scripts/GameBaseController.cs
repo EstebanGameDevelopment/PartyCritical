@@ -31,6 +31,7 @@ namespace PartyCritical
         public const string EVENT_GAMECONTROLLER_SELECTED_LEVEL             = "EVENT_GAMECONTROLLER_SELECTED_LEVEL";
         public const string EVENT_GAMECONTROLLER_COLLIDED_REPOSITION_BALL   = "EVENT_GAMECONTROLLER_COLLIDED_REPOSITION_BALL";
         public const string EVENT_GAMECONTROLLER_CONFIRMATION_NEXT_LEVEL    = "EVENT_GAMECONTROLLER_CONFIRMATION_NEXT_LEVEL";
+        public const string EVENT_GAMECONTROLLER_CONFIRMATION_RETRY_LEVEL   = "EVENT_GAMECONTROLLER_CONFIRMATION_RETRY_LEVEL";
         public const string EVENT_GAMECONTROLLER_CONFIRMATION_RELOAD_LEVEL  = "EVENT_GAMECONTROLLER_CONFIRMATION_RELOAD_LEVEL";        
         public const string EVENT_GAMECONTROLLER_NUMBER_LEVEL_TO_LOAD       = "EVENT_GAMECONTROLLER_NUMBER_LEVEL_TO_LOAD";
         public const string EVENT_GAMECONTROLLER_LEVEL_LOAD_COMPLETED       = "EVENT_GAMECONTROLLER_LEVEL_LOAD_COMPLETED";
@@ -1173,6 +1174,14 @@ namespace PartyCritical
                     */
                     m_currentLevel++;
                     // m_currentLevel = 2;
+                    m_repositionedPlayers.Clear();
+                    NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_NUMBER_LEVEL_TO_LOAD, m_currentLevel.ToString());
+                }
+            }
+            if (_nameEvent == EVENT_GAMECONTROLLER_CONFIRMATION_RETRY_LEVEL)
+            {
+                if (YourNetworkTools.Instance.IsServer)
+                {
                     m_repositionedPlayers.Clear();
                     NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_NUMBER_LEVEL_TO_LOAD, m_currentLevel.ToString());
                 }
