@@ -1069,6 +1069,30 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+        * LoadNextLevelConfirmation
+        */
+        protected virtual void LoadNextLevelConfirmation()
+        {
+            if (YourNetworkTools.Instance.IsServer)
+            {
+                /*
+                int networkID = int.Parse((string)_list[0]);
+                if (m_endLevelConfirmedPlayers.IndexOf(networkID) == -1) m_endLevelConfirmedPlayers.Add(networkID);
+                if (m_endLevelConfirmedPlayers.Count >= m_players.Count)
+                {
+                    m_currentLevel++;
+                    NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_NUMBER_LEVEL_TO_LOAD, m_currentLevel.ToString());
+                }
+                */
+                m_currentLevel++;
+                // m_currentLevel = 2;
+                m_repositionedPlayers.Clear();
+                NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_NUMBER_LEVEL_TO_LOAD, m_currentLevel.ToString());
+            }
+        }
+
+        // -------------------------------------------
+        /* 
         * Manager of global events
         */
         protected virtual void OnNetworkEvent(string _nameEvent, bool _isLocalEvent, int _networkOriginID, int _networkTargetID, params object[] _list)
@@ -1161,22 +1185,7 @@ namespace PartyCritical
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_CONFIRMATION_NEXT_LEVEL)
             {
-                if (YourNetworkTools.Instance.IsServer)
-                {
-                    /*
-                    int networkID = int.Parse((string)_list[0]);
-                    if (m_endLevelConfirmedPlayers.IndexOf(networkID) == -1) m_endLevelConfirmedPlayers.Add(networkID);
-                    if (m_endLevelConfirmedPlayers.Count >= m_players.Count)
-                    {
-                        m_currentLevel++;
-                        NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_NUMBER_LEVEL_TO_LOAD, m_currentLevel.ToString());
-                    }
-                    */
-                    m_currentLevel++;
-                    // m_currentLevel = 2;
-                    m_repositionedPlayers.Clear();
-                    NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_NUMBER_LEVEL_TO_LOAD, m_currentLevel.ToString());
-                }
+                LoadNextLevelConfirmation();
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_CONFIRMATION_RETRY_LEVEL)
             {
