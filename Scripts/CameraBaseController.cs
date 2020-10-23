@@ -1149,6 +1149,8 @@ namespace PartyCritical
                         m_timeoutToTeleport = 0;
                     }
                 }
+#endif
+#if ENABLE_OCULUS
                 if (KeysEventInputController.Instance.GetAppButtonDownOculusController())
                 {
                     m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
