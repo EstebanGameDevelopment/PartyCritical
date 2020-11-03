@@ -916,7 +916,7 @@ namespace PartyCritical
             {
                 if (m_stateManager.State != STATE_RUNNING)
                 {
-                    m_totalNumberPlayers = m_players.Count;
+                    m_totalNumberPlayers = m_playersReady.Count;
                     if (m_totalNumberPlayers == 0)
                     {
                         m_totalNumberPlayers = m_playersReady.Count;
