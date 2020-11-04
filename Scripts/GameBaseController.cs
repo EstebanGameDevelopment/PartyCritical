@@ -831,7 +831,7 @@ namespace PartyCritical
             {
                 if (!m_isCreatorGame)
                 {
-                    Debug.LogError("--RECEIVED--::EVENT_GAMECONTROLLER_SELECTED_LEVEL::_level=" + m_currentLevel);
+                    if (DEBUG) Debug.LogError("--RECEIVED--::EVENT_GAMECONTROLLER_SELECTED_LEVEL::_level=" + m_currentLevel);
                     if (m_stateManager.State == STATE_CONNECTING)
                     {
                         LoadCurrentGameLevel(m_currentLevel);
