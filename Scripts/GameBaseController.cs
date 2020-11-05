@@ -1963,6 +1963,15 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		* IsGameOnlyRunning
+		*/
+        public bool IsGameOnlyRunning()
+        {
+            return (m_stateManager.State == STATE_RUNNING);
+        }
+
+        // -------------------------------------------
+        /* 
 		* IsGameLoading
 		*/
         public bool IsGameLoading()
