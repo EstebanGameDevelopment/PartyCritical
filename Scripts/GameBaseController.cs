@@ -1851,6 +1851,7 @@ namespace PartyCritical
                 m_endLevelConfirmedPlayers.Clear();
                 if (m_directorMode)
                 {
+                    m_initializationRunningDone = true;
                     if (m_spectatorMode)
                     {
                         if (GameObject.FindObjectOfType<ScreenBaseSpectatorView>() == null)
