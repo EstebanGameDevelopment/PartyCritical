@@ -506,7 +506,7 @@ namespace PartyCritical
         {
             if (m_isTouchMode)
             {
-
+                LogicTouchMode();
             }
             else
             {
@@ -1673,6 +1673,16 @@ namespace PartyCritical
             */
         }
 
+
+        // -------------------------------------------
+        /* 
+		 * LogicTouchMode
+		 */
+        protected virtual void LogicTouchMode()
+        {
+
+        }
+
         // -------------------------------------------
         /* 
 		 * We rotate with the gyroscope
@@ -1683,6 +1693,7 @@ namespace PartyCritical
             {
                 if (m_isTouchMode)
                 {
+                    LogicTouchMode();
                 }
                 else
                 {
