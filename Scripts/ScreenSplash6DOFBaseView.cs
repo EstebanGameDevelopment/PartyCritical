@@ -854,10 +854,16 @@ namespace PartyCritical
                 {
                     ItemMultiTextEntry room = ClientTCPEventsController.Instance.RoomsLobby[ClientTCPEventsController.Instance.RoomsLobby.Count - 1];
                     int roomNumber = int.Parse(room.Items[1]);
+                    string nameRoom = room.Items[2];
                     string extraData = room.Items[3];
-                    Debug.LogError("roomNumber[" + roomNumber + "]::extraData[" + extraData + "]******************************************************************************");
+                    Debug.LogError("roomNumber[" + roomNumber + "]::nameRoom[" + nameRoom + "]::extraData[" + extraData + "]******************************************************************************");
 
+#if ENABLE_PHOTON
+                    NetworkEventController.Instance.MenuController_SaveRoomNameInServer(nameRoom);
+#else
                     NetworkEventController.Instance.MenuController_SaveRoomNumberInServer(roomNumber);
+#endif
+
                     MultiplayerConfiguration.SaveExtraData(extraData);
 
                     m_isCreatingGame = false;
