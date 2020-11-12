@@ -493,6 +493,8 @@ namespace PartyCritical
 		 */
         void OnDestroy()
         {
+            m_avatar = null;
+
             BasicSystemEventController.Instance.BasicSystemEvent -= OnBasicSystemEvent;
             NetworkEventController.Instance.NetworkEvent -= OnNetworkEvent;
             UIEventController.Instance.UIEvent -= OnUIEvent;

@@ -50,6 +50,7 @@ namespace PartyCritical
         public const string EVENT_GAMECONTROLLER_PAUSE_ACTION               = "EVENT_GAMECONTROLLER_PAUSE_ACTION";
         public const string EVENT_GAMECONTROLLER_GAME_WITH_DIRECTOR         = "EVENT_GAMECONTROLLER_GAME_WITH_DIRECTOR";
         public const string EVENT_GAMECONTROLLER_GAME_SPAWN_POSITIONS       = "EVENT_GAMECONTROLLER_GAME_SPAWN_POSITIONS";
+        public const string EVENT_GAMECONTROLLER_CONTROLLER_STARTED         = "EVENT_GAMECONTROLLER_CONTROLLER_STARTED";
 
         public const string SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL = "SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL";
 
@@ -337,7 +338,11 @@ namespace PartyCritical
 #endif
             }
             CreateLoadingScreen();
-		}
+
+#if ENABLE_PHOTON
+            BasicSystemEventController.Instance.DelayBasicSystemEvent(PhotonController.EVENT_PHOTONCONTROLLER_GAME_STARTED, 0.2f);
+#endif
+        }
 
         // -------------------------------------------
         /* 
@@ -365,7 +370,9 @@ namespace PartyCritical
 		{
             base.Destroy();
 
-			NetworkEventController.Instance.NetworkEvent -= OnNetworkEvent;
+            NetworkEventController.Instance.Destroy();
+
+            NetworkEventController.Instance.NetworkEvent -= OnNetworkEvent;
 			BasicSystemEventController.Instance.BasicSystemEvent -= OnBasicSystemEvent;
             UIEventController.Instance.UIEvent -= OnUIEvent;
         }

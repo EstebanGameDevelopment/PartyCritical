@@ -844,7 +844,7 @@ namespace PartyCritical
             */
             if (_nameEvent == ClientTCPEventsController.EVENT_CLIENT_TCP_LIST_OF_GAME_ROOMS)
             {
-                if (ClientTCPEventsController.Instance.RoomsLobby.Count == 0)
+                if (NetworkEventController.Instance.RoomsLobby.Count == 0)
                 {
                     NetworkEventController.Instance.MenuController_SetNameRoomLobby(m_debugRoomName);
 
@@ -852,7 +852,7 @@ namespace PartyCritical
                 }
                 else
                 {
-                    ItemMultiTextEntry room = ClientTCPEventsController.Instance.RoomsLobby[ClientTCPEventsController.Instance.RoomsLobby.Count - 1];
+                    ItemMultiTextEntry room = NetworkEventController.Instance.RoomsLobby[NetworkEventController.Instance.RoomsLobby.Count - 1];
                     int roomNumber = int.Parse(room.Items[1]);
                     string nameRoom = room.Items[2];
                     string extraData = room.Items[3];
