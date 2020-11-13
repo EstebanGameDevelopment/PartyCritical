@@ -1754,6 +1754,23 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		 * ActionAfterLevelLoad
+		 */
+        protected virtual void ActionAfterLevelLoad()
+        {
+            if (this.gameObject.GetComponent<Rigidbody>() != null)
+            {
+                this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
+                this.gameObject.GetComponent<Rigidbody>().useGravity = true;
+            }
+            if (this.gameObject.GetComponent<Collider>() != null)
+            {
+                this.gameObject.GetComponent<Collider>().isTrigger = false;
+            }
+        }
+
+        // -------------------------------------------
+        /* 
 		 * OnBasicSystemEvent
 		 */
         protected virtual void OnBasicSystemEvent(string _nameEvent, object[] _list)
@@ -1851,15 +1868,7 @@ namespace PartyCritical
             }
             if (_nameEvent == GameBaseController.EVENT_GAMECONTROLLER_LEVEL_LOAD_COMPLETED)
             {
-                if (this.gameObject.GetComponent<Rigidbody>() != null)
-                {
-                    this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
-                    this.gameObject.GetComponent<Rigidbody>().useGravity = true;
-                }
-                if (this.gameObject.GetComponent<Collider>() != null)
-                {
-                    this.gameObject.GetComponent<Collider>().isTrigger = false;
-                }                
+                ActionAfterLevelLoad();
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION)
             {
