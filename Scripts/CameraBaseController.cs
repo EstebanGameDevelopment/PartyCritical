@@ -412,7 +412,7 @@ namespace PartyCritical
         }
 #endif
 
-#if UNITY_EDITOR && !ENABLE_WORLDSE && !ENABLE_OCULUS
+#if UNITY_EDITOR && !ENABLE_WORLDSENSE && !ENABLE_OCULUS
             if (!CardboardLoaderVR.Instance.LoadEnableCardboard())
             {
                 m_enableGyroscope = true;
