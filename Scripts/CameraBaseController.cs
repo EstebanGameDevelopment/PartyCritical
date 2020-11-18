@@ -551,25 +551,48 @@ namespace PartyCritical
          */
         protected virtual void MoveCamera()
         {
-            bool considerTouchMode = true;
-#if UNITY_EDITOR
-            considerTouchMode = false;
+            bool ignoreMovement = true;
+#if UNITY_EDITOR || UNITY_WEBGL
+            if (!DirectorMode)
+            {
+                ignoreMovement = false;
+            }
+            else
+            {
+                if (m_playerCameraActivated == null)
+                {
+                    if (m_enableFreeMovementCamera)
+                    {
+                        ignoreMovement = false;
+                    }                    
+                }
+            }
 #endif
-            if (m_isTouchMode && considerTouchMode)
+            
+            if (m_isTouchMode || ignoreMovement)
             {
 
             }
             else
             {
-                this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
-                this.gameObject.GetComponent<Rigidbody>().useGravity = true;
-                this.gameObject.GetComponent<Collider>().isTrigger = false;
+                if (!DirectorMode)
+                {
+                    this.gameObject.GetComponent<Rigidbody>().isKinematic = false;
+                    this.gameObject.GetComponent<Rigidbody>().useGravity = true;
+                    this.gameObject.GetComponent<Collider>().isTrigger = false;
+                }
 
-                Vector3 forward = Input.GetAxis("Vertical") * CameraLocal.forward * PLAYER_SPEED * Time.deltaTime;
-                Vector3 lateral = Input.GetAxis("Horizontal") * CameraLocal.right * PLAYER_SPEED * Time.deltaTime;
+                float axisVertical = Input.GetAxis("Vertical");
+                float axisHorizontal = Input.GetAxis("Horizontal");
+
+                Vector3 forward = axisVertical * CameraLocal.forward * PLAYER_SPEED * Time.deltaTime;
+                Vector3 lateral = axisHorizontal * CameraLocal.right * PLAYER_SPEED * Time.deltaTime;
 
                 Vector3 increment = forward + lateral;
-                increment.y = 0;
+                if (!DirectorMode)
+                {
+                    increment.y = 0;
+                }                    
                 transform.GetComponent<Rigidbody>().MovePosition(transform.position + increment);
             }
         }
@@ -1482,9 +1505,10 @@ namespace PartyCritical
             InitialPositionCameraDirector();
 
             bool twoFingersInScreen = false;
+            bool shouldConsiderMovement = true;
             if (m_enableFreeMovementCamera)
             {
-#if !UNITY_EDITOR
+#if !UNITY_EDITOR && !UNITY_WEBGL
                 // PINCH ZOOM
                 if (Input.touchCount == 2)
                 {
@@ -1519,12 +1543,14 @@ namespace PartyCritical
                 if (Input.GetAxis("Mouse ScrollWheel") > 0)
                 {
                     transform.GetComponent<Rigidbody>().MovePosition(transform.position + normalForward * 30);
+                    shouldConsiderMovement = false;
                 }
                 else
                 {
                     if (Input.GetAxis("Mouse ScrollWheel") < 0)
                     {
                         transform.GetComponent<Rigidbody>().MovePosition(transform.position - normalForward * 30);
+                        shouldConsiderMovement = false;
                     }
                 }
 #endif
@@ -1543,6 +1569,10 @@ namespace PartyCritical
                         }
                     }
                 }
+
+#if UNITY_WEBGL
+                if (shouldConsiderMovement) MoveCamera();
+#endif
             }
 
             if (!twoFingersInScreen)
@@ -1809,7 +1839,7 @@ namespace PartyCritical
             {
 #if !ENABLE_OCULUS
                 CameraLocal.GetComponent<Camera>().clearFlags = CameraClearFlags.Skybox;
-#else                
+#else
                 CenterEyeAnchor.GetComponent<Camera>().clearFlags = CameraClearFlags.Skybox;
 #endif
             }
@@ -1831,8 +1861,16 @@ namespace PartyCritical
                 {
                     if (m_playerCameraActivated == null)
                     {
-                        m_backupCameraPosition = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
-                        m_backupCameraForward = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward);
+                        if (YourVRUIScreenController.Instance != null)
+                        {
+                            m_backupCameraPosition = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
+                            m_backupCameraForward = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward);
+                        }
+                        else
+                        {
+                            m_backupCameraPosition = Utilities.Clone(transform.position);
+                            m_backupCameraForward = Utilities.Clone(transform.forward);
+                        }
                     }
                     else
                     {
@@ -1851,8 +1889,15 @@ namespace PartyCritical
                     m_playerCameraActivated = null;
                     transform.position = m_backupCameraPosition;
                     CameraLocal.forward = m_backupCameraForward;
-                    YourVRUIScreenController.Instance.GameCamera.transform.position = m_backupCameraPosition;
-                    YourVRUIScreenController.Instance.GameCamera.transform.forward = m_backupCameraForward;
+                    if (YourVRUIScreenController.Instance != null)
+                    {
+                        YourVRUIScreenController.Instance.GameCamera.transform.position = m_backupCameraPosition;
+                        YourVRUIScreenController.Instance.GameCamera.transform.forward = m_backupCameraForward;
+                    }
+                    else
+                    {
+                        CameraLocal.position = m_backupCameraPosition;
+                    }
                 }
             }
 
@@ -2103,8 +2148,16 @@ namespace PartyCritical
         {
             if (m_playerCameraActivated != null)
             {
-                YourVRUIScreenController.Instance.GameCamera.transform.position = m_playerCameraActivated.GetComponent<Actor>().RealPosition;
-                YourVRUIScreenController.Instance.GameCamera.transform.forward = m_playerCameraActivated.GetComponent<Actor>().RealForward;
+                if (YourVRUIScreenController.Instance != null)
+                {
+                    YourVRUIScreenController.Instance.GameCamera.transform.position = m_playerCameraActivated.GetComponent<Actor>().RealPosition;
+                    YourVRUIScreenController.Instance.GameCamera.transform.forward = m_playerCameraActivated.GetComponent<Actor>().RealForward;
+                }
+                else
+                {
+                    CameraLocal.transform.position = m_playerCameraActivated.GetComponent<Actor>().RealPosition;
+                    CameraLocal.transform.forward = m_playerCameraActivated.GetComponent<Actor>().RealForward;
+                }
                 return true;
             }
             return false;

@@ -117,6 +117,14 @@ namespace PartyCritical
                 GameObject fixCameraButton = m_container.Find("FixCamera").gameObject;
                 fixCameraButton.GetComponent<Button>().onClick.AddListener(FixCameraChanged);
                 m_stopFixCamera = m_container.Find("FixCamera/Stop").gameObject;
+                if (m_container.Find("FixCamera/Tip") != null)
+                {
+#if UNITY_WEBGL
+                    m_container.Find("FixCamera/Tip").gameObject.SetActive(true);
+#else
+                    m_container.Find("FixCamera/Tip").gameObject.SetActive(false);
+#endif
+                }
                 CameraFixedEnabled = true;
             }
 
@@ -271,5 +279,19 @@ namespace PartyCritical
                 }
             }
 		}
-	}
+
+        // -------------------------------------------
+        /* 
+		* OnMenuEvent
+		*/
+        private void Update()
+        {
+#if UNITY_WEBGL
+            if (Input.GetKeyDown(KeyCode.F))
+            {
+                FixCameraChanged();
+            }
+#endif
+        }
+    }
 }

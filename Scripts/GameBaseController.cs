@@ -274,7 +274,7 @@ namespace PartyCritical
 
             if (m_directorMode)
             {
-                YourVRUIScreenController.Instance.EnableRaycastDetection = false;
+                if (YourVRUIScreenController.Instance != null) YourVRUIScreenController.Instance.EnableRaycastDetection = false;
             }            
 
             m_isSinglePlayer = (m_totalNumberPlayers == 1);
@@ -1253,7 +1253,7 @@ namespace PartyCritical
             if (_nameEvent == EVENT_GAMECONTROLLER_PARTY_OVER)
             {
                 SoundsController.Instance.StopAllSounds();
-                YourVRUIScreenController.Instance.DestroyScreens();
+                if (YourVRUIScreenController.Instance != null) YourVRUIScreenController.Instance.DestroyScreens();
                 KeysEventInputController.Instance.EnableInteractions = false;
                 UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN, ScreenPartyOver.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false, null);
                 Invoke("KillGameParty", 10);
