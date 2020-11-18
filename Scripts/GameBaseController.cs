@@ -1629,7 +1629,7 @@ namespace PartyCritical
         protected virtual string SetUpInitialGamePlayerData(string _initialData)
         {
             string output = "";
-            if (m_characterSelected >= NameModelPrefab.Length)
+            if ((m_characterSelected >= NameModelPrefab.Length) || DirectorMode)
             {
                 output = m_namePlayer + "," + "NO_ASSET_BUNDLE" + "," + _initialData;
             }
