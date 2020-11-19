@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using YourCommonTools;
 using YourNetworkingTools;
 using YourVRUI;
@@ -1256,7 +1257,7 @@ namespace PartyCritical
                 if (YourVRUIScreenController.Instance != null) YourVRUIScreenController.Instance.DestroyScreens();
                 KeysEventInputController.Instance.EnableInteractions = false;
                 UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN, ScreenPartyOver.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false, null);
-                Invoke("KillGameParty", 10);
+                DestroyAllResources(true, false, 10);
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_GAME_WITH_DIRECTOR)
             {
@@ -1265,15 +1266,67 @@ namespace PartyCritical
 
             OnNetworkEventEnemy(_nameEvent, _isLocalEvent, _networkOriginID, _networkTargetID, _list);
         }
-        
+
         // -------------------------------------------
         /* 
-        * KillGameParty
-        */
-        public void KillGameParty()
+		 * DestroyAllResources
+		 */
+        protected virtual void DestroyAllResources(bool _isExitGame, bool _showInfo = true, float _timeoutExit = 0.1f)
         {
-            Debug.LogError("KILLING APP+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-            Application.Quit();
+            if (_showInfo) UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_INFORMATION_SCREEN, ScreenInformationView.SCREEN_BIG_WAIT, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, LanguageController.Instance.GetText("message.info"), LanguageController.Instance.GetText("message.disconnecting.game"), null, "");
+
+            Invoke("DestroySingletonsGame", _timeoutExit);
+
+            bool forceGoToMenus = false;
+#if UNITY_EDITOR || UNITY_WEBGL
+            forceGoToMenus = true;
+#endif
+            if (!_isExitGame || forceGoToMenus)
+            {
+                Invoke("ReloadMenus", _timeoutExit + 0.02f);
+            }
+            else
+            {
+                Invoke("ExitGameDelayed", _timeoutExit + 0.02f);
+            }
+        }
+
+        // -------------------------------------------
+        /* 
+		 * DestroySingletonsGame
+		 */
+        protected virtual void DestroySingletonsGame()
+        {
+#if ENABLE_VALIDATION
+            Destroy(VRPartyValidation.VRPartyValidationController.Instance.gameObject);
+#endif
+#if ENABLE_BITCOIN
+            Destroy(YourBitcoinController.BitCoinController.Instance.gameObject);
+            Destroy(YourBitcoinController.BitcoinEventController.Instance.gameObject);
+#endif
+#if ENABLE_OCULUS || ENABLE_WORLDSENSE
+            EventSystemController.Instance.Destroy();
+            Destroy(EventSystemController.Instance.gameObject);
+#endif
+            Destroy(YourNetworkTools.Instance.gameObject);
+            Destroy(NetworkEventController.Instance.gameObject);
+        }
+
+        // -------------------------------------------
+        /* 
+		 * ReloadMenus
+		 */
+        protected virtual void ReloadMenus()
+        {
+#if UNITY_WEBGL
+            SceneManager.LoadScene("Menus6DOF_WebGL");
+#else
+#if ENABLE_OCULUS
+            SceneManager.LoadScene("OculusMenus6DOF");
+#else
+            SceneManager.LoadScene("Menus6DOF");
+#endif
+#endif
         }
 
         // -------------------------------------------
