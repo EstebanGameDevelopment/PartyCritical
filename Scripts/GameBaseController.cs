@@ -236,8 +236,8 @@ namespace PartyCritical
 		*/
         public override void Awake()
 		{
-#if !ENABLE_OCULUS
-			Screen.orientation = ScreenOrientation.LandscapeLeft;
+#if !ENABLE_OCULUS && !ENABLE_HTCVIVE
+            Screen.orientation = ScreenOrientation.LandscapeLeft;
 			Screen.autorotateToLandscapeRight = false;
 			Screen.autorotateToLandscapeLeft = false;
 			Screen.autorotateToPortrait = false;
@@ -284,7 +284,7 @@ namespace PartyCritical
             m_totalNumberPlayers = 1;
 #endif
 
-#if ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS
+#if ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS && !ENABLE_HTCVIVE
             CloudAnchorReference.SetActive(true);
             m_enableARCore = (MultiplayerConfiguration.LoadGoogleARCore(-1) == MultiplayerConfiguration.GOOGLE_ARCORE_ENABLED);
             m_enableBackgroundVR = MultiplayerConfiguration.LoadEnableBackground();
@@ -306,7 +306,7 @@ namespace PartyCritical
 
             if (m_directorMode)
             {
-#if ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS
+#if ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS && !ENABLE_HTCVIVE
                 if (!m_enableARCore)
                 {
                     CloudGameAnchorController.Instance.DisableARCore(false);
@@ -320,7 +320,7 @@ namespace PartyCritical
             }
             else
             {
-#if ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS
+#if ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS && !ENABLE_HTCVIVE
                 // Debug.LogError("GOOGLE_ARCORE_ENABLED[" + m_enableARCore + "]::MultiplayerConfiguration.LoadGoogleARCore(-1)=" + MultiplayerConfiguration.LoadGoogleARCore(-1));
                 if (m_enableARCore)
                 {                    
@@ -628,6 +628,8 @@ namespace PartyCritical
         {
 #if ENABLE_OCULUS
             if ((LaserPointer != null) && (LaserPointer.GetComponent<Renderer>() != null)) LaserPointer.GetComponent<Renderer>().enabled = _enable;
+#elif ENABLE_HTCVIVE
+            if ((LaserPointer != null) && (LaserPointer.GetComponent<Renderer>() != null)) LaserPointer.GetComponent<Renderer>().enabled = _enable;
 #elif ENABLE_WORLDSENSE
             if (LaserPointer != null) LaserPointer.SetActive(true);
             if ((YourVRUIScreenController.Instance.LaserPointer != null) && (YourVRUIScreenController.Instance.LaserPointer.GetComponent<LineRenderer>()!=null)) YourVRUIScreenController.Instance.LaserPointer.GetComponent<LineRenderer>().enabled = _enable;
@@ -642,7 +644,7 @@ namespace PartyCritical
 		 */
         protected virtual void PostDestroyScreenAction()
         {
-#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
+#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE && !ENABLE_HTCVIVE
             if (!m_directorMode)
             {
                 if (!CardboardLoaderVR.Instance.LoadEnableCardboard())
@@ -729,7 +731,7 @@ namespace PartyCritical
                 {
                     UIEventController.Instance.DispatchUIEvent(ScreenCreateRoomView.EVENT_SCREENCREATEROOM_CREATE_RANDOM_NAME);
                 }
-#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
+#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE && !ENABLE_HTCVIVE
                 if (!m_directorMode)
                 {
                     if (!CardboardLoaderVR.Instance.LoadEnableCardboard())
@@ -781,7 +783,7 @@ namespace PartyCritical
                 YourVRUIScreenController.Instance.CreateScreenLinkedToCamera(GetScreenPrefabByName((string)_list[indexToCheck]), pages, 1.5f, -1, false, scaleScreen, previousAction, 0);
                 // AUTO-DESTROY THE POP UP WHEN YOU ARE NOT INTERESTED TO OFFER INTERACTION
                 // UIEventController.Instance.DelayUIEvent(ScreenController.EVENT_FORCE_TRIGGER_OK_BUTTON, 5);
-#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
+#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE && !ENABLE_HTCVIVE
                 if (!m_directorMode)
                 {
                     if (!CardboardLoaderVR.Instance.LoadEnableCardboard())
@@ -1304,7 +1306,7 @@ namespace PartyCritical
             Destroy(YourBitcoinController.BitCoinController.Instance.gameObject);
             Destroy(YourBitcoinController.BitcoinEventController.Instance.gameObject);
 #endif
-#if ENABLE_OCULUS || ENABLE_WORLDSENSE
+#if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE
             EventSystemController.Instance.Destroy();
             Destroy(EventSystemController.Instance.gameObject);
 #endif
@@ -1320,13 +1322,22 @@ namespace PartyCritical
         {
 #if UNITY_WEBGL
             SceneManager.LoadScene("Menus6DOF_WebGL");
-#else
-#if ENABLE_OCULUS
+#elif ENABLE_OCULUS
             SceneManager.LoadScene("OculusMenus6DOF");
+#elif ENABLE_HTCVIVE
+            SceneManager.LoadScene("HTCMenus6DOF");
 #else
             SceneManager.LoadScene("Menus6DOF");
 #endif
-#endif
+        }
+
+        // -------------------------------------------
+        /* 
+		 * ExitGameDelayed
+		 */
+        protected virtual void ExitGameDelayed()
+        {
+            Application.Quit();
         }
 
         // -------------------------------------------
@@ -1357,7 +1368,7 @@ namespace PartyCritical
         */
         protected virtual void OnBasicSystemEvent(string _nameEvent, object[] _list)
         {
-#if ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS
+#if ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS && !ENABLE_HTCVIVE
             if (_nameEvent == CloudGameAnchorController.EVENT_CLOUDGAMEANCHOR_SETUP_ANCHOR)
             {
                 if ((bool)_list[0])
@@ -1701,7 +1712,7 @@ namespace PartyCritical
         {
             string initialData = _initialPosition.x + "," + _initialPosition.y + "," + _initialPosition.z;
 #if !ONLY_REMOTE_CONNECTION
-#if (ENABLE_WORLDSENSE || ENABLE_QUEST) && !UNITY_EDITOR
+#if (ENABLE_WORLDSENSE || ENABLE_QUEST || ENABLE_HTCVIVE) && !UNITY_EDITOR
                 initialData = 0 + "," + _initialPosition.y + "," + 0;
 #elif ENABLE_GOOGLE_ARCORE && !UNITY_EDITOR
             if (m_enableARCore)
@@ -1767,7 +1778,7 @@ namespace PartyCritical
                 }
                 else
                 {
-#if ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS
+#if ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS && !ENABLE_HTCVIVE
                     CloudGameAnchorController.Instance.EnableARCore();
                     if (CardboardLoaderVR.Instance.LoadEnableCardboard())
                     {
@@ -1826,7 +1837,7 @@ namespace PartyCritical
                     CreateLoadingScreen();
                     NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), IsRealDirectorMode.ToString());
 
-#elif ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS
+#elif ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS && !ENABLE_HTCVIVE
                             CloudGameAnchorController.Instance.EnableARCore();
                             if (CardboardLoaderVR.Instance.LoadEnableCardboard())
                             {
@@ -1883,7 +1894,7 @@ namespace PartyCritical
 		 */
         protected virtual void InitializeScreenPlayer()
         {
-#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
+#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE && !ENABLE_HTCVIVE
             if (PlayerScreen != null)
             {
                 if (!CardboardLoaderVR.Instance.LoadEnableCardboard())

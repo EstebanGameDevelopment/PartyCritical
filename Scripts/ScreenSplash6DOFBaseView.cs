@@ -12,7 +12,7 @@ using VRPartyValidation;
 #if ENABLE_BITCOIN
 using YourBitcoinController;
 #endif
-#if !UNITY_EDITOR && !ENABLE_OCULUS && !DISABLE_REQUEST_PERMISSIONS
+#if !UNITY_EDITOR && !ENABLE_OCULUS && !ENABLE_HTCVIVE && !DISABLE_REQUEST_PERMISSIONS
 using PartaGames.Android;
 #endif
 
@@ -111,6 +111,16 @@ namespace PartyCritical
         {
             get { return ""; }
         }
+        protected virtual float SPLASH_TIME_DELAY
+        {
+            get {
+#if UNITY_EDITOR
+                return 0.2f;
+#else
+                return 2;
+#endif
+            }
+        }
 
         // -------------------------------------------
         /* 
@@ -118,7 +128,7 @@ namespace PartyCritical
 		 */
         public void Awake()
         {
-#if !UNITY_EDITOR && !ENABLE_OCULUS && !DISABLE_REQUEST_PERMISSIONS
+#if !UNITY_EDITOR && !ENABLE_OCULUS && !ENABLE_HTCVIVE && !DISABLE_REQUEST_PERMISSIONS
             if (!PermissionGranterUnity.IsPermissionGranted(WRITE_EXTERNAL_STORAGE))
             {
                 PermissionGranterUnity.GrantPermission(WRITE_EXTERNAL_STORAGE, PermissionGrantedCallback);
@@ -141,7 +151,7 @@ namespace PartyCritical
             m_hasPermissionsBeenGranted = true;
         }
 
-#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE
+#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE && !ENABLE_HTCVIVE
         // -------------------------------------------
         /* 
 		 * OnApplicationFocus
@@ -169,7 +179,7 @@ namespace PartyCritical
 		 */
         public void DoNotRun()
         {
-#if !UNITY_EDITOR && !ENABLE_OCULUS && !DISABLE_REQUEST_PERMISSIONS
+#if !UNITY_EDITOR && !ENABLE_OCULUS && !ENABLE_HTCVIVE && !DISABLE_REQUEST_PERMISSIONS
             PermissionGranterUnity.IsPermissionGranted(WRITE_EXTERNAL_STORAGE);
             PermissionGranterUnity.GrantPermission(WRITE_EXTERNAL_STORAGE, PermissionGrantedCallback);
 #endif
@@ -394,7 +404,7 @@ namespace PartyCritical
 
             InitializeSecondPhase(delayShortcutSplash);
 
-#if ENABLE_OCULUS || ENABLE_WORLDSENSE
+#if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE
             KeysEventInputController.Instance.EnableActionOnMouseDown = false;
             UIEventController.Instance.DispatchUIEvent(EventSystemController.EVENT_EVENTSYSTEMCONTROLLER_RAYCASTING_SYSTEM, false);
 #endif
@@ -731,7 +741,7 @@ namespace PartyCritical
         {
             if (base.Destroy()) return true;
 
-#if ENABLE_OCULUS || ENABLE_WORLDSENSE
+#if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE
             KeysEventInputController.Instance.EnableActionOnMouseDown = false;
 #endif
 
@@ -761,13 +771,7 @@ namespace PartyCritical
 		 */
         public IEnumerator ShowSplashDelay()
         {
-            yield return new WaitForSeconds(
-#if UNITY_EDITOR
-                0.2f
-#else
-                2
-#endif
-                );
+            yield return new WaitForSeconds(SPLASH_TIME_DELAY);
             CheckDomainOrDestroy();
         }
 
@@ -938,7 +942,7 @@ namespace PartyCritical
         */
         protected virtual void CustomUpdate()
         {
-#if ENABLE_WORLDSENSE || ENABLE_OCULUS
+#if ENABLE_WORLDSENSE || ENABLE_OCULUS || ENABLE_HTCVIVE
             if (m_runUpdate)
             {
                 Destroy();
