@@ -450,7 +450,7 @@ namespace PartyCritical
                 if (!m_isThereButtons)
                 {
                     m_runUpdate = true;
-                    StartCoroutine(ShowSplashDelay());
+                    m_timerToVRMenus = SPLASH_TIME_DELAY;
                 }
             }
         }
@@ -501,7 +501,6 @@ namespace PartyCritical
             MultiplayerConfiguration.SaveDirectorMode(MultiplayerConfiguration.DIRECTOR_MODE_DISABLED);
             MultiplayerConfiguration.SaveSpectatorMode(MultiplayerConfiguration.SPECTATOR_MODE_DISABLED);
             ActionsPostConfirmation();
-            Destroy();
             UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN, ScreenLoadingView.SCREEN_NAME, UIScreenTypePreviousAction.HIDE_ALL_SCREENS, false, null);
         }
 
@@ -551,7 +550,6 @@ namespace PartyCritical
             MultiplayerConfiguration.SaveDirectorMode(MultiplayerConfiguration.DIRECTOR_MODE_DISABLED);
             MultiplayerConfiguration.SaveSpectatorMode(MultiplayerConfiguration.SPECTATOR_MODE_DISABLED);
             ActionsPostConfirmation();
-            Destroy();
             UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN, ScreenLoadingView.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false, null);
         }
 
@@ -601,7 +599,6 @@ namespace PartyCritical
             MultiplayerConfiguration.SaveDirectorMode(MultiplayerConfiguration.DIRECTOR_MODE_DISABLED);
             MultiplayerConfiguration.SaveSpectatorMode(MultiplayerConfiguration.SPECTATOR_MODE_DISABLED);
             ActionsPostConfirmation();
-            Destroy();
             UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN, ScreenLoadingView.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false, null);
         }
 
@@ -651,7 +648,6 @@ namespace PartyCritical
             MultiplayerConfiguration.SaveDirectorMode(MultiplayerConfiguration.DIRECTOR_MODE_DISABLED);
             MultiplayerConfiguration.SaveSpectatorMode(MultiplayerConfiguration.SPECTATOR_MODE_DISABLED);
             ActionsPostConfirmation();
-            Destroy();
             UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN, ScreenLoadingView.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false, null);
         }
 
@@ -713,7 +709,6 @@ namespace PartyCritical
                 MultiplayerConfiguration.SaveSpectatorMode(MultiplayerConfiguration.SPECTATOR_MODE_DISABLED);
             }
             ActionsPostConfirmation();
-            Destroy();
             UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN, ScreenLoadingView.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false, null);
         }
 
@@ -748,31 +743,7 @@ namespace PartyCritical
             UIEventController.Instance.UIEvent -= OnMenuEvent;
             BasicSystemEventController.Instance.BasicSystemEvent -= OnBasicSystemEvent;
             UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_DESTROY_SCREEN, this.gameObject);
-            if (m_runUpdate)
-            {
-                if (m_timerToVRMenus > 0)
-                {
-                    if (MenuScreenController.Instance.AlphaAnimationNameStack != -1)
-                    {
-                        UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_LAYER_GENERIC_SCREEN, -1, new List<object> { ScreenController.ANIMATION_ALPHA, 0f, 1f, MenuScreenController.Instance.AlphaAnimationNameStack }, ScreenMenuMainView.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false, null);
-                    }
-                    else
-                    {
-                        UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN, ScreenMenuMainView.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false);
-                    }
-                }
-            }
             return false;
-        }
-
-        // -------------------------------------------
-        /* 
-		 * Constructor
-		 */
-        public IEnumerator ShowSplashDelay()
-        {
-            yield return new WaitForSeconds(SPLASH_TIME_DELAY);
-            CheckDomainOrDestroy();
         }
 
         // -------------------------------------------
@@ -781,7 +752,6 @@ namespace PartyCritical
 		 */
         protected virtual void CheckDomainOrDestroy()
         {
-            Destroy();
         }
 
         // -------------------------------------------
@@ -790,7 +760,14 @@ namespace PartyCritical
 		 */
         protected void PlayGame()
         {
-            Destroy();
+            if (MenuScreenController.Instance.AlphaAnimationNameStack != -1)
+            {
+                UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_LAYER_GENERIC_SCREEN, -1, new List<object> { ScreenController.ANIMATION_ALPHA, 0f, 1f, MenuScreenController.Instance.AlphaAnimationNameStack }, ScreenMenuMainView.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false, null);
+            }
+            else
+            {
+                UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN, ScreenMenuMainView.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false);
+            }
         }
 
         // -------------------------------------------
@@ -945,16 +922,22 @@ namespace PartyCritical
 #if ENABLE_WORLDSENSE || ENABLE_OCULUS || ENABLE_HTCVIVE
             if (m_runUpdate)
             {
-                Destroy();
-                if (MenuScreenController.Instance.MainCamera2D != null) MenuScreenController.Instance.MainCamera2D.SetActive(false);
-                if (MenuScreenController.Instance.VRComponents != null) MenuScreenController.Instance.VRComponents.SetActive(true);
-                if (MenuScreenController.Instance.AlphaAnimationNameStack != -1)
+                if (MenuScreenController.Instance.VRComponents != null)
                 {
-                    UIEventController.Instance.DelayUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_LAYER_GENERIC_SCREEN, 0.2f, -1, new List<object> { ScreenController.ANIMATION_ALPHA, 0f, 1f, MenuScreenController.Instance.AlphaAnimationNameStack }, ScreenMenuMainView.SCREEN_NAME, UIScreenTypePreviousAction.KEEP_CURRENT_SCREEN, false, null);
+                    if (MenuScreenController.Instance.MainCamera2D != null) MenuScreenController.Instance.MainCamera2D.SetActive(false);
+                    MenuScreenController.Instance.VRComponents.SetActive(true);
                 }
-                else
+                m_timerToVRMenus -= Time.deltaTime;
+                if (m_timerToVRMenus <= 0)
                 {
-                    UIEventController.Instance.DelayUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN, 0.2f, ScreenMenuMainView.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false);
+                    if (MenuScreenController.Instance.AlphaAnimationNameStack != -1)
+                    {
+                        UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_LAYER_GENERIC_SCREEN, -1, new List<object> { ScreenController.ANIMATION_ALPHA, 0f, 1f, MenuScreenController.Instance.AlphaAnimationNameStack }, ScreenMenuMainView.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false, null);
+                    }
+                    else
+                    {
+                        UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN, ScreenMenuMainView.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false);
+                    }
                 }
             }
 #else
@@ -974,23 +957,22 @@ namespace PartyCritical
                     {
                         if (MenuScreenController.Instance.VRComponents != null)
                         {
-                            Destroy();
-                            MenuScreenController.Instance.MainCamera2D.SetActive(false);
-                            MenuScreenController.Instance.VRComponents.SetActive(true);
-                            if (MenuScreenController.Instance.AlphaAnimationNameStack != -1)
-                            {
-                                UIEventController.Instance.DelayUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_LAYER_GENERIC_SCREEN, 0.2f, -1, new List<object> { ScreenController.ANIMATION_ALPHA, 0f, 1f, MenuScreenController.Instance.AlphaAnimationNameStack }, ScreenMenuMainView.SCREEN_NAME, UIScreenTypePreviousAction.KEEP_CURRENT_SCREEN, false, null);
-                            }
-                            else
-                            {
-                                UIEventController.Instance.DelayUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN, 0.2f, ScreenMenuMainView.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false);
-                            }
+                            MenuScreenController.Instance.MainCamera2D.SetActive(true);
+                            MenuScreenController.Instance.VRComponents.SetActive(false);
+                        }
+                        if (MenuScreenController.Instance.AlphaAnimationNameStack != -1)
+                        {
+                            UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_LAYER_GENERIC_SCREEN, -1, new List<object> { ScreenController.ANIMATION_ALPHA, 0f, 1f, MenuScreenController.Instance.AlphaAnimationNameStack }, ScreenMenuMainView.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false, null);
+                        }
+                        else
+                        {
+                            UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN, ScreenMenuMainView.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false);
                         }
                     }
                 }
             }
 #endif
-        }
+                    }
 
         // -------------------------------------------
         /* 
