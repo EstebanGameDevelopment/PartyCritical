@@ -366,7 +366,7 @@ namespace PartyCritical
             }
 #elif ENABLE_HTCVIVE
             m_enableVR = true;
-            CameraLocal.gameObject.SetActive(false);
+            if (CameraLocal != null) CameraLocal.gameObject.SetActive(false);
             if (OVRPlayer != null) OVRPlayer.SetActive(true);
             this.GetComponent<Rigidbody>().useGravity = false;
             this.GetComponent<Rigidbody>().isKinematic = true;
@@ -1092,6 +1092,43 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+         * CheckKeyInventoryTriggered
+         */
+        protected virtual bool CheckKeyInventoryTriggered(bool _keyEventUpToActivateInventory)
+        {
+            return _keyEventUpToActivateInventory 
+#if ENABLE_OCULUS
+                || KeysEventInputController.Instance.GetAppButtonDownOculusController() || KeysEventInputController.Instance.GetActionCurrentStateOculusController();
+#elif ENABLE_HTCVIVE
+                || KeysEventInputController.Instance.GetAppDownHTCViveController() || KeysEventInputController.Instance.GetActionCurrentStateHTCViveController();
+#elif ENABLE_WORLDSENSE
+                || KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false) || KeysEventInputController.Instance.GetActionCurrentStateDaydreamController();
+#else
+                || KeysEventInputController.Instance.GetActionCurrentStateDefaultController();
+#endif
+        }
+
+        // -------------------------------------------
+        /* 
+         * CheckKeyPauseTriggered
+         */
+        protected virtual bool CheckKeyPauseTriggered()
+        {
+            return
+#if ENABLE_OCULUS
+                    KeysEventInputController.Instance.GetAppButtonDownOculusController(null, false) || KeysEventInputController.Instance.GetActionCurrentStateOculusController();
+#elif ENABLE_HTCVIVE
+                    KeysEventInputController.Instance.GetAppDownHTCViveController(null, false) || KeysEventInputController.Instance.GetActionCurrentStateHTCViveController();
+#elif ENABLE_WORLDSENSE
+                    KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false, false);
+#else
+                    KeysEventInputController.Instance.GetActionCurrentStateDefaultController();
+
+#endif
+        }
+
+        // -------------------------------------------
+        /* 
          * UpdateLogicTeleportInventory
          */
         protected virtual void UpdateLogicTeleportInventory(bool _openInventory = true)
@@ -1206,17 +1243,7 @@ namespace PartyCritical
             }
 #endif
 
-            if (keyEventUpToActivateInventory
-#if ENABLE_OCULUS
-                || KeysEventInputController.Instance.GetAppButtonDownOculusController() || KeysEventInputController.Instance.GetActionCurrentStateOculusController()
-#elif ENABLE_HTCVIVE
-                || KeysEventInputController.Instance.GetAppDownHTCViveController() || KeysEventInputController.Instance.GetActionCurrentStateHTCViveController()
-#elif ENABLE_WORLDSENSE
-                || KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false) || KeysEventInputController.Instance.GetActionCurrentStateDaydreamController()
-#else
-                || KeysEventInputController.Instance.GetActionCurrentStateDefaultController()
-#endif
-                )
+            if (CheckKeyInventoryTriggered(keyEventUpToActivateInventory))
             {
                 m_timeoutPressed += Time.deltaTime;
 
@@ -1231,17 +1258,7 @@ namespace PartyCritical
                 }
             }
 
-            if (false
-#if ENABLE_OCULUS
-                || KeysEventInputController.Instance.GetAppButtonDownOculusController(null, false) || KeysEventInputController.Instance.GetActionCurrentStateOculusController()
-#elif ENABLE_HTCVIVE
-                || KeysEventInputController.Instance.GetAppDownHTCViveController(null, false) || KeysEventInputController.Instance.GetActionCurrentStateHTCViveController()
-#elif ENABLE_WORLDSENSE
-                || KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false, false)
-#else
-                || KeysEventInputController.Instance.GetActionCurrentStateDefaultController()
-#endif
-                )
+            if (CheckKeyPauseTriggered())
             {
                 if (_openInventory)
                 {
