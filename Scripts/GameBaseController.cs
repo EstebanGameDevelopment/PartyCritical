@@ -372,6 +372,7 @@ namespace PartyCritical
             base.Destroy();
 
             NetworkEventController.Instance.Destroy();
+            KeysEventInputController.Instance.Destroy();
 
             NetworkEventController.Instance.NetworkEvent -= OnNetworkEvent;
 			BasicSystemEventController.Instance.BasicSystemEvent -= OnBasicSystemEvent;
