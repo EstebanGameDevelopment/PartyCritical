@@ -451,6 +451,7 @@ namespace PartyCritical
                 {
                     m_runUpdate = true;
                     m_timerToVRMenus = SPLASH_TIME_DELAY;
+                    CheckDomainOrDestroy();
                 }
             }
         }

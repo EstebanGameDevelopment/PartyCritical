@@ -1327,6 +1327,8 @@ namespace PartyCritical
             SceneManager.LoadScene("OculusMenus6DOF");
 #elif ENABLE_HTCVIVE
             SceneManager.LoadScene("HTCMenus6DOF");
+#elif ENABLE_WORLDSENSE
+            SceneManager.LoadScene("WorldMenus6DOF");
 #else
             SceneManager.LoadScene("Menus6DOF");
 #endif
