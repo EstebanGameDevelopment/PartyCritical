@@ -95,8 +95,8 @@ namespace PartyCritical
         protected bool m_teleportAvailable = true;
         protected bool m_teleportEnabled = true;
 #else
-        protected bool m_teleportAvailable = false;
-        protected bool m_teleportEnabled = false;
+        protected bool m_teleportAvailable = true;
+        protected bool m_teleportEnabled = true;
 #endif
 
         protected Vector3 m_shiftCameraFromOrigin = Vector3.zero;
@@ -198,10 +198,10 @@ namespace PartyCritical
         public virtual float CAMERA_SHIFT_HEIGHT_WORLDSENSE // YES, IT'S USED
         {
             get {
-#if ENABLE_HTCVIVE
-                return 1.8f;
+#if ENABLE_HTCVIVE && !UNITY_EDITOR
+                return 1.7f;
 #else
-                return -1.5f;
+                return -1.7f;
 #endif
             }
         }
@@ -268,9 +268,9 @@ namespace PartyCritical
         protected virtual void InitialitzeHMDHeight()
         {
 #if ENABLE_OCULUS
-            this.gameObject.GetComponentInChildren<OVRCameraRig>().gameObject.transform.position = -new Vector3(0, 3*(CAMERA_SHIFT_HEIGHT_WORLDSENSE/10), 0);
+            this.gameObject.GetComponentInChildren<OVRCameraRig>().gameObject.transform.position = -new Vector3(0, 5*(CAMERA_SHIFT_HEIGHT_WORLDSENSE/10), 0);
 #elif ENABLE_HTCVIVE
-            if (OVRPlayer != null) OVRPlayer.transform.position = -new Vector3(0, 6 * (CAMERA_SHIFT_HEIGHT_WORLDSENSE / 10), 0);
+            if (OVRPlayer != null) OVRPlayer.transform.position = -new Vector3(0, 5 * (CAMERA_SHIFT_HEIGHT_WORLDSENSE / 10), 0);
 #endif
         }
 
@@ -2221,7 +2221,7 @@ namespace PartyCritical
             transform.position = centerLevel 
                                     + new Vector3(posWorld.x * ScaleMovementXZ, 0, posWorld.z * ScaleMovementXZ) 
                                     + m_shiftCameraFromOrigin;
-            Vector3 shiftToRecenter = -new Vector3(CameraLocal.transform.localPosition.x, CAMERA_SHIFT_HEIGHT_WORLDSENSE - (posWorld.y * ScaleMovementY), CameraLocal.transform.localPosition.z);
+            Vector3 shiftToRecenter = -new Vector3(CameraLocal.transform.localPosition.x, 0.3f + CAMERA_SHIFT_HEIGHT_WORLDSENSE - (posWorld.y * ScaleMovementY), CameraLocal.transform.localPosition.z);
             CameraLocal.transform.parent.localPosition = shiftToRecenter;
 #else
             if (!DirectorMode)
@@ -2298,7 +2298,7 @@ namespace PartyCritical
             transform.position = centerLevel 
                                     + new Vector3(posWorld.x * ScaleMovementXZ, 0, posWorld.z * ScaleMovementXZ) 
                                     + m_shiftCameraFromOrigin;
-            Vector3 shiftToRecenter = -new Vector3(CenterEyeAnchor.transform.localPosition.x, CAMERA_SHIFT_HEIGHT_WORLDSENSE - (posWorld.y * ScaleMovementY), CenterEyeAnchor.transform.localPosition.z);
+            Vector3 shiftToRecenter = -new Vector3(CenterEyeAnchor.transform.localPosition.x, 0.25f + CAMERA_SHIFT_HEIGHT_WORLDSENSE - (posWorld.y * ScaleMovementY), CenterEyeAnchor.transform.localPosition.z);
             CenterEyeAnchor.transform.parent.localPosition = shiftToRecenter;
 
             return true;
