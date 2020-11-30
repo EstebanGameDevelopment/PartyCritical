@@ -1189,6 +1189,8 @@ namespace PartyCritical
                         m_timeoutToTeleport = 0;
                     }
                 }
+#endif
+#if ENABLE_HTCVIVE
                 if (KeysEventInputController.Instance.GetAppDownHTCViveController())
                 {
                     m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
