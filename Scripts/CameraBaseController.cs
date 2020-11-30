@@ -268,7 +268,7 @@ namespace PartyCritical
         protected virtual void InitialitzeHMDHeight()
         {
 #if ENABLE_OCULUS
-            this.gameObject.GetComponentInChildren<OVRCameraRig>().gameObject.transform.position = -new Vector3(0, 6*(CAMERA_SHIFT_HEIGHT_WORLDSENSE/10), 0);
+            this.gameObject.GetComponentInChildren<OVRCameraRig>().gameObject.transform.position = -new Vector3(0, 3*(CAMERA_SHIFT_HEIGHT_WORLDSENSE/10), 0);
 #elif ENABLE_HTCVIVE
             if (OVRPlayer != null) OVRPlayer.transform.position = -new Vector3(0, 6 * (CAMERA_SHIFT_HEIGHT_WORLDSENSE / 10), 0);
 #endif
