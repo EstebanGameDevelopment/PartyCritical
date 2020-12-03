@@ -95,8 +95,8 @@ namespace PartyCritical
         protected bool m_teleportAvailable = true;
         protected bool m_teleportEnabled = true;
 #else
-        protected bool m_teleportAvailable = true;
-        protected bool m_teleportEnabled = true;
+        protected bool m_teleportAvailable = false;
+        protected bool m_teleportEnabled = false;
 #endif
 
         protected Vector3 m_shiftCameraFromOrigin = Vector3.zero;

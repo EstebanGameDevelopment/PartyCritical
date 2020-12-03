@@ -2096,7 +2096,15 @@ namespace PartyCritical
         {
             string initialData = "NPC" + m_globalCounterNPCs + "," + "NPC" + "," + NPCModelPrefab[_indexNPC] + "," + _position.x + "," + _position.y + "," + _position.z;
             m_globalCounterNPCs++;
-            YourNetworkTools.Instance.CreateLocalNetworkObject(NPCPrefab[0].name, initialData, true);
+            if (!IsSinglePlayer)
+            {
+                YourNetworkTools.Instance.CreateLocalNetworkObject(NPCPrefab[0].name, initialData, true);
+            }
+            else
+            {
+                GameObject newNPC = Instantiate(NPCPrefab[0]);
+                newNPC.GetComponent<IGameNetworkActor>().Initialize(initialData);
+            }
             return true;
         }
 
