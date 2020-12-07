@@ -659,6 +659,27 @@ namespace PartyCritical
 #endif
         }
 
+
+        // -------------------------------------------
+        /* 
+		 * CheckDisableInteractionOnNonVR
+		 */
+        protected virtual void CheckDisableInteractionOnNonVR(bool _interaction)
+        {
+#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE && !ENABLE_HTCVIVE
+            if (!m_directorMode)
+            {
+                if (!CardboardLoaderVR.Instance.LoadEnableCardboard())
+                {
+                    KeysEventInputController.Instance.EnableInteractions = _interaction;
+                    KeysEventInputController.Instance.EnableActionButton = _interaction;
+                    BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION, false);
+                    UIEventController.Instance.DispatchUIEvent(InteractionController.EVENT_INTERACTIONCONTROLLER_ENABLE_INTERACTION, false);
+                }
+            }
+#endif
+        }
+
         // -------------------------------------------
         /* 
 		 * ProcessCustomUIScreenEvent
@@ -732,18 +753,7 @@ namespace PartyCritical
                 {
                     UIEventController.Instance.DispatchUIEvent(ScreenCreateRoomView.EVENT_SCREENCREATEROOM_CREATE_RANDOM_NAME);
                 }
-#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE && !ENABLE_HTCVIVE
-                if (!m_directorMode)
-                {
-                    if (!CardboardLoaderVR.Instance.LoadEnableCardboard())
-                    {
-                        KeysEventInputController.Instance.EnableInteractions = false;
-                        KeysEventInputController.Instance.EnableActionButton = false;
-                        BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION, false);
-                        UIEventController.Instance.DispatchUIEvent(InteractionController.EVENT_INTERACTIONCONTROLLER_ENABLE_INTERACTION, false);
-                    }
-                }
-#endif
+                CheckDisableInteractionOnNonVR(false);
             }
 
             // INFORMATION SCREEN
@@ -784,18 +794,7 @@ namespace PartyCritical
                 YourVRUIScreenController.Instance.CreateScreenLinkedToCamera(GetScreenPrefabByName((string)_list[indexToCheck]), pages, 1.5f, -1, false, scaleScreen, previousAction, 0);
                 // AUTO-DESTROY THE POP UP WHEN YOU ARE NOT INTERESTED TO OFFER INTERACTION
                 // UIEventController.Instance.DelayUIEvent(ScreenController.EVENT_FORCE_TRIGGER_OK_BUTTON, 5);
-#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE && !ENABLE_HTCVIVE
-                if (!m_directorMode)
-                {
-                    if (!CardboardLoaderVR.Instance.LoadEnableCardboard())
-                    {
-                        KeysEventInputController.Instance.EnableInteractions = false;
-                        KeysEventInputController.Instance.EnableActionButton = false;
-                        BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION, false);
-                        UIEventController.Instance.DispatchUIEvent(InteractionController.EVENT_INTERACTIONCONTROLLER_ENABLE_INTERACTION, false);
-                    }
-                }
-#endif
+                CheckDisableInteractionOnNonVR(false);
             }
             if (_nameEvent == UIEventController.EVENT_SCREENMANAGER_LOAD_NEW_SCENE)
             {
