@@ -709,7 +709,7 @@ namespace PartyCritical
         /* 
          * CheckRaycastCollisionPoint
          */
-        public Vector3 CheckRaycastCollisionPoint(params string[] _layers)
+        public virtual Vector3 CheckRaycastCollisionPoint(params string[] _layers)
         {
 #if ENABLE_YOURVRUI
             Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
