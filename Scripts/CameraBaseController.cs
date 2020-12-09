@@ -978,8 +978,17 @@ namespace PartyCritical
             if ((m_armModel == null) && (m_laserPointer == null))
             {
 #if ENABLE_WORLDSENSE
-                if (GameObject.FindObjectOfType<GvrArmModel>() != null) m_armModel = GameObject.FindObjectOfType<GvrArmModel>().gameObject;
-                if (GameObject.FindObjectOfType<GvrControllerVisual>() != null) m_laserPointer = GameObject.FindObjectOfType<GvrControllerVisual>().gameObject;
+                WorldsenseHandController deviceController = GameObject.FindObjectOfType<WorldsenseHandController>();
+                if (deviceController == null)
+                {
+                    if (GameObject.FindObjectOfType<GvrArmModel>() != null) m_armModel = GameObject.FindObjectOfType<GvrArmModel>().gameObject;
+                    if (GameObject.FindObjectOfType<GvrControllerVisual>() != null) m_laserPointer = GameObject.FindObjectOfType<GvrControllerVisual>().gameObject;
+                }
+                else
+                {
+                    m_armModel = deviceController.ControlledObject.gameObject;
+                    m_laserPointer = deviceController.ControlledObject.gameObject;
+                }
 #elif ENABLE_HTCVIVE
                 HTCHandController deviceController = GameObject.FindObjectOfType<HTCHandController>();
                 if (deviceController != null)
@@ -1034,7 +1043,15 @@ namespace PartyCritical
             {
                 m_originLaser = m_laserPointer.transform.position;
 #if ENABLE_WORLDSENSE
-                m_forwardLaser = m_armModel.GetComponent<GvrArmModel>().ControllerRotationFromHead * Vector3.forward;
+                WorldsenseHandController deviceController = GameObject.FindObjectOfType<WorldsenseHandController>();
+                if (deviceController == null)
+                {
+                    m_forwardLaser = m_armModel.GetComponent<GvrArmModel>().ControllerRotationFromHead * Vector3.forward;
+                }
+                else
+                {
+                    m_forwardLaser = m_laserPointer.transform.forward;
+                }
 #elif ENABLE_OCULUS
                 m_forwardLaser = m_laserPointer.transform.forward;
 #elif ENABLE_HTCVIVE
