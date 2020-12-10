@@ -680,7 +680,7 @@ namespace PartyCritical
         /* 
          * CheckRaycastAgainst
          */
-        public GameObject CheckRaycastAgainst(params string[] _layers)
+        public virtual GameObject CheckRaycastAgainst(params string[] _layers)
         {
 #if ENABLE_YOURVRUI
             Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
