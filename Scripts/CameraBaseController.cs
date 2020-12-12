@@ -1521,7 +1521,7 @@ namespace PartyCritical
                 m_timeoutToMove = 0;
 #endif
                 if (m_enabledCameraInput)
-                {                    
+                {
                     UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_DOWN);
                     SetAMarkerSignal();
                 }
@@ -1988,8 +1988,9 @@ namespace PartyCritical
                 if (!DirectorMode)
                 {
                     GameObject collidedObjectCasting = CheckRaycastAgainst();
+                    GameObject targetToReportIfFound = (GameObject)_list[0];
 
-                    if (collidedObjectCasting != null)
+                    if ((collidedObjectCasting != null) && (collidedObjectCasting == targetToReportIfFound))
                     {
                         GameObject targetToFollow = YourVRUIScreenController.Instance.GameCamera.gameObject;
 
