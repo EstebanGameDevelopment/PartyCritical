@@ -81,6 +81,8 @@ namespace PartyCritical
         protected float m_timeoutToMove = 0;
         protected float m_timeoutToTeleport = 0;
         protected bool m_hasBeenTeleported = false;
+        protected bool m_actionTriggerDetected = false;
+        protected bool m_shotTriggerDetected = false;
 
         protected bool m_enableFreeMovementCamera = false;
 
@@ -1273,9 +1275,9 @@ namespace PartyCritical
 #if !ENABLE_OCULUS && !ENABLE_WORLDSENSE && !ENABLE_HTCVIVE
                     m_timeoutToMove += Time.deltaTime;
 #endif
-                    RunMoveOnTimeoutPressed();
                 }
             }
+            RunMoveOnTimeoutPressed();
 
             if (CheckKeyPauseTriggered())
             {
@@ -1464,9 +1466,11 @@ namespace PartyCritical
                 || KeysEventInputController.Instance.GetActionHTCViveController(false)
 #else
                 || KeysEventInputController.Instance.GetActionDefaultController(false)
+                || m_shotTriggerDetected
 #endif
                 )
             {
+                m_shotTriggerDetected = false;
                 ActionShootPlayer();
 
                 m_timeoutPressed = 0;
@@ -1513,9 +1517,11 @@ namespace PartyCritical
                 || (KeysEventInputController.Instance.GetActionDaydreamController(true))
 #else
                 || KeysEventInputController.Instance.GetActionDefaultController(true)
+                || m_actionTriggerDetected
 #endif
                  )
             {
+                m_actionTriggerDetected = false;
                 m_timeoutPressed = 0;
 #if !ENABLE_OCULUS && !ENABLE_WORLDSENSE && !ENABLE_HTCVIVE
                 m_timeoutToMove = 0;
@@ -2157,7 +2163,10 @@ namespace PartyCritical
 
             if (_nameEvent == EVENT_CAMERACONTROLLER_OPEN_INVENTORY)
             {
-                OpenInventory(false);
+                if (GameObject.FindObjectOfType<ScreenInventoryView>() == null)
+                {
+                    UIEventController.Instance.DispatchUIEvent(GameLevelData.EVENT_GAMELEVELDATA_OPEN_INVENTORY);
+                }
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_START_MOVING)
             {
@@ -2165,6 +2174,8 @@ namespace PartyCritical
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN)
             {
+                m_actionTriggerDetected = true;
+                m_shotTriggerDetected = true;
                 UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_DOWN);
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_GENERIC_ACTION_UP)
