@@ -1115,13 +1115,17 @@ namespace PartyCritical
          */
         protected virtual bool CheckKeyInventoryTriggered(bool _keyEventUpToActivateInventory)
         {
-            return _keyEventUpToActivateInventory 
+            return _keyEventUpToActivateInventory
 #if ENABLE_OCULUS
-                || KeysEventInputController.Instance.GetAppButtonDownOculusController() || KeysEventInputController.Instance.GetActionCurrentStateOculusController();
+#if ENABLE_QUEST
+                || KeysEventInputController.Instance.GetAppButtonDownOculusController()
+#else
+                || KeysEventInputController.Instance.GetActionCurrentStateOculusController();
+#endif
 #elif ENABLE_HTCVIVE
-                || KeysEventInputController.Instance.GetAppDownHTCViveController() || KeysEventInputController.Instance.GetActionCurrentStateHTCViveController();
+                || KeysEventInputController.Instance.GetAppDownHTCViveController()
 #elif ENABLE_WORLDSENSE
-                || KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false) || KeysEventInputController.Instance.GetActionCurrentStateDaydreamController();
+                || KeysEventInputController.Instance.GetActionCurrentStateDaydreamController();
 #else
                 || KeysEventInputController.Instance.GetActionCurrentStateDefaultController();
 #endif
@@ -1168,48 +1172,55 @@ namespace PartyCritical
                         }
                     }
                 }
+
 #if ENABLE_WORLDSENSE
                 if (m_teleportEnabled)
                 {
-                    if (KeysEventInputController.Instance.GetAppButtonDowDaydreamController())
+                    if (KeysEventInputController.Instance.GetAppButtonDowDaydreamController(true, false))
                     {
-                        m_timeoutToTeleport = 0.01f;
+                        m_timeoutToTeleport += Time.deltaTime;
                     }
-                }
-#endif
-#if ENABLE_OCULUS && (ONLY_REMOTE_CONNECTION || TELEPORT_INDIVIDUAL)
-                if (m_teleportEnabled)
-                {
-                    if (KeysEventInputController.Instance.GetHandTriggerOculusController())
-                    {
-                        m_timeoutToTeleport = TIMEOUT_TO_TELEPORT + 1;
-                    }
-                    if (!KeysEventInputController.Instance.GetHandTriggerOculusController())
+                    if (!KeysEventInputController.Instance.GetAppButtonDowDaydreamController(true, false))
                     {
                         m_timeoutToTeleport = 0;
                     }
                 }
 #endif
 #if ENABLE_OCULUS
+                if (m_teleportEnabled)
+                {
+                    if (KeysEventInputController.Instance.GetHandTriggerOculusController())
+                    {
+#if ENABLE_QUEST
+                        m_timeoutToTeleport = TIMEOUT_TO_TELEPORT + 1;
+#else
+                        m_timeoutToTeleport += Time.deltaTime;
+#endif
+                    }
+                    if (!KeysEventInputController.Instance.GetHandTriggerOculusController())
+                    {
+                        m_timeoutToTeleport = 0;
+                    }
+                }
+#if ENABLE_QUEST
                 if (KeysEventInputController.Instance.GetAppButtonDownOculusController())
                 {
                     m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
                 }
 #endif
-#if ENABLE_HTCVIVE && (ONLY_REMOTE_CONNECTION || TELEPORT_INDIVIDUAL)
+#endif
+#if ENABLE_HTCVIVE
                 if (m_teleportEnabled)
                 {
                     if (KeysEventInputController.Instance.GetMenuHTCViveController())
                     {
-                        m_timeoutToTeleport = TIMEOUT_TO_TELEPORT + 1;
+                        m_timeoutToTeleport += Time.deltaTime;
                     }
                     if (!KeysEventInputController.Instance.GetMenuHTCViveController())
                     {
                         m_timeoutToTeleport = 0;
                     }
                 }
-#endif
-#if ENABLE_HTCVIVE
                 if (KeysEventInputController.Instance.GetAppDownHTCViveController())
                 {
                     m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
@@ -1225,27 +1236,6 @@ namespace PartyCritical
 
             bool activateInventory = true;
 
-#if ENABLE_WORLDSENSE
-            if (KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false))
-            {
-                if (m_hasBeenTeleported)
-                {
-                    m_hasBeenTeleported = false;
-                }
-                else
-                {
-                    if (m_teleportAvailable && m_teleportEnabled)
-                    {
-                        activateInventory = (m_timeoutToTeleport < TIMEOUT_TO_TELEPORT);
-                    }
-                    if (activateInventory)
-                    {
-                        m_timeoutToTeleport = 0;
-                        m_timeoutPressed = TIMEOUT_TO_INVENTORY;
-                    }
-                }
-            }
-#endif
 
             bool keyEventUpToActivateInventory = false;
 #if UNITY_EDITOR
@@ -1303,7 +1293,7 @@ namespace PartyCritical
             if (m_hasBeenTeleported)
             {
 #if ENABLE_WORLDSENSE
-                if (KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false))
+                if (!KeysEventInputController.Instance.GetAppButtonDowDaydreamController(true, false))
                 {
                     BasicSystemEventController.Instance.DispatchBasicSystemEvent(TeleportController.EVENT_TELEPORTCONTROLLER_KEY_RELEASED);
                 }
