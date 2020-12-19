@@ -1123,7 +1123,7 @@ namespace PartyCritical
                 || KeysEventInputController.Instance.GetActionCurrentStateOculusController();
 #endif
 #elif ENABLE_HTCVIVE
-                || KeysEventInputController.Instance.GetAppDownHTCViveController()
+                || KeysEventInputController.Instance.GetAppDownHTCViveController();
 #elif ENABLE_WORLDSENSE
                 || KeysEventInputController.Instance.GetActionCurrentStateDaydreamController();
 #else
@@ -2153,10 +2153,12 @@ namespace PartyCritical
 
             if (_nameEvent == EVENT_CAMERACONTROLLER_OPEN_INVENTORY)
             {
+#if ENABLE_MULTIPLAYER_TIMELINE
                 if (GameObject.FindObjectOfType<ScreenInventoryView>() == null)
                 {
                     UIEventController.Instance.DispatchUIEvent(GameLevelData.EVENT_GAMELEVELDATA_OPEN_INVENTORY);
                 }
+#endif
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_START_MOVING)
             {
