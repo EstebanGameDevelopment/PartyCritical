@@ -1118,7 +1118,7 @@ namespace PartyCritical
             return _keyEventUpToActivateInventory
 #if ENABLE_OCULUS
 #if ENABLE_QUEST
-                || KeysEventInputController.Instance.GetAppButtonDownOculusController()
+                || KeysEventInputController.Instance.GetAppButtonDownOculusController();
 #else
                 || KeysEventInputController.Instance.GetActionCurrentStateOculusController();
 #endif
