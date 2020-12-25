@@ -37,6 +37,7 @@ namespace PartyCritical
         public const string EVENT_CAMERACONTROLLER_FIX_DIRECTOR_CAMERA      = "EVENT_CAMERACONTROLLER_FIX_DIRECTOR_CAMERA";
         public const string EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER     = "EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER";
         public const string EVENT_CAMERACONTROLLER_ACTIVATE_SKYBOX          = "EVENT_CAMERACONTROLLER_ACTIVATE_SKYBOX";
+        public const string EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA    = "EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA";
 
         public const string EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN      = "EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN";
         public const string EVENT_CAMERACONTROLLER_GENERIC_ACTION_UP        = "EVENT_CAMERACONTROLLER_GENERIC_ACTION_UP";
@@ -246,6 +247,10 @@ namespace PartyCritical
         public virtual float TIMEOUT_TO_TELEPORT
         {
             get { return 1; }
+        }
+        public virtual float ROTATE_LOCALCAMERA_VALUE
+        {
+            get { return 20; }
         }
         public Vector3 ShiftCameraFromOrigin
         {
@@ -1207,6 +1212,11 @@ namespace PartyCritical
                 {
                     m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
                 }
+#else
+                if (KeysEventInputController.Instance.GetActionCurrentStateOculusController())
+                {
+                    m_timeoutPressed += Time.deltaTime;
+                }
 #endif
 #endif
 #if ENABLE_HTCVIVE
@@ -2022,6 +2032,17 @@ namespace PartyCritical
                 }
                 m_enableFreeMovementCamera = (bool)_list[0];
             }
+            if (_nameEvent == EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA)
+            {
+                if ((bool)_list[0])
+                {
+                    this.transform.Rotate(new Vector3(0, ROTATE_LOCALCAMERA_VALUE, 0));
+                }
+                else
+                {
+                    this.transform.Rotate(new Vector3(0, -ROTATE_LOCALCAMERA_VALUE, 0));
+                }
+            }
 
 #if ENABLE_MULTIPLAYER_TIMELINE
             if (_nameEvent == GameLevelData.EVENT_GAMELEVELDATA_REQUEST_COLLISION_RAY)
@@ -2158,7 +2179,11 @@ namespace PartyCritical
                 {
                     UIEventController.Instance.DispatchUIEvent(GameLevelData.EVENT_GAMELEVELDATA_OPEN_INVENTORY);
                 }
+#else
+                m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
+                OpenInventory(false);
 #endif
+                
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_START_MOVING)
             {
@@ -2336,13 +2361,13 @@ namespace PartyCritical
         {
             if (UpdateLogicOculus())
             {
-                return;
+                // return;
             }
             else
             {
                 if (UpdateLogicHTC())
                 {
-                    return;
+                    // return;
                 }
                 else
                 {
@@ -2356,6 +2381,58 @@ namespace PartyCritical
                     LogicDaydream6DOF();
                 }
             }
+
+#if ENABLE_ROTATE_LOCALCAMERA
+            UpdateRotateCamera();
+#endif
+        }
+
+        protected bool m_hasBeenRotated = false;
+
+        // -------------------------------------------
+        /* 
+		 * UpdateRotateCamera
+		 */
+        protected virtual void UpdateRotateCamera()
+        {
+#if ENABLE_WORLDSENSE || ENABLE_OCULUS || ENABLE_HTCVIVE
+            bool considerPressedThumbstick = false;
+            float detectionDistance = 0.8f;
+#if ENABLE_HTCVIVE || ENABLE_WORLDSENSE || (ENABLE_OCULUS && !ENABLE_QUEST)
+            considerPressedThumbstick = true;
+            detectionDistance = 0.6f;
+#endif
+            Vector2 pressedVector = KeysEventInputController.Instance.GetVectorThumbstick(considerPressedThumbstick);
+            if (!m_hasBeenRotated)
+            {
+                if (Mathf.Abs(pressedVector.x) > detectionDistance)
+                {
+                    m_hasBeenRotated = true;
+                    if (pressedVector.x > 0)
+                    {
+                        this.transform.Rotate(new Vector3(0, ROTATE_LOCALCAMERA_VALUE, 0));
+                    }
+                    else
+                    {
+                        this.transform.Rotate(new Vector3(0, -ROTATE_LOCALCAMERA_VALUE, 0));
+                    }
+                }
+            }
+            else
+            {
+#if ENABLE_WORLDSENSE || ENABLE_HTCVIVE || (ENABLE_OCULUS && !ENABLE_QUEST)
+                if (pressedVector.x == 0)
+                {
+                    m_hasBeenRotated = false;
+                }
+#else
+            if (Mathf.Abs(pressedVector.x) < 0.2f)
+            {
+                m_hasBeenRotated = false;
+            }
+#endif
+            }
+#endif
         }
 
         // -------------------------------------------
