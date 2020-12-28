@@ -2141,7 +2141,17 @@ namespace PartyCritical
             if (applyTeleport)
             {
                 Vector3 shiftTeleport = Utilities.StringToVector3(_shift);
-                m_shiftCameraFromOrigin += new Vector3(shiftTeleport.x, 0, shiftTeleport.z);
+#if ENABLE_WORLDSENSE
+                Vector3 posWorld = Utilities.Clone(CameraLocal.transform.localPosition);
+#else
+                Vector3 posWorld = Utilities.Clone(CenterEyeAnchor.transform.localPosition);
+#endif
+                m_shiftCameraFromOrigin += new Vector3(shiftTeleport.x, 0, shiftTeleport.z) + new Vector3(posWorld.x * ScaleMovementXZ, 0, posWorld.z * ScaleMovementXZ);
+#if ENABLE_WORLDSENSE
+                CameraLocal.transform.localPosition = new Vector3(0, CameraLocal.transform.localPosition.y, 0);
+#else
+                CenterEyeAnchor.transform.localPosition = new Vector3(0, CenterEyeAnchor.transform.localPosition.y, 0);
+#endif
                 BasicSystemEventController.Instance.DispatchBasicSystemEvent(TeleportController.EVENT_TELEPORTCONTROLLER_COMPLETED);
                 // Debug.LogError("CameraBaseController::EVENT_TELEPORTCONTROLLER_TELEPORT::m_shiftCameraFromOrigin=" + m_shiftCameraFromOrigin.ToString());
             }
@@ -2266,16 +2276,11 @@ namespace PartyCritical
 
             Vector3 posWorld = Utilities.Clone(CameraLocal.transform.localPosition);
             Vector3 centerLevel = new Vector3(0, transform.position.y, 0);
+            Vector3 posRotatedWorld = Utilities.RotatePoint(new Vector2(posWorld.x * ScaleMovementXZ, posWorld.z * ScaleMovementXZ), Vector2.zero, -m_currentLocalCamRotation);
             transform.position = centerLevel 
-#if !ENABLE_ROTATE_LOCALCAMERA
-                                    + new Vector3(posWorld.x * ScaleMovementXZ, 0, posWorld.z * ScaleMovementXZ) 
-#endif
+                                    + new Vector3(posRotatedWorld.x, 0, posRotatedWorld.y)
                                     + m_shiftCameraFromOrigin;
-#if !ENABLE_ROTATE_LOCALCAMERA
             Vector3 shiftToRecenter = -new Vector3(CameraLocal.transform.localPosition.x, 0.3f + CAMERA_SHIFT_HEIGHT_WORLDSENSE - (posWorld.y * ScaleMovementY), CameraLocal.transform.localPosition.z);
-#else
-            Vector3 shiftToRecenter = -new Vector3(0, 0.3f + CAMERA_SHIFT_HEIGHT_WORLDSENSE - (posWorld.y * ScaleMovementY), 0);
-#endif
             CameraLocal.transform.parent.localPosition = shiftToRecenter;
 #else
             if (!DirectorMode)
@@ -2313,16 +2318,11 @@ namespace PartyCritical
             Vector3 centerLevel = new Vector3(0, transform.position.y, 0);
             m_shiftCameraFromOrigin += m_incrementJoystickTranslation;
             m_incrementJoystickTranslation = Vector3.zero;
+            Vector3 posRotatedWorld = Utilities.RotatePoint(new Vector2(posWorld.x * ScaleMovementXZ, posWorld.z * ScaleMovementXZ), Vector2.zero, -m_currentLocalCamRotation);
             transform.position = centerLevel
-#if !ENABLE_ROTATE_LOCALCAMERA
-                                    + new Vector3(posWorld.x * ScaleMovementXZ, 0, posWorld.z * ScaleMovementXZ) 
-#endif
+                                    + new Vector3(posRotatedWorld.x, 0, posRotatedWorld.y)
                                     + m_shiftCameraFromOrigin;
-#if !ENABLE_ROTATE_LOCALCAMERA
             Vector3 shiftToRecenter = -new Vector3(CenterEyeAnchor.transform.localPosition.x, CAMERA_SHIFT_HEIGHT_WORLDSENSE - (posWorld.y * ScaleMovementY), CenterEyeAnchor.transform.localPosition.z);
-#else
-            Vector3 shiftToRecenter = -new Vector3(0, CAMERA_SHIFT_HEIGHT_WORLDSENSE - (posWorld.y * ScaleMovementY), 0);
-#endif
             CenterEyeAnchor.transform.parent.localPosition = shiftToRecenter;
 
             return true;
@@ -2355,16 +2355,11 @@ namespace PartyCritical
             Vector3 centerLevel = new Vector3(0, transform.position.y, 0);
             m_shiftCameraFromOrigin += m_incrementJoystickTranslation;
             m_incrementJoystickTranslation = Vector3.zero;
+            Vector3 posRotatedWorld = Utilities.RotatePoint(new Vector2(posWorld.x * ScaleMovementXZ, posWorld.z * ScaleMovementXZ), Vector2.zero, -m_currentLocalCamRotation);
             transform.position = centerLevel 
-#if !ENABLE_ROTATE_LOCALCAMERA
-                                    + new Vector3(posWorld.x * ScaleMovementXZ, 0, posWorld.z * ScaleMovementXZ) 
-#endif
+                                    + new Vector3(posRotatedWorld.x, 0, posRotatedWorld.y)
                                     + m_shiftCameraFromOrigin;
-#if !ENABLE_ROTATE_LOCALCAMERA
             Vector3 shiftToRecenter = -new Vector3(CenterEyeAnchor.transform.localPosition.x, 0.25f + CAMERA_SHIFT_HEIGHT_WORLDSENSE - (posWorld.y * ScaleMovementY), CenterEyeAnchor.transform.localPosition.z);
-#else
-            Vector3 shiftToRecenter = -new Vector3(0, 0.25f + CAMERA_SHIFT_HEIGHT_WORLDSENSE - (posWorld.y * ScaleMovementY), 0);
-#endif
             CenterEyeAnchor.transform.parent.localPosition = shiftToRecenter;
 
             return true;
@@ -2408,6 +2403,7 @@ namespace PartyCritical
         }
 
         protected bool m_hasBeenRotated = false;
+        protected float m_currentLocalCamRotation = 0;
 
         // -------------------------------------------
         /* 
@@ -2430,12 +2426,14 @@ namespace PartyCritical
                     m_hasBeenRotated = true;
                     if (pressedVector.x > 0)
                     {
+                        m_currentLocalCamRotation += ROTATE_LOCALCAMERA_VALUE;
                         this.transform.Rotate(new Vector3(0, ROTATE_LOCALCAMERA_VALUE, 0));
                     }
                     else
                     {
+                        m_currentLocalCamRotation -= ROTATE_LOCALCAMERA_VALUE;
                         this.transform.Rotate(new Vector3(0, -ROTATE_LOCALCAMERA_VALUE, 0));
-                    }
+                    }                    
                 }
             }
             else
