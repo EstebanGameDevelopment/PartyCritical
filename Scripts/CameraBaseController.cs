@@ -26,21 +26,21 @@ namespace PartyCritical
         // ----------------------------------------------
         // EVENTS
         // ----------------------------------------------	
-        public const string EVENT_CAMERACONTROLLER_REQUEST_SELECTOR_DATA    = "EVENT_CAMERACONTROLLER_REQUEST_SELECTOR_DATA";
-        public const string EVENT_CAMERACONTROLLER_RESPONSE_SELECTOR_DATA   = "EVENT_CAMERACONTROLLER_RESPONSE_SELECTOR_DATA";
-        public const string EVENT_CAMERACONTROLLER_DATA_SHOTGUN             = "EVENT_CAMERACONTROLLER_DATA_SHOTGUN";
+        public const string EVENT_CAMERACONTROLLER_REQUEST_SELECTOR_DATA = "EVENT_CAMERACONTROLLER_REQUEST_SELECTOR_DATA";
+        public const string EVENT_CAMERACONTROLLER_RESPONSE_SELECTOR_DATA = "EVENT_CAMERACONTROLLER_RESPONSE_SELECTOR_DATA";
+        public const string EVENT_CAMERACONTROLLER_DATA_SHOTGUN = "EVENT_CAMERACONTROLLER_DATA_SHOTGUN";
         public const string EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION = "EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION";
-        public const string EVENT_GAMECAMERA_REAL_PLAYER_FORWARD            = "EVENT_GAMECAMERA_REAL_PLAYER_FORWARD";
-        public const string EVENT_CAMERACONTROLLER_OPEN_INVENTORY           = "EVENT_CAMERACONTROLLER_OPEN_INVENTORY";
-        public const string EVENT_CAMERACONTROLLER_START_MOVING             = "EVENT_CAMERACONTROLLER_START_MOVING";
-        public const string EVENT_CAMERACONTROLLER_STOP_MOVING              = "EVENT_CAMERACONTROLLER_STOP_MOVING";
-        public const string EVENT_CAMERACONTROLLER_FIX_DIRECTOR_CAMERA      = "EVENT_CAMERACONTROLLER_FIX_DIRECTOR_CAMERA";
-        public const string EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER     = "EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER";
-        public const string EVENT_CAMERACONTROLLER_ACTIVATE_SKYBOX          = "EVENT_CAMERACONTROLLER_ACTIVATE_SKYBOX";
-        public const string EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA    = "EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA";
+        public const string EVENT_GAMECAMERA_REAL_PLAYER_FORWARD = "EVENT_GAMECAMERA_REAL_PLAYER_FORWARD";
+        public const string EVENT_CAMERACONTROLLER_OPEN_INVENTORY = "EVENT_CAMERACONTROLLER_OPEN_INVENTORY";
+        public const string EVENT_CAMERACONTROLLER_START_MOVING = "EVENT_CAMERACONTROLLER_START_MOVING";
+        public const string EVENT_CAMERACONTROLLER_STOP_MOVING = "EVENT_CAMERACONTROLLER_STOP_MOVING";
+        public const string EVENT_CAMERACONTROLLER_FIX_DIRECTOR_CAMERA = "EVENT_CAMERACONTROLLER_FIX_DIRECTOR_CAMERA";
+        public const string EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER = "EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER";
+        public const string EVENT_CAMERACONTROLLER_ACTIVATE_SKYBOX = "EVENT_CAMERACONTROLLER_ACTIVATE_SKYBOX";
+        public const string EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA = "EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA";
 
-        public const string EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN      = "EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN";
-        public const string EVENT_CAMERACONTROLLER_GENERIC_ACTION_UP        = "EVENT_CAMERACONTROLLER_GENERIC_ACTION_UP";
+        public const string EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN = "EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN";
+        public const string EVENT_CAMERACONTROLLER_GENERIC_ACTION_UP = "EVENT_CAMERACONTROLLER_GENERIC_ACTION_UP";
 
         public const string MARKER_NAME = "MARKER";
 
@@ -134,7 +134,8 @@ namespace PartyCritical
         }
         public bool EnableGyroscope
         {
-            get {
+            get
+            {
 #if UNITY_EDITOR
                 return m_enableGyroscope;
 #else
@@ -200,7 +201,8 @@ namespace PartyCritical
         }
         public virtual float CAMERA_SHIFT_HEIGHT_WORLDSENSE // YES, IT'S USED
         {
-            get {
+            get
+            {
 #if ENABLE_HTCVIVE && !UNITY_EDITOR
                 return 1.7f;
 #else
@@ -223,7 +225,7 @@ namespace PartyCritical
         public virtual float PLAYER_DIRECTOR_SPEED
         {
             get { return 2; }
-        }        
+        }
         public virtual float TIMEOUT_TO_MOVE
         {
             get { return -1; }
@@ -460,7 +462,7 @@ namespace PartyCritical
                 if (!EnableARCore)
                 {
                     m_enableGyroscope = true;
-                }                    
+                }
                 m_enableVR = false;
 #if ENABLE_GOOGLE_ARCORE && !ENABLE_OCULUS && !ENABLE_HTCVIVE
                 if (this.gameObject.GetComponentInChildren<Skybox>() != null) this.gameObject.GetComponentInChildren<Skybox>().enabled = true;
@@ -560,11 +562,11 @@ namespace PartyCritical
                     if (m_enableFreeMovementCamera)
                     {
                         ignoreMovement = false;
-                    }                    
+                    }
                 }
             }
 #endif
-            
+
             if (m_isTouchMode || ignoreMovement)
             {
 
@@ -588,7 +590,7 @@ namespace PartyCritical
                 if (!DirectorMode)
                 {
                     increment.y = 0;
-                }                    
+                }
                 transform.GetComponent<Rigidbody>().MovePosition(transform.position + increment);
             }
         }
@@ -947,7 +949,7 @@ namespace PartyCritical
         {
 #if (UNITY_EDITOR || (!ENABLE_OCULUS && !ENABLE_WORLDSENSE && !ENABLE_HTCVIVE))
             if (m_timeoutToMove >= TIMEOUT_TO_MOVE)
-			{
+            {
                 bool allowMovement = !EnableARCore;
 #if UNITY_EDITOR
                 allowMovement = true;
@@ -955,7 +957,7 @@ namespace PartyCritical
                 Vector3 normalForward = CameraLocal.forward.normalized;
                 normalForward = new Vector3(normalForward.x, 0, normalForward.z);
                 if (allowMovement)
-				{
+                {
                     transform.GetComponent<Rigidbody>().MovePosition(transform.position + normalForward * PLAYER_SPEED * Time.deltaTime);
                 }
                 else
@@ -2183,7 +2185,7 @@ namespace PartyCritical
                 m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
                 OpenInventory(false);
 #endif
-                
+
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_START_MOVING)
             {
@@ -2265,9 +2267,15 @@ namespace PartyCritical
             Vector3 posWorld = Utilities.Clone(CameraLocal.transform.localPosition);
             Vector3 centerLevel = new Vector3(0, transform.position.y, 0);
             transform.position = centerLevel 
+#if !ENABLE_ROTATE_LOCALCAMERA
                                     + new Vector3(posWorld.x * ScaleMovementXZ, 0, posWorld.z * ScaleMovementXZ) 
+#endif
                                     + m_shiftCameraFromOrigin;
+#if !ENABLE_ROTATE_LOCALCAMERA
             Vector3 shiftToRecenter = -new Vector3(CameraLocal.transform.localPosition.x, 0.3f + CAMERA_SHIFT_HEIGHT_WORLDSENSE - (posWorld.y * ScaleMovementY), CameraLocal.transform.localPosition.z);
+#else
+            Vector3 shiftToRecenter = -new Vector3(0, 0.3f + CAMERA_SHIFT_HEIGHT_WORLDSENSE - (posWorld.y * ScaleMovementY), 0);
+#endif
             CameraLocal.transform.parent.localPosition = shiftToRecenter;
 #else
             if (!DirectorMode)
@@ -2305,10 +2313,16 @@ namespace PartyCritical
             Vector3 centerLevel = new Vector3(0, transform.position.y, 0);
             m_shiftCameraFromOrigin += m_incrementJoystickTranslation;
             m_incrementJoystickTranslation = Vector3.zero;
-            transform.position = centerLevel 
+            transform.position = centerLevel
+#if !ENABLE_ROTATE_LOCALCAMERA
                                     + new Vector3(posWorld.x * ScaleMovementXZ, 0, posWorld.z * ScaleMovementXZ) 
+#endif
                                     + m_shiftCameraFromOrigin;
+#if !ENABLE_ROTATE_LOCALCAMERA
             Vector3 shiftToRecenter = -new Vector3(CenterEyeAnchor.transform.localPosition.x, CAMERA_SHIFT_HEIGHT_WORLDSENSE - (posWorld.y * ScaleMovementY), CenterEyeAnchor.transform.localPosition.z);
+#else
+            Vector3 shiftToRecenter = -new Vector3(0, CAMERA_SHIFT_HEIGHT_WORLDSENSE - (posWorld.y * ScaleMovementY), 0);
+#endif
             CenterEyeAnchor.transform.parent.localPosition = shiftToRecenter;
 
             return true;
@@ -2342,9 +2356,15 @@ namespace PartyCritical
             m_shiftCameraFromOrigin += m_incrementJoystickTranslation;
             m_incrementJoystickTranslation = Vector3.zero;
             transform.position = centerLevel 
+#if !ENABLE_ROTATE_LOCALCAMERA
                                     + new Vector3(posWorld.x * ScaleMovementXZ, 0, posWorld.z * ScaleMovementXZ) 
+#endif
                                     + m_shiftCameraFromOrigin;
+#if !ENABLE_ROTATE_LOCALCAMERA
             Vector3 shiftToRecenter = -new Vector3(CenterEyeAnchor.transform.localPosition.x, 0.25f + CAMERA_SHIFT_HEIGHT_WORLDSENSE - (posWorld.y * ScaleMovementY), CenterEyeAnchor.transform.localPosition.z);
+#else
+            Vector3 shiftToRecenter = -new Vector3(0, 0.25f + CAMERA_SHIFT_HEIGHT_WORLDSENSE - (posWorld.y * ScaleMovementY), 0);
+#endif
             CenterEyeAnchor.transform.parent.localPosition = shiftToRecenter;
 
             return true;
