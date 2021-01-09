@@ -2081,6 +2081,10 @@ namespace PartyCritical
             {
                 GameObject newZombie = Instantiate(EnemyPrefab[0]);
                 newZombie.GetComponent<IGameNetworkActor>().Initialize(initialData);
+                if (newZombie.GetComponent<ActorNetwork>() != null)
+                {
+                    newZombie.GetComponent<ActorNetwork>().SetSinglePlayerNetworkID(0, YourNetworkTools.Instance.IncreaseInstanceCounter());
+                }
             }
             return true;
         }
