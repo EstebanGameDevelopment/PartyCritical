@@ -279,6 +279,11 @@ namespace PartyCritical
             }            
 
             m_isSinglePlayer = (m_totalNumberPlayers == 1);
+
+#if IGNORE_SINGLEPLAYER
+            m_isSinglePlayer = false;
+#endif
+
 #if ENABLE_CONFUSION
             m_isSinglePlayer = true;
             m_totalNumberPlayers = 1;
