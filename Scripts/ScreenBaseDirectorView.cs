@@ -119,7 +119,7 @@ namespace PartyCritical
                 m_stopFixCamera = m_container.Find("FixCamera/Stop").gameObject;
                 if (m_container.Find("FixCamera/Tip") != null)
                 {
-#if UNITY_WEBGL
+#if UNITY_WEBGL || UNITY_STANDALONE
                     m_container.Find("FixCamera/Tip").gameObject.SetActive(true);
 #else
                     m_container.Find("FixCamera/Tip").gameObject.SetActive(false);
@@ -286,7 +286,7 @@ namespace PartyCritical
 		*/
         private void Update()
         {
-#if UNITY_WEBGL
+#if UNITY_WEBGL || UNITY_STANDALONE
             if (Input.GetKeyDown(KeyCode.F))
             {
                 FixCameraChanged();

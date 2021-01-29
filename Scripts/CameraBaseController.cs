@@ -550,7 +550,7 @@ namespace PartyCritical
         protected virtual void MoveCamera()
         {
             bool ignoreMovement = true;
-#if UNITY_EDITOR || UNITY_WEBGL
+#if UNITY_EDITOR || UNITY_WEBGL || UNITY_STANDALONE
             if (!DirectorMode)
             {
                 ignoreMovement = false;
@@ -1592,7 +1592,7 @@ namespace PartyCritical
             bool shouldConsiderMovement = true;
             if (m_enableFreeMovementCamera)
             {
-#if !UNITY_EDITOR && !UNITY_WEBGL
+#if !UNITY_EDITOR && !UNITY_WEBGL && !UNITY_STANDALONE
                 // PINCH ZOOM
                 if (Input.touchCount == 2)
                 {
@@ -1654,7 +1654,7 @@ namespace PartyCritical
                     }
                 }
 
-#if UNITY_WEBGL
+#if UNITY_WEBGL || UNITY_STANDALONE
                 if (shouldConsiderMovement) MoveCamera();
 #endif
             }
@@ -2504,7 +2504,7 @@ namespace PartyCritical
                         return;
                     }
 
-#if (UNITY_EDITOR && !ENABLE_OCULUS && !ENABLE_HTCVIVE) || UNITY_WEBGL
+#if (UNITY_EDITOR && !ENABLE_OCULUS && !ENABLE_HTCVIVE) || UNITY_WEBGL || UNITY_STANDALONE
                     MoveCamera();
                     RotateCamera();
 #else

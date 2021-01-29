@@ -9,6 +9,10 @@ using YourVRUI;
 #if ENABLE_VALIDATION
 using VRPartyValidation;
 #endif
+#if ENABLE_VOICE && ENABLE_PHOTON
+using Photon.Voice.Unity;
+using Photon.Voice.Unity.UtilityScripts;
+#endif
 
 namespace PartyCritical
 {
@@ -857,12 +861,40 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+        * SetUpVoiceChannel
+        */
+        protected void SetUpVoiceChannel()
+        {
+#if ENABLE_PHOTON && ENABLE_VOICE
+            if (GameObject.FindObjectOfType<Recorder>() != null)
+            {
+                if (m_isSinglePlayer || YourNetworkTools.Instance.IsLocalGame)
+                {
+                    GameObject.Destroy(GameObject.FindObjectOfType<Recorder>().gameObject);
+                }
+                else
+                {
+                    GameObject.FindObjectOfType<Recorder>().TransmitEnabled = true;
+                    GameObject.FindObjectOfType<Recorder>().StartRecording();
+                    ConnectAndJoin connVoice = GameObject.FindObjectOfType<ConnectAndJoin>();
+                    connVoice.RoomName = NetworkEventController.Instance.NameRoomLobby;
+                    connVoice.ConnectNow();
+                }
+            }
+#endif
+        }
+
+        // -------------------------------------------
+        /* 
         * OnNetworkEventInitialConnection
         */
         protected virtual void OnNetworkEventInitialConnection()
         {
             m_isInitialConnectionEstablished = true;
             m_isCreatorGame = YourNetworkTools.Instance.IsServer;
+
+            SetUpVoiceChannel();
+
             if (m_isCreatorGame)
             {
 #if ENABLE_VALIDATION
@@ -1285,7 +1317,7 @@ namespace PartyCritical
             Invoke("DestroySingletonsGame", _timeoutExit);
 
             bool forceGoToMenus = false;
-#if UNITY_EDITOR || UNITY_WEBGL
+#if UNITY_EDITOR || UNITY_WEBGL || UNITY_STANDALONE
             forceGoToMenus = true;
 #endif
             if (!_isExitGame || forceGoToMenus)
@@ -1333,6 +1365,8 @@ namespace PartyCritical
             SceneManager.LoadScene("HTCMenus6DOF");
 #elif ENABLE_WORLDSENSE
             SceneManager.LoadScene("WorldMenus6DOF");
+#elif UNITY_STANDALONE
+            SceneManager.LoadScene("Menus6DOF_Desktop");
 #else
             SceneManager.LoadScene("Menus6DOF");
 #endif
