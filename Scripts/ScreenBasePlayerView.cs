@@ -33,6 +33,10 @@ namespace PartyCritical
         protected GameObject m_root;
         protected Transform m_container;
 
+        protected GameObject m_buttonMove;
+        protected GameObject m_buttonRotateLeft;
+        protected GameObject m_buttonRotateRight;
+
         // -------------------------------------------
         /* 
 		* Constructor
@@ -50,6 +54,50 @@ namespace PartyCritical
                 openInventoryScreen.SetActive(false);
 #endif
             }
+
+            if (m_container.Find("Button_Move") != null)
+            {
+                m_buttonMove = m_container.Find("Button_Move").gameObject;
+            }
+
+            if (m_container.Find("Button_Action") != null)
+            {
+                m_container.Find("Button_Action").gameObject.GetComponent<Button>().onClick.AddListener(OnActionButton);
+            }
+
+            if (m_container.Find("RotateLeft") != null)
+            {
+                m_buttonRotateLeft = m_container.Find("RotateLeft").gameObject;
+                m_buttonRotateLeft.GetComponent<Button>().onClick.AddListener(OnRotateLeft);
+#if !ENABLE_ROTATE_LOCALCAMERA || UNITY_WEBGL || UNITY_STANDALONE
+                m_buttonRotateLeft.SetActive(false);
+#endif
+            }
+            if (m_container.Find("RotateRight") != null)
+            {
+                m_buttonRotateRight = m_container.Find("RotateRight").gameObject;
+                m_buttonRotateRight.GetComponent<Button>().onClick.AddListener(OnRotateRight);
+#if !ENABLE_ROTATE_LOCALCAMERA || UNITY_WEBGL || UNITY_STANDALONE
+                m_buttonRotateRight.SetActive(false);
+#endif
+            }
+
+
+#if UNITY_WEBGL || UNITY_STANDALONE
+            if (m_buttonMove != null) m_buttonMove.SetActive(false);
+#endif
+
+            UIEventController.Instance.UIEvent += new UIEventHandler(OnUIEvent);
+        }
+
+
+        // -------------------------------------------
+        /* 
+		 * Remove all the references
+		 */
+        void OnDestroy()
+        {
+            UIEventController.Instance.UIEvent -= OnUIEvent;
         }
 
         // -------------------------------------------
@@ -61,5 +109,82 @@ namespace PartyCritical
             UIEventController.Instance.DispatchUIEvent(EVENT_SCREENPLAYER_OPEN_INVENTORY);
         }
 
-	}
+        // -------------------------------------------
+        /* 
+		 * OnActionButton
+		 */
+        private void OnActionButton()
+        {
+            UIEventController.Instance.DispatchUIEvent(CameraBaseController.EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN);
+        }
+
+        // -------------------------------------------
+        /* 
+         * OnRotateRight
+         */
+        private void OnRotateRight()
+        {
+            BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA, true);
+        }
+
+        // -------------------------------------------
+        /* 
+         * OnRotateLeft
+         */
+        private void OnRotateLeft()
+        {
+            BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA, false);
+        }
+
+
+        // -------------------------------------------
+        /* 
+         * OnUIEvent
+         */
+        private void OnUIEvent(string _nameEvent, params object[] _list)
+        {
+            if ((_nameEvent == UIEventController.EVENT_SCREENMANAGER_OPEN_INFORMATION_SCREEN)
+                || (_nameEvent == UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN)
+                || (_nameEvent == UIEventController.EVENT_SCREENMANAGER_VR_OPEN_GENERIC_SCREEN)
+                || (_nameEvent == UIEventController.EVENT_SCREENMANAGER_VR_OPEN_INFORMATION_SCREEN))
+
+            {
+                m_container.gameObject.SetActive(false);
+            }
+            if (_nameEvent == UIEventController.EVENT_SCREENMANAGER_DESTROY_SCREEN)
+            {
+                m_container.gameObject.SetActive(true);
+            }
+            if (_nameEvent == CustomButton.BUTTON_PRESSED_DOWN)
+            {
+                GameObject selectedButton = (GameObject)_list[0];
+                if (selectedButton == m_buttonMove)
+                {
+                    UIEventController.Instance.DispatchUIEvent(CameraBaseController.EVENT_CAMERACONTROLLER_START_MOVING);
+                }
+            }
+            if (_nameEvent == CustomButton.BUTTON_RELEASE_UP)
+            {
+                GameObject selectedButton = (GameObject)_list[0];
+                if (selectedButton == m_buttonMove)
+                {
+                    UIEventController.Instance.DispatchUIEvent(CameraBaseController.EVENT_CAMERACONTROLLER_STOP_MOVING);
+                }
+            }
+        }
+
+        // -------------------------------------------
+        /* 
+		 * Update
+		 */
+        void Update()
+        {
+#if UNITY_EDITOR || UNITY_WEBGL || UNITY_STANDALONE
+            if (Input.GetKeyDown(KeyCode.LeftControl))
+            {
+                OnActionButton();
+            }
+#endif
+        }
+    }
 }

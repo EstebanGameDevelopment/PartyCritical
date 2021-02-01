@@ -303,8 +303,11 @@ namespace PartyCritical
                 }
                 else
                 {
-                    ShotgunContainer = ShotgunLeftContainer;
-                    if (ShotgunRightContainer != null) ShotgunRightContainer.SetActive(false);
+                    if (ShotgunLeftContainer != null)
+                    {
+                        ShotgunContainer = ShotgunLeftContainer;
+                        if (ShotgunRightContainer != null) ShotgunRightContainer.SetActive(false);
+                    }
                 }
             }
             else
@@ -316,8 +319,11 @@ namespace PartyCritical
                 }
                 else
                 {
-                    ShotgunContainer = ShotgunRightContainer;
-                    if (ShotgunLeftContainer != null) ShotgunLeftContainer.SetActive(false);
+                    if (ShotgunRightContainer != null)
+                    {
+                        ShotgunContainer = ShotgunRightContainer;
+                        if (ShotgunLeftContainer != null) ShotgunLeftContainer.SetActive(false);
+                    }
                 }
             }
 #else
@@ -334,7 +340,7 @@ namespace PartyCritical
 #else
             if (ShotgunContainer != null) ShotgunContainer.SetActive(false);
 #endif
-
+            
 #if ENABLE_OCULUS
             m_enableVR = true;
             AreOculusHandsEnabled = false;
