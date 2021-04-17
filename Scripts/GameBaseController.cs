@@ -1280,7 +1280,7 @@ namespace PartyCritical
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_SELECT_SKYBOX)
             {
-                SelectedSkybox(int.Parse((string)_list[0]));
+                SelectedSkybox((string)_list[0]);
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_CREATE_FX)
             {
@@ -1464,7 +1464,7 @@ namespace PartyCritical
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_SELECT_SKYBOX)
             {
-                SelectedSkybox((int)_list[0]);
+                SelectedSkybox((string)_list[0]);
             }
             if (_nameEvent == CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER)
             {
@@ -1528,17 +1528,25 @@ namespace PartyCritical
         /* 
 		* SelectedSkybox
 		*/
-        public void SelectedSkybox(int _skybox)
+        public virtual void SelectedSkybox(string _skyboxPrefab)
         {
-            int selectedSkybox = _skybox;
             if (SkyboxesLevels != null)
             {
-                if (selectedSkybox < SkyboxesLevels.Length)
+                int indexSkybox = -1;
+                for (int i = 0; i < SkyboxesLevels.Length; i++)
                 {
-                    if (SkyboxesLevels[selectedSkybox] != null)
+                    if (SkyboxesLevels[i].name == _skyboxPrefab)
+                    {
+                        indexSkybox = i;
+                    }
+                }
+
+                if (indexSkybox != -1)
+                {
+                    if (SkyboxesLevels[indexSkybox] != null)
                     {
                         BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_ACTIVATE_SKYBOX);
-                        RenderSettings.skybox = SkyboxesLevels[selectedSkybox];
+                        RenderSettings.skybox = SkyboxesLevels[indexSkybox];
                     }
                 }
             }
