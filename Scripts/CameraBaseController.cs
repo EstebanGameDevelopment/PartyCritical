@@ -291,8 +291,6 @@ namespace PartyCritical
         {
             InitialitzeHMDHeight();
 
-            m_teleportAvailable = (GameObject.FindObjectOfType<TeleportController>() != null);
-
 #if ENABLE_OCULUS || ENABLE_HTCVIVE
             if (KeysEventInputController.Instance.IsRightHanded())
             {
@@ -1198,10 +1196,11 @@ namespace PartyCritical
                         m_timeoutToTeleport = 0;
                     }
                 }
-#endif
+#endif                
 #if ENABLE_OCULUS
                 if (m_teleportEnabled)
                 {
+                
                     if (KeysEventInputController.Instance.GetHandTriggerOculusController())
                     {
 #if ENABLE_QUEST
@@ -2088,6 +2087,10 @@ namespace PartyCritical
                         }
                     }
                 }
+            }
+            if (_nameEvent == TeleportController.EVENT_TELEPORTCONTROLLER_AWAKENED)
+            {
+                m_teleportAvailable = true;
             }
 #endif
         }

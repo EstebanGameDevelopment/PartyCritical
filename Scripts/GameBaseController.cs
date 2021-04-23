@@ -646,6 +646,7 @@ namespace PartyCritical
 #else
             if (LaserPointer!=null) LaserPointer.SetActive(false);
 #endif
+            UIEventController.Instance.DispatchUIEvent(YourVRUIScreenController.EVENT_SCREENMANAGER_CHECK_LINERENDER_LASER);
         }
 
         // -------------------------------------------
