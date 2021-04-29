@@ -56,8 +56,11 @@ namespace PartyCritical
         public const string EVENT_GAMECONTROLLER_GAME_WITH_DIRECTOR         = "EVENT_GAMECONTROLLER_GAME_WITH_DIRECTOR";
         public const string EVENT_GAMECONTROLLER_GAME_SPAWN_POSITIONS       = "EVENT_GAMECONTROLLER_GAME_SPAWN_POSITIONS";
         public const string EVENT_GAMECONTROLLER_CONTROLLER_STARTED         = "EVENT_GAMECONTROLLER_CONTROLLER_STARTED";
+        public const string EVENT_GAMECONTROLLER_ASK_CONFIRM_TO_QUIT_APP    = "EVENT_GAMECONTROLLER_ASK_CONFIRM_TO_QUIT_APP";
+        public const string EVENT_GAMECONTROLLER_QUIT_APP                   = "EVENT_GAMECONTROLLER_QUIT_APP";
 
         public const string SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL = "SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL";
+        public const string SUB_EVENT_GAMECONTROLLER_CONFIRMATION_EXIT_APP = "SUB_EVENT_GAMECONTROLLER_CONFIRMATION_EXIT_APP";
 
         // ----------------------------------------------
         // CONSTANTS
@@ -1359,15 +1362,15 @@ namespace PartyCritical
         protected virtual void ReloadMenus()
         {
 #if UNITY_WEBGL
-            SceneManager.LoadScene("Menus6DOF_WebGL");
+            SceneManager.LoadScene("Menus6DOF");
 #elif ENABLE_OCULUS
             SceneManager.LoadScene("OculusMenus6DOF");
 #elif ENABLE_HTCVIVE
             SceneManager.LoadScene("HTCMenus6DOF");
 #elif ENABLE_WORLDSENSE
-            SceneManager.LoadScene("WorldMenus6DOF");
+            SceneManager.LoadScene("Menus6DOF");
 #elif UNITY_STANDALONE
-            SceneManager.LoadScene("Menus6DOF_Desktop");
+            SceneManager.LoadScene("Menus6DOF");
 #else
             SceneManager.LoadScene("Menus6DOF");
 #endif
@@ -1499,6 +1502,10 @@ namespace PartyCritical
          */
         protected override void OnUIEvent(string _nameEvent, object[] _list)
         {
+            if (_nameEvent == EVENT_GAMECONTROLLER_ASK_CONFIRM_TO_QUIT_APP)
+            {
+                UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_INFORMATION_SCREEN, ScreenInformationView.SCREEN_CONFIRMATION, UIScreenTypePreviousAction.KEEP_CURRENT_SCREEN, LanguageController.Instance.GetText("message.warning"), LanguageController.Instance.GetText("message.do.you.want.exit"), null, SUB_EVENT_GAMECONTROLLER_CONFIRMATION_EXIT_APP);
+            }
             if (_nameEvent == ScreenController.EVENT_APP_LOST_FOCUS)
             {
 #if ENABLE_WORLDSENSE
@@ -1513,10 +1520,19 @@ namespace PartyCritical
             if (_nameEvent == ScreenController.EVENT_CONFIRMATION_POPUP)
             {
                 string subEvent = (string)_list[2];
+                bool accepted = (bool)_list[1];
                 if (subEvent == SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL)
                 {
                     CreateLoadingScreen(false);
                     NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_CONFIRMATION_NEXT_LEVEL, YourNetworkTools.Instance.GetUniversalNetworkID().ToString());
+                }
+                if (subEvent == SUB_EVENT_GAMECONTROLLER_CONFIRMATION_EXIT_APP)
+                {
+                    if (accepted)
+                    {
+                        SetState(STATE_NULL);
+                        DestroyAllResources(false, true, 0.1f);
+                    }
                 }
             }
             if (_nameEvent == UIEventController.EVENT_SCREENMANAGER_DESTROY_SCREEN)

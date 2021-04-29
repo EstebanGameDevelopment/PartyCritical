@@ -26,6 +26,7 @@ namespace PartyCritical
         // EVENTS
         // ----------------------------------------------	
         public const string EVENT_SCREENPLAYER_OPEN_INVENTORY = "EVENT_SCREENPLAYER_OPEN_INVENTORY";
+        public const string EVENT_SCREENPLAYER_IGNORE_ONE_DESTRUCTION = "EVENT_SCREENPLAYER_IGNORE_ONE_DESTRUCTION";
 
         // ----------------------------------------------
         // PRIVATE MEMBERS
@@ -36,6 +37,8 @@ namespace PartyCritical
         protected GameObject m_buttonMove;
         protected GameObject m_buttonRotateLeft;
         protected GameObject m_buttonRotateRight;
+
+        protected bool m_ignoreOneDestruction = false;
 
         // -------------------------------------------
         /* 
@@ -143,6 +146,10 @@ namespace PartyCritical
          */
         private void OnUIEvent(string _nameEvent, params object[] _list)
         {
+            if (_nameEvent == EVENT_SCREENPLAYER_IGNORE_ONE_DESTRUCTION)
+            {
+                m_ignoreOneDestruction = true;
+            }
             if ((_nameEvent == UIEventController.EVENT_SCREENMANAGER_OPEN_INFORMATION_SCREEN)
                 || (_nameEvent == UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN)
                 || (_nameEvent == UIEventController.EVENT_SCREENMANAGER_VR_OPEN_GENERIC_SCREEN)
@@ -153,7 +160,14 @@ namespace PartyCritical
             }
             if (_nameEvent == UIEventController.EVENT_SCREENMANAGER_DESTROY_SCREEN)
             {
-                m_container.gameObject.SetActive(true);
+                if (m_ignoreOneDestruction)
+                {
+                    m_ignoreOneDestruction = false;
+                }
+                else
+                {
+                    m_container.gameObject.SetActive(true);
+                }                
             }
             if (_nameEvent == CustomButton.BUTTON_PRESSED_DOWN)
             {
