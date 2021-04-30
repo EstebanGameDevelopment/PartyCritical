@@ -156,10 +156,13 @@ namespace PartyCritical
                 || (_nameEvent == UIEventController.EVENT_SCREENMANAGER_VR_OPEN_INFORMATION_SCREEN))
 
             {
+                UIEventController.Instance.DispatchUIEvent(CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_CONTROL_CAMERA, false, false);
+                UIEventController.Instance.DispatchUIEvent(CameraBaseController.EVENT_CAMERACONTROLLER_STOP_MOVING);
                 m_container.gameObject.SetActive(false);
             }
             if (_nameEvent == UIEventController.EVENT_SCREENMANAGER_DESTROY_SCREEN)
             {
+                UIEventController.Instance.DispatchUIEvent(CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_CONTROL_CAMERA, true, true);
                 if (m_ignoreOneDestruction)
                 {
                     m_ignoreOneDestruction = false;

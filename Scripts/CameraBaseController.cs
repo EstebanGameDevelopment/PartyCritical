@@ -38,6 +38,7 @@ namespace PartyCritical
         public const string EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER = "EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER";
         public const string EVENT_CAMERACONTROLLER_ACTIVATE_SKYBOX = "EVENT_CAMERACONTROLLER_ACTIVATE_SKYBOX";
         public const string EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA = "EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA";
+        public const string EVENT_CAMERACONTROLLER_ENABLE_CONTROL_CAMERA = "EVENT_CAMERACONTROLLER_ENABLE_CONTROL_CAMERA";
 
         public const string EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN = "EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN";
         public const string EVENT_CAMERACONTROLLER_GENERIC_ACTION_UP = "EVENT_CAMERACONTROLLER_GENERIC_ACTION_UP";
@@ -86,6 +87,7 @@ namespace PartyCritical
         protected bool m_shotTriggerDetected = false;
 
         protected bool m_enableFreeMovementCamera = false;
+        protected bool m_enableFreeRotationCamera = true;
 
         protected bool m_activateMovement = false;
 
@@ -514,34 +516,37 @@ namespace PartyCritical
             }
             else
             {
-                RotationAxes axes = RotationAxes.None;
-
-                if ((Input.GetAxis("Mouse X") != 0) || (Input.GetAxis("Mouse Y") != 0))
+                if (m_enableFreeRotationCamera)
                 {
-                    axes = RotationAxes.MouseXAndY;
-                }
+                    RotationAxes axes = RotationAxes.None;
 
-                if ((axes != RotationAxes.Controller) && (axes != RotationAxes.None))
-                {
-                    if (axes == RotationAxes.MouseXAndY)
+                    if ((Input.GetAxis("Mouse X") != 0) || (Input.GetAxis("Mouse Y") != 0))
                     {
-                        float rotationX = CameraLocal.localEulerAngles.y + Input.GetAxis("Mouse X") * m_sensitivityX;
-
-                        m_rotationY += Input.GetAxis("Mouse Y") * m_sensitivityY;
-                        m_rotationY = Mathf.Clamp(m_rotationY, m_minimumY, m_maximumY);
-
-                        CameraLocal.localEulerAngles = new Vector3(-m_rotationY, rotationX, 0);
+                        axes = RotationAxes.MouseXAndY;
                     }
-                    else if (axes == RotationAxes.MouseX)
-                    {
-                        CameraLocal.Rotate(0, Input.GetAxis("Mouse X") * m_sensitivityX, 0);
-                    }
-                    else
-                    {
-                        m_rotationY += Input.GetAxis("Mouse Y") * m_sensitivityY;
-                        m_rotationY = Mathf.Clamp(m_rotationY, m_minimumY, m_maximumY);
 
-                        CameraLocal.localEulerAngles = new Vector3(-m_rotationY, transform.localEulerAngles.y, 0);
+                    if ((axes != RotationAxes.Controller) && (axes != RotationAxes.None))
+                    {
+                        if (axes == RotationAxes.MouseXAndY)
+                        {
+                            float rotationX = CameraLocal.localEulerAngles.y + Input.GetAxis("Mouse X") * m_sensitivityX;
+
+                            m_rotationY += Input.GetAxis("Mouse Y") * m_sensitivityY;
+                            m_rotationY = Mathf.Clamp(m_rotationY, m_minimumY, m_maximumY);
+
+                            CameraLocal.localEulerAngles = new Vector3(-m_rotationY, rotationX, 0);
+                        }
+                        else if (axes == RotationAxes.MouseX)
+                        {
+                            CameraLocal.Rotate(0, Input.GetAxis("Mouse X") * m_sensitivityX, 0);
+                        }
+                        else
+                        {
+                            m_rotationY += Input.GetAxis("Mouse Y") * m_sensitivityY;
+                            m_rotationY = Mathf.Clamp(m_rotationY, m_minimumY, m_maximumY);
+
+                            CameraLocal.localEulerAngles = new Vector3(-m_rotationY, transform.localEulerAngles.y, 0);
+                        }
                     }
                 }
             }
@@ -2233,6 +2238,11 @@ namespace PartyCritical
                     UIEventController.Instance.DispatchUIEvent(GameLevelData.EVENT_GAMELEVELDATA_OPEN_INVENTORY);
                 }
 #endif
+            }
+            if (_nameEvent == EVENT_CAMERACONTROLLER_ENABLE_CONTROL_CAMERA)
+            {
+                m_enableFreeRotationCamera = (bool)_list[0];
+                m_enableFreeMovementCamera = (bool)_list[1];
             }
         }
 
