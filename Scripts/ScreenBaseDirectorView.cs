@@ -51,6 +51,8 @@ namespace PartyCritical
         protected bool m_cameraFixedEnabled = true;
         protected GameObject m_stopFixCamera;
 
+        protected GameObject m_stopVoiceTransmission;
+
         protected bool m_enablePanelInteraction = true;
 
         protected bool TeleportEnabled
@@ -128,8 +130,22 @@ namespace PartyCritical
                 CameraFixedEnabled = true;
             }
 
+            if (m_container.Find("VoiceActivation") != null)
+            {
+                GameObject voiceActivationButton = m_container.Find("VoiceActivation").gameObject;
+#if ENABLE_PHOTON_VOICE
+                voiceActivationButton.SetActive(true);
+                voiceActivationButton.GetComponent<Button>().onClick.AddListener(VoiceActivationChanged);
+                m_stopVoiceTransmission = m_container.Find("VoiceActivation/Stop").gameObject;
+                m_stopVoiceTransmission.SetActive(!PhotonController.Instance.VoiceEnabled);
+#else
+                voiceActivationButton.SetActive(false);
+#endif
+            }
+
             UIEventController.Instance.UIEvent += new UIEventHandler(OnMenuEvent);
             BasicSystemEventController.Instance.BasicSystemEvent += new BasicSystemEventHandler(OnBasicSystemEvent);
+            NetworkEventController.Instance.NetworkEvent += new NetworkEventHandler(OnNetworkEvent);
 
             Invoke("LoadRightCamera", 2);
         }
@@ -161,6 +177,7 @@ namespace PartyCritical
         {
             UIEventController.Instance.UIEvent -= OnMenuEvent;
             BasicSystemEventController.Instance.BasicSystemEvent -= OnBasicSystemEvent;
+            NetworkEventController.Instance.NetworkEvent -= OnNetworkEvent;
         }
 
         // -------------------------------------------
@@ -207,27 +224,9 @@ namespace PartyCritical
         {
             if (!m_enablePanelInteraction) return;
 
+            m_container.gameObject.SetActive(false);
             NetworkEventController.Instance.PriorityDelayNetworkEvent(GameBaseController.EVENT_GAMECONTROLLER_PARTY_OVER, 0.1f);
             NetworkEventController.Instance.PriorityDelayNetworkEvent(NetworkEventController.EVENT_STREAMSERVER_REPORT_CLOSED_STREAM, 0.5f, YourNetworkTools.Instance.GetUniversalNetworkID().ToString());
-        }
-
-        // -------------------------------------------
-        /* 
-		* OnGameEvent
-		*/
-        protected virtual void OnBasicSystemEvent(string _nameEvent, object[] _list)
-        {
-            if (_nameEvent == EVENT_DIRECTOR_SET_UP_PLAYERS)
-            {
-                m_players = (List<GameObject>)_list[0];
-            }
-            if (_nameEvent == EVENT_DIRECTOR_RESET_CAMERA_TO_DIRECTOR)
-            {
-                m_playerIndexSelected = -1;
-                m_iconPlayer.SetActive(false);
-                m_iconDirector.SetActive(true);
-                m_textCamera.text = "DIRECTOR";
-            }
         }
 
         // -------------------------------------------
@@ -256,6 +255,20 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		* VoiceActivationChanged
+		*/
+        private void VoiceActivationChanged()
+        {
+#if ENABLE_PHOTON_VOICE
+            if (!YourNetworkTools.Instance.IsLocalGame)
+            {
+                NetworkEventController.Instance.PriorityDelayNetworkEvent(PhotonController.EVENT_PHOTONCONTROLLER_VOICE_NETWORK_ENABLED, 0.01f, (!PhotonController.Instance.VoiceEnabled).ToString());
+            }
+#endif
+        }
+
+        // -------------------------------------------
+        /* 
 		* OnMenuEvent
 		*/
         protected virtual void OnMenuEvent(string _nameEvent, params object[] _list)
@@ -279,6 +292,40 @@ namespace PartyCritical
                 }
             }
 		}
+
+        // -------------------------------------------
+        /* 
+		* OnBasicSystemEvent
+		*/
+        protected virtual void OnBasicSystemEvent(string _nameEvent, object[] _list)
+        {
+            if (_nameEvent == EVENT_DIRECTOR_SET_UP_PLAYERS)
+            {
+                m_players = (List<GameObject>)_list[0];
+            }
+            if (_nameEvent == EVENT_DIRECTOR_RESET_CAMERA_TO_DIRECTOR)
+            {
+                m_playerIndexSelected = -1;
+                m_iconPlayer.SetActive(false);
+                m_iconDirector.SetActive(true);
+                m_textCamera.text = "DIRECTOR";
+            }
+#if ENABLE_PHOTON_VOICE
+            if (_nameEvent == PhotonController.EVENT_PHOTONCONTROLLER_VOICE_CHANGE_REPORTED)
+            {
+                m_stopVoiceTransmission.SetActive(!PhotonController.Instance.VoiceEnabled);
+            }
+#endif
+        }
+
+        // -------------------------------------------
+        /* 
+		 * OnNetworkEvent
+		 */
+        private void OnNetworkEvent(string _nameEvent, bool _isLocalEvent, int _networkOriginID, int _networkTargetID, object[] _list)
+        {
+
+        }
 
         // -------------------------------------------
         /* 

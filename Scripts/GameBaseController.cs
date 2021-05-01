@@ -865,31 +865,6 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
-        * SetUpVoiceChannel
-        */
-        protected void SetUpVoiceChannel()
-        {
-#if ENABLE_PHOTON && ENABLE_VOICE
-            if (GameObject.FindObjectOfType<Recorder>() != null)
-            {
-                if (m_isSinglePlayer || YourNetworkTools.Instance.IsLocalGame)
-                {
-                    GameObject.Destroy(GameObject.FindObjectOfType<Recorder>().gameObject);
-                }
-                else
-                {
-                    GameObject.FindObjectOfType<Recorder>().TransmitEnabled = true;
-                    GameObject.FindObjectOfType<Recorder>().StartRecording();
-                    ConnectAndJoin connVoice = GameObject.FindObjectOfType<ConnectAndJoin>();
-                    connVoice.RoomName = NetworkEventController.Instance.NameRoomLobby;
-                    connVoice.ConnectNow();
-                }
-            }
-#endif
-        }
-
-        // -------------------------------------------
-        /* 
         * OnNetworkEventInitialConnection
         */
         protected virtual void OnNetworkEventInitialConnection()
@@ -897,7 +872,12 @@ namespace PartyCritical
             m_isInitialConnectionEstablished = true;
             m_isCreatorGame = YourNetworkTools.Instance.IsServer;
 
-            SetUpVoiceChannel();
+#if ENABLE_PHOTON_VOICE
+            if (!YourNetworkTools.Instance.IsLocalGame)
+            {
+                PhotonController.Instance.StartVoiceStreaming(true);
+            }
+#endif
 
             if (m_isCreatorGame)
             {
@@ -1306,6 +1286,13 @@ namespace PartyCritical
             {
                 m_gameWithDirector = true;
             }
+#if ENABLE_PHOTON_VOICE
+            if (_nameEvent == PhotonController.EVENT_PHOTONCONTROLLER_VOICE_NETWORK_ENABLED)
+            {
+                bool enableVoice = bool.Parse((string)_list[0]);
+                BasicSystemEventController.Instance.DispatchBasicSystemEvent(PhotonController.EVENT_PHOTONCONTROLLER_VOICE_ENABLED, enableVoice);
+            }
+#endif
 
             OnNetworkEventEnemy(_nameEvent, _isLocalEvent, _networkOriginID, _networkTargetID, _list);
         }
