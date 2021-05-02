@@ -52,8 +52,10 @@ namespace PartyCritical
         protected GameObject m_stopFixCamera;
 
         protected GameObject m_stopVoiceTransmission;
+        protected GameObject m_stopSignalsEnabled;
 
         protected bool m_enablePanelInteraction = true;
+        protected bool m_enabledSignalPlayers = false;
 
         protected bool TeleportEnabled
         {
@@ -143,6 +145,13 @@ namespace PartyCritical
 #endif
             }
 
+            if (m_container.Find("Signals") != null)
+            {
+                GameObject signalsActivationButton = m_container.Find("Signals").gameObject;
+                signalsActivationButton.GetComponent<Button>().onClick.AddListener(SignalsActivationChanged);
+                m_stopSignalsEnabled = m_container.Find("Signals/Stop").gameObject;
+            }
+
             UIEventController.Instance.UIEvent += new UIEventHandler(OnMenuEvent);
             BasicSystemEventController.Instance.BasicSystemEvent += new BasicSystemEventHandler(OnBasicSystemEvent);
             NetworkEventController.Instance.NetworkEvent += new NetworkEventHandler(OnNetworkEvent);
@@ -158,6 +167,7 @@ namespace PartyCritical
         {
             ChangeToPlayerCamera();
             HidePanel();
+            BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_CHECK_SIGNAL_PLAYER);
         }
 
         // -------------------------------------------
@@ -269,6 +279,15 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		* SignalsActivationChanged
+		*/
+        private void SignalsActivationChanged()
+        {
+            NetworkEventController.Instance.PriorityDelayNetworkEvent(CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_NETWORK_SIGNAL_PLAYER, 0.01f, (!m_enabledSignalPlayers).ToString());
+        }
+
+        // -------------------------------------------
+        /* 
 		* OnMenuEvent
 		*/
         protected virtual void OnMenuEvent(string _nameEvent, params object[] _list)
@@ -309,6 +328,11 @@ namespace PartyCritical
                 m_iconPlayer.SetActive(false);
                 m_iconDirector.SetActive(true);
                 m_textCamera.text = "DIRECTOR";
+            }
+            if (_nameEvent == CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_CHANGED_FOR_PLAYER)
+            {
+                m_enabledSignalPlayers = (bool)_list[0];
+                m_stopSignalsEnabled.SetActive(!m_enabledSignalPlayers);
             }
 #if ENABLE_PHOTON_VOICE
             if (_nameEvent == PhotonController.EVENT_PHOTONCONTROLLER_VOICE_CHANGE_REPORTED)

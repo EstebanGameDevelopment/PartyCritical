@@ -39,6 +39,10 @@ namespace PartyCritical
         public const string EVENT_CAMERACONTROLLER_ACTIVATE_SKYBOX = "EVENT_CAMERACONTROLLER_ACTIVATE_SKYBOX";
         public const string EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA = "EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA";
         public const string EVENT_CAMERACONTROLLER_ENABLE_CONTROL_CAMERA = "EVENT_CAMERACONTROLLER_ENABLE_CONTROL_CAMERA";
+        public const string EVENT_CAMERACONTROLLER_ENABLE_NETWORK_SIGNAL_PLAYER = "EVENT_CAMERACONTROLLER_ENABLE_NETWORK_SIGNAL_PLAYER";
+        public const string EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_PLAYER = "EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_PLAYER";
+        public const string EVENT_CAMERACONTROLLER_ENABLE_CHECK_SIGNAL_PLAYER = "EVENT_CAMERACONTROLLER_ENABLE_CHECK_SIGNAL_PLAYER";
+        public const string EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_CHANGED_FOR_PLAYER = "EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_CHANGED_FOR_PLAYER";
 
         public const string EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN = "EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN";
         public const string EVENT_CAMERACONTROLLER_GENERIC_ACTION_UP = "EVENT_CAMERACONTROLLER_GENERIC_ACTION_UP";
@@ -107,6 +111,8 @@ namespace PartyCritical
         protected Vector3 m_shiftCameraFromOrigin = Vector3.zero;
         protected Vector3 m_fixedCameraPosition;
         protected Vector3 m_fixedCameraForward;
+
+        protected bool m_signalClientEnabled = false;
 
         protected float m_timeShotgun = 0;
 #if ENABLE_WORLDSENSE || ENABLE_OCULUS || ENABLE_HTCVIVE
@@ -259,6 +265,10 @@ namespace PartyCritical
         public Vector3 ShiftCameraFromOrigin
         {
             get { return m_shiftCameraFromOrigin; }
+        }
+        public bool SignalClientEnabled
+        {
+            get { return m_signalClientEnabled; }
         }
 
 
@@ -795,9 +805,11 @@ namespace PartyCritical
          */
         protected virtual void SetAMarkerSignal()
         {
+            if (m_signalClientEnabled)
+            {
 #if ENABLE_YOURVRUI
-            Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
-            Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
+                Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
+                Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
 #else
             Vector3 pos = Utilities.Clone(CameraLocal.transform.position);
             Vector3 fwd = Utilities.Clone(CameraLocal.transform.forward.normalized);
@@ -810,11 +822,12 @@ namespace PartyCritical
             }
 #endif
 
-            RaycastHit raycastHit = new RaycastHit();
-            if (Utilities.GetRaycastHitInfoByRay(pos, fwd, ref raycastHit, ActorTimeline.LAYER_PLAYERS))
-            {
-                Vector3 pc = Utilities.Clone(raycastHit.point);
-                NetworkEventController.Instance.PriorityDelayNetworkEvent(EVENT_GAMECONTROLLER_MARKER_BALL, 0.1f, DirectorMode.ToString(), pc.x.ToString(), pc.y.ToString(), pc.z.ToString());
+                RaycastHit raycastHit = new RaycastHit();
+                if (Utilities.GetRaycastHitInfoByRay(pos, fwd, ref raycastHit, ActorTimeline.LAYER_PLAYERS))
+                {
+                    Vector3 pc = Utilities.Clone(raycastHit.point);
+                    NetworkEventController.Instance.PriorityDelayNetworkEvent(EVENT_GAMECONTROLLER_MARKER_BALL, 0.1f, DirectorMode.ToString(), pc.x.ToString(), pc.y.ToString(), pc.z.ToString());
+                }
             }
         }
 
@@ -1917,6 +1930,15 @@ namespace PartyCritical
                 }
             }
 #endif
+            if (_nameEvent == EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_PLAYER)
+            {
+                m_signalClientEnabled = (bool)_list[0];
+                BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_CHANGED_FOR_PLAYER, m_signalClientEnabled);
+            }
+            if (_nameEvent == EVENT_CAMERACONTROLLER_ENABLE_CHECK_SIGNAL_PLAYER)
+            {
+                BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_CHANGED_FOR_PLAYER, m_signalClientEnabled);
+            }
             if (_nameEvent == EVENT_CAMERACONTROLLER_ACTIVATE_SKYBOX)
             {
 #if !ENABLE_OCULUS && !ENABLE_HTCVIVE
@@ -2062,11 +2084,56 @@ namespace PartyCritical
                 if (_list.Length > 1)
                 {
                     RaycastHit raycastHit = new RaycastHit();
-                    GameObject originRay = (GameObject)_list[1];
-                    Vector3 forwardView = Utilities.Clone(originRay.transform.forward.normalized);
-                    if (Utilities.GetCollidedInfoByRay(originRay.transform.position, forwardView, ref raycastHit))
+                    string maskToCheck = (string)_list[1];
+                    if (_list.Length > 2)
                     {
-                        BasicSystemEventController.Instance.DispatchBasicSystemEvent(GameLevelData.EVENT_GAMELEVELDATA_RESPONSE_COLLISION_RAY, _list[0], raycastHit.collider.gameObject, raycastHit);
+                        GameObject originRay = (GameObject)_list[2];
+                        Vector3 forwardView = Utilities.Clone(originRay.transform.forward.normalized);
+                        if ((maskToCheck != null) && (maskToCheck.Length > 0))
+                        {
+                            if (Utilities.GetRaycastHitInfoByRayWithMask(originRay.transform.position, forwardView, ref raycastHit, maskToCheck))
+                            {
+                                BasicSystemEventController.Instance.DispatchBasicSystemEvent(GameLevelData.EVENT_GAMELEVELDATA_RESPONSE_COLLISION_RAY, _list[0], raycastHit.collider.gameObject, raycastHit);
+                            }
+                        }
+                        else
+                        {
+                            if (Utilities.GetCollidedInfoByRay(originRay.transform.position, forwardView, ref raycastHit))
+                            {
+                                BasicSystemEventController.Instance.DispatchBasicSystemEvent(GameLevelData.EVENT_GAMELEVELDATA_RESPONSE_COLLISION_RAY, _list[0], raycastHit.collider.gameObject, raycastHit);
+                            }
+                        }
+                    }
+                    else
+                    {
+#if ENABLE_YOURVRUI
+                        Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
+                        Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
+#else
+                        Vector3 pos = Utilities.Clone(CameraLocal.transform.position);
+                        Vector3 fwd = Utilities.Clone(CameraLocal.transform.forward.normalized);
+#endif
+#if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE
+                        if ((m_armModel != null) && (m_laserPointer != null))
+                        {
+                            pos = Utilities.Clone(m_originLaser);
+                            fwd = Utilities.Clone(m_forwardLaser);
+                        }
+#endif
+                        if ((maskToCheck != null) && (maskToCheck.Length > 0))
+                        {
+                            if (Utilities.GetRaycastHitInfoByRayWithMask(pos, fwd, ref raycastHit, maskToCheck))
+                            {
+                                BasicSystemEventController.Instance.DispatchBasicSystemEvent(GameLevelData.EVENT_GAMELEVELDATA_RESPONSE_COLLISION_RAY, _list[0], raycastHit.collider.gameObject, raycastHit);
+                            }
+                        }
+                        else
+                        {
+                            if (Utilities.GetCollidedInfoByRay(pos, fwd, ref raycastHit))
+                            {
+                                BasicSystemEventController.Instance.DispatchBasicSystemEvent(GameLevelData.EVENT_GAMELEVELDATA_RESPONSE_COLLISION_RAY, _list[0], raycastHit.collider.gameObject, raycastHit);
+                            }
+                        }
                     }
                 }
                 else
@@ -2132,6 +2199,10 @@ namespace PartyCritical
             if (_nameEvent == TeleportController.EVENT_TELEPORTCONTROLLER_TELEPORT)
             {
                 ApplyTeleport(_networkOriginID, (string)_list[0]);
+            }
+            if (_nameEvent == EVENT_CAMERACONTROLLER_ENABLE_NETWORK_SIGNAL_PLAYER)
+            {
+                BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_PLAYER, bool.Parse((string)_list[0]));
             }
         }
 
