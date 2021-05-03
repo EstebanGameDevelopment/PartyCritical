@@ -816,7 +816,7 @@ namespace PartyCritical
                     YourVRUIScreenController.Instance.Destroy();
                 }
             }
-            if ((_nameEvent == UIEventController.EVENT_SCREENMANAGER_DESTROY_SCREEN) || (_nameEvent == UIEventController.EVENT_SCREENMANAGER_DESTROY_ALL_SCREEN))
+            if (_nameEvent == UIEventController.EVENT_SCREENMANAGER_REPORT_DESTROYED)
             {
                 PostDestroyScreenAction();
             }
@@ -1461,6 +1461,19 @@ namespace PartyCritical
             {
                 EnableLaserVR((bool)_list[0]);
             }
+            if (_nameEvent == CameraBaseController.EVENT_GAMECONTROLLER_MARKER_BALL)
+            {
+                bool isDirectorMode = (bool)_list[0];
+                Vector3 pc = (Vector3)_list[1];
+                if (m_isSinglePlayer)
+                {
+                    NetworkEventController.Instance.DispatchLocalEvent(EVENT_GAMECONTROLLER_MARKER_BALL, isDirectorMode.ToString(), pc.x.ToString(), pc.y.ToString(), pc.z.ToString());
+                }
+                else
+                {
+                    NetworkEventController.Instance.PriorityDelayNetworkEvent(EVENT_GAMECONTROLLER_MARKER_BALL, 0.1f, isDirectorMode.ToString(), pc.x.ToString(), pc.y.ToString(), pc.z.ToString());
+                }
+            }
         }
 
         // -------------------------------------------
@@ -1476,6 +1489,11 @@ namespace PartyCritical
             if ((YourVRUIScreenController.Instance == null) || isDirector || m_isGyroscopeMode)
             {
                 ProcessScreenEvents(_nameEvent, _list);
+
+                if (_nameEvent == UIEventController.EVENT_SCREENMANAGER_REPORT_DESTROYED)
+                {
+                    PostDestroyScreenAction();
+                }
             }
             else
             {

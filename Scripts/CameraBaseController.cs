@@ -43,6 +43,7 @@ namespace PartyCritical
         public const string EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_PLAYER = "EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_PLAYER";
         public const string EVENT_CAMERACONTROLLER_ENABLE_CHECK_SIGNAL_PLAYER = "EVENT_CAMERACONTROLLER_ENABLE_CHECK_SIGNAL_PLAYER";
         public const string EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_CHANGED_FOR_PLAYER = "EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_CHANGED_FOR_PLAYER";
+        public const string EVENT_GAMECONTROLLER_MARKER_BALL = "EVENT_GAMECONTROLLER_MARKER_BALL";
 
         public const string EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN = "EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN";
         public const string EVENT_CAMERACONTROLLER_GENERIC_ACTION_UP = "EVENT_CAMERACONTROLLER_GENERIC_ACTION_UP";
@@ -178,10 +179,6 @@ namespace PartyCritical
         public virtual bool EnableBackgroundVR
         {
             get { return false; }
-        }
-        public virtual string EVENT_GAMECONTROLLER_MARKER_BALL
-        {
-            get { return ""; }
         }
         public virtual string EVENT_GAMESHOOT_NEW
         {
@@ -826,7 +823,7 @@ namespace PartyCritical
                 if (Utilities.GetRaycastHitInfoByRay(pos, fwd, ref raycastHit, ActorTimeline.LAYER_PLAYERS))
                 {
                     Vector3 pc = Utilities.Clone(raycastHit.point);
-                    NetworkEventController.Instance.PriorityDelayNetworkEvent(EVENT_GAMECONTROLLER_MARKER_BALL, 0.1f, DirectorMode.ToString(), pc.x.ToString(), pc.y.ToString(), pc.z.ToString());
+                    BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_GAMECONTROLLER_MARKER_BALL, DirectorMode, pc);
                 }
             }
         }
