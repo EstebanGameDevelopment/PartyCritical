@@ -57,6 +57,8 @@ namespace PartyCritical
         protected bool m_enablePanelInteraction = true;
         protected bool m_enabledSignalPlayers = false;
 
+        protected GameObject m_voiceActivationButton;
+
         protected bool TeleportEnabled
         {
             get { return m_teleportEnabled; }
@@ -134,14 +136,22 @@ namespace PartyCritical
 
             if (m_container.Find("VoiceActivation") != null)
             {
-                GameObject voiceActivationButton = m_container.Find("VoiceActivation").gameObject;
+                m_voiceActivationButton = m_container.Find("VoiceActivation").gameObject;
 #if ENABLE_PHOTON_VOICE
-                voiceActivationButton.SetActive(true);
-                voiceActivationButton.GetComponent<Button>().onClick.AddListener(VoiceActivationChanged);
+                m_voiceActivationButton.SetActive(true);
+                m_voiceActivationButton.GetComponent<Button>().onClick.AddListener(VoiceActivationChanged);
                 m_stopVoiceTransmission = m_container.Find("VoiceActivation/Stop").gameObject;
-                m_stopVoiceTransmission.SetActive(!PhotonController.Instance.VoiceEnabled);
+                if (YourNetworkTools.Instance.IsLocalGame)
+                {
+                    m_voiceActivationButton.SetActive(false);
+                }
+                else
+                {
+                    m_stopVoiceTransmission.SetActive(!PhotonController.Instance.VoiceEnabled);
+                }
+                
 #else
-                voiceActivationButton.SetActive(false);
+                m_voiceActivationButton.SetActive(false);
 #endif
             }
 

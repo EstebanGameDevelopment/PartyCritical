@@ -114,6 +114,7 @@ namespace PartyCritical
         protected Vector3 m_fixedCameraForward;
 
         protected bool m_signalClientEnabled = false;
+        protected bool m_signalDirectorAllowsClient = true;
 
         protected float m_timeShotgun = 0;
 #if ENABLE_WORLDSENSE || ENABLE_OCULUS || ENABLE_HTCVIVE
@@ -267,7 +268,10 @@ namespace PartyCritical
         {
             get { return m_signalClientEnabled; }
         }
-
+        public bool SignalDirectorAllowsClient
+        {
+            get { return m_signalDirectorAllowsClient; }
+        }
 
         // -------------------------------------------
         /* 
@@ -802,11 +806,13 @@ namespace PartyCritical
          */
         protected virtual void SetAMarkerSignal()
         {
-            if (m_signalClientEnabled)
+            if (m_signalDirectorAllowsClient)
             {
+                if (m_signalClientEnabled)
+                {
 #if ENABLE_YOURVRUI
-                Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
-                Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
+                    Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
+                    Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
 #else
             Vector3 pos = Utilities.Clone(CameraLocal.transform.position);
             Vector3 fwd = Utilities.Clone(CameraLocal.transform.forward.normalized);
@@ -819,11 +825,12 @@ namespace PartyCritical
             }
 #endif
 
-                RaycastHit raycastHit = new RaycastHit();
-                if (Utilities.GetRaycastHitInfoByRay(pos, fwd, ref raycastHit, ActorTimeline.LAYER_PLAYERS))
-                {
-                    Vector3 pc = Utilities.Clone(raycastHit.point);
-                    BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_GAMECONTROLLER_MARKER_BALL, DirectorMode, pc);
+                    RaycastHit raycastHit = new RaycastHit();
+                    if (Utilities.GetRaycastHitInfoByRay(pos, fwd, ref raycastHit, ActorTimeline.LAYER_PLAYERS))
+                    {
+                        Vector3 pc = Utilities.Clone(raycastHit.point);
+                        BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_GAMECONTROLLER_MARKER_BALL, DirectorMode, pc);
+                    }
                 }
             }
         }
@@ -2199,7 +2206,8 @@ namespace PartyCritical
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_ENABLE_NETWORK_SIGNAL_PLAYER)
             {
-                BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_PLAYER, bool.Parse((string)_list[0]));
+                m_signalDirectorAllowsClient = bool.Parse((string)_list[0]);
+                BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_PLAYER, m_signalDirectorAllowsClient);
             }
         }
 
