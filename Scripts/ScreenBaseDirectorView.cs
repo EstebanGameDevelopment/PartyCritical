@@ -234,6 +234,7 @@ namespace PartyCritical
         protected virtual void HidePanel()
 		{
             m_container.gameObject.SetActive(false);
+            KeysEventInputController.Instance.EnableInteractions = true;
         }
 
         // -------------------------------------------
@@ -309,6 +310,7 @@ namespace PartyCritical
                     if (!m_container.gameObject.activeSelf)
                     {
                         m_container.gameObject.SetActive(true);
+                        KeysEventInputController.Instance.EnableInteractions = false;
                     }
                 }
             }

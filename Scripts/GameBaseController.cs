@@ -32,6 +32,7 @@ namespace PartyCritical
         public const string EVENT_GAMECONTROLLER_CHANGE_STATE               = "EVENT_GAMECONTROLLER_CHANGE_STATE";
         public const string EVENT_GAMECONTROLLER_PLAYER_IS_READY            = "EVENT_GAMECONTROLLER_PLAYER_IS_READY";
         public const string EVENT_GAMECONTROLLER_ENEMIES_DISABLE_AUTO_SPAWN = "EVENT_GAMECONTROLLER_ENEMIES_DISABLE_AUTO_SPAWN";
+        public const string EVENT_GAMECONTROLLER_SHOOT_ENABLED              = "EVENT_GAMECONTROLLER_SHOOT_ENABLED";
         public const string EVENT_GAMECONTROLLER_CREATE_NEW_ENEMY           = "EVENT_GAMECONTROLLER_CREATE_NEW_ENEMY";
         public const string EVENT_GAMECONTROLLER_SELECTED_LEVEL             = "EVENT_GAMECONTROLLER_SELECTED_LEVEL";
         public const string EVENT_GAMECONTROLLER_COLLIDED_REPOSITION_BALL   = "EVENT_GAMECONTROLLER_COLLIDED_REPOSITION_BALL";
@@ -61,6 +62,23 @@ namespace PartyCritical
 
         public const string SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL = "SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL";
         public const string SUB_EVENT_GAMECONTROLLER_CONFIRMATION_EXIT_APP = "SUB_EVENT_GAMECONTROLLER_CONFIRMATION_EXIT_APP";
+
+        // ----------------------------------------------
+        // SINGLETON
+        // ----------------------------------------------	
+        private static GameBaseController _instanceBase;
+
+        public static GameBaseController InstanceBase
+        {
+            get
+            {
+                if (!_instanceBase)
+                {
+                    _instanceBase = GameObject.FindObjectOfType(typeof(GameBaseController)) as GameBaseController;
+                }
+                return _instanceBase;
+            }
+        }
 
         // ----------------------------------------------
         // CONSTANTS
@@ -98,7 +116,6 @@ namespace PartyCritical
         public GameObject DirectorScreen;
         public GameObject SpectatorScreen;
         public GameObject PlayerScreen;
-        public GameObject LaserPointer;
         public GameObject MarkerPlayer;
         public GameObject MarkerDirector;
         public TextAsset PathfindingData;
@@ -153,6 +170,8 @@ namespace PartyCritical
         protected string m_currentMelody = "";
 
         protected bool m_gameWithDirector = false;
+
+        private GameObject m_laserPointer = null;
 
         // ----------------------------------------------
         // GETTERS/SETTERS
@@ -235,6 +254,11 @@ namespace PartyCritical
         public bool GameWithDirector
         {
             get { return m_gameWithDirector; }
+        }
+        public GameObject LaserPointer
+        {
+            get { return m_laserPointer; }
+            set { m_laserPointer = value; }
         }
 
         // -------------------------------------------
@@ -663,7 +687,6 @@ namespace PartyCritical
             {
                 if (!CardboardLoaderVR.Instance.LoadEnableCardboard())
                 {
-                    KeysEventInputController.Instance.EnableInteractions = true;
                     KeysEventInputController.Instance.EnableActionButton = true;
                     BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION, true);
                     UIEventController.Instance.DispatchUIEvent(InteractionController.EVENT_INTERACTIONCONTROLLER_ENABLE_INTERACTION, true);
@@ -1507,6 +1530,20 @@ namespace PartyCritical
          */
         protected override void OnUIEvent(string _nameEvent, object[] _list)
         {
+#if ENABLE_OCULUS && !ENABLE_PARTY_2018
+            if (_nameEvent == YourVRUIScreenController.EVENT_SCREENMANAGER_ASSIGNED_LASER)
+            {
+                LaserPointer = YourVRUIScreenController.Instance.LaserPointer;
+                if (GameObject.FindObjectOfType<BaseVRScreenView>() == null)
+                {
+                    EnableLaserVR(false);
+                }
+                else
+                {
+                    EnableLaserVR(true);
+                }
+            }
+#endif
             if (_nameEvent == EVENT_GAMECONTROLLER_ASK_CONFIRM_TO_QUIT_APP)
             {
                 UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_INFORMATION_SCREEN, ScreenInformationView.SCREEN_CONFIRMATION, UIScreenTypePreviousAction.KEEP_CURRENT_SCREEN, LanguageController.Instance.GetText("message.warning"), LanguageController.Instance.GetText("message.do.you.want.exit"), null, SUB_EVENT_GAMECONTROLLER_CONFIRMATION_EXIT_APP);
