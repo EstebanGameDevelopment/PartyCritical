@@ -692,6 +692,8 @@ namespace PartyCritical
                     UIEventController.Instance.DispatchUIEvent(InteractionController.EVENT_INTERACTIONCONTROLLER_ENABLE_INTERACTION, true);
                 }
             }
+#else
+            BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER, CameraBaseController.InstanceBase.SignalClientEnabled);
 #endif
         }
 
@@ -1536,7 +1538,7 @@ namespace PartyCritical
                 LaserPointer = YourVRUIScreenController.Instance.LaserPointer;
                 if (GameObject.FindObjectOfType<BaseVRScreenView>() == null)
                 {
-                    EnableLaserVR(false);
+                    EnableLaserVR(CameraBaseController.InstanceBase.SignalClientEnabled);
                 }
                 else
                 {
@@ -1576,10 +1578,6 @@ namespace PartyCritical
                         DestroyAllResources(false, true, 0.1f);
                     }
                 }
-            }
-            if (_nameEvent == UIEventController.EVENT_SCREENMANAGER_DESTROY_SCREEN)
-            {
-                EnableLaserVR(false);
             }
         }
 

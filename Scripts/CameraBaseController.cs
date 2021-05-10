@@ -28,7 +28,6 @@ namespace PartyCritical
         // ----------------------------------------------	
         public const string EVENT_CAMERACONTROLLER_REQUEST_SELECTOR_DATA = "EVENT_CAMERACONTROLLER_REQUEST_SELECTOR_DATA";
         public const string EVENT_CAMERACONTROLLER_RESPONSE_SELECTOR_DATA = "EVENT_CAMERACONTROLLER_RESPONSE_SELECTOR_DATA";
-        public const string EVENT_CAMERACONTROLLER_DATA_SHOTGUN = "EVENT_CAMERACONTROLLER_DATA_SHOTGUN";
         public const string EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION = "EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION";
         public const string EVENT_GAMECAMERA_REAL_PLAYER_FORWARD = "EVENT_GAMECAMERA_REAL_PLAYER_FORWARD";
         public const string EVENT_CAMERACONTROLLER_OPEN_INVENTORY = "EVENT_CAMERACONTROLLER_OPEN_INVENTORY";
@@ -38,6 +37,8 @@ namespace PartyCritical
         public const string EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER = "EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER";
         public const string EVENT_CAMERACONTROLLER_ACTIVATE_SKYBOX = "EVENT_CAMERACONTROLLER_ACTIVATE_SKYBOX";
         public const string EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA = "EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA";
+        public const string EVENT_CAMERACONTROLLER_APPLY_LEFT_ROTATION_CAMERA = "EVENT_CAMERACONTROLLER_APPLY_LEFT_ROTATION_CAMERA";
+        public const string EVENT_CAMERACONTROLLER_APPLY_RIGTH_ROTATION_CAMERA = "EVENT_CAMERACONTROLLER_APPLY_RIGTH_ROTATION_CAMERA";
         public const string EVENT_CAMERACONTROLLER_ENABLE_CONTROL_CAMERA = "EVENT_CAMERACONTROLLER_ENABLE_CONTROL_CAMERA";
         public const string EVENT_CAMERACONTROLLER_ENABLE_NETWORK_SIGNAL_PLAYER = "EVENT_CAMERACONTROLLER_ENABLE_NETWORK_SIGNAL_PLAYER";
         public const string EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_PLAYER = "EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_PLAYER";
@@ -50,6 +51,7 @@ namespace PartyCritical
         
         public const string EVENT_CAMERACONTROLLER_COLLISION_ENTER_TRIGGERED_WITH_PLAYER = "EVENT_CAMERACONTROLLER_COLLISION_ENTER_TRIGGERED_WITH_PLAYER";
         public const string EVENT_CAMERACONTROLLER_COLLISION_EXIT_TRIGGERED_WITH_PLAYER = "EVENT_CAMERACONTROLLER_COLLISION_EXIT_TRIGGERED_WITH_PLAYER";
+
 
         public const string MARKER_NAME = "MARKER";
 
@@ -79,6 +81,9 @@ namespace PartyCritical
         public GameObject HandsRightDefault;
         public GameObject HandsLeftOptional;
         public GameObject SubContainerCamera;
+
+        public GameObject LeftCameraRotationButton;
+        public GameObject RightCameraRotationButton;
 
         public float ScaleMovementXZ = 4;
         public float ScaleMovementY = 2;
@@ -138,6 +143,9 @@ namespace PartyCritical
         protected bool m_enableShoots = false;
 
         protected float m_timeShotgun = 0;
+
+        protected bool m_isHandsMode = false;
+
 #if ENABLE_WORLDSENSE || ENABLE_OCULUS || ENABLE_HTCVIVE
         protected GameObject m_armModel;
         protected GameObject m_laserPointer;
@@ -318,9 +326,12 @@ namespace PartyCritical
         public virtual void Initialize()
         {
             InitialitzeHMDHeight();
-            
+
+            if (LeftCameraRotationButton != null) LeftCameraRotationButton.SetActive(false);
+            if (RightCameraRotationButton != null) RightCameraRotationButton.SetActive(false);
+
 #if ENABLE_OCULUS
-            m_enableVR = true;
+        m_enableVR = true;
             AreOculusHandsEnabled = false;
             CameraLocal.gameObject.SetActive(false);
             if (OVRPlayer!=null) OVRPlayer.SetActive(true);
@@ -448,6 +459,9 @@ namespace PartyCritical
         protected bool m_oculusTriggerDownFlag = true;
         protected bool m_oculusTriggerUpFlag = true;
 
+        // -------------------------------------------
+        /* OnOculusEvent
+		 */
         private void OnOculusEvent(string _nameEvent, object[] _list)
         {
             if (_nameEvent == OculusControllerInputs.EVENT_OCULUSINPUTCONTROLLER_INDEX_TRIGGER_DOWN)
@@ -458,6 +472,21 @@ namespace PartyCritical
             {
                 m_oculusTriggerUpFlag = true;
             }
+            if (_nameEvent == OculusHandsManager.EVENT_OCULUSHANDMANAGER_SET_UP_LASER_POINTER_INITIALIZE)
+            {
+                m_isHandsMode = (bool)_list[0];
+                if (m_isHandsMode)
+                {
+                    if (LeftCameraRotationButton != null) LeftCameraRotationButton.SetActive(true);
+                    if (RightCameraRotationButton != null) RightCameraRotationButton.SetActive(true);
+                }
+                else
+                {
+                    if (LeftCameraRotationButton != null) LeftCameraRotationButton.SetActive(false);
+                    if (RightCameraRotationButton != null) RightCameraRotationButton.SetActive(false);
+                }
+            }
+            
         }
 #endif
 
@@ -1883,14 +1912,20 @@ namespace PartyCritical
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA)
             {
+                Vector3 rotationFinalApplied = Vector3.zero;
                 if ((bool)_list[0])
                 {
-                    this.transform.Rotate(new Vector3(0, ROTATE_LOCALCAMERA_VALUE, 0));
+                    rotationFinalApplied = new Vector3(0, ROTATE_LOCALCAMERA_VALUE, 0);
+                    this.transform.Rotate(rotationFinalApplied);
                 }
                 else
                 {
-                    this.transform.Rotate(new Vector3(0, -ROTATE_LOCALCAMERA_VALUE, 0));
+                    rotationFinalApplied = new Vector3(0, -ROTATE_LOCALCAMERA_VALUE, 0);
+                    this.transform.Rotate(rotationFinalApplied);
                 }
+#if ENABLE_OCULUS
+                OculusEventObserver.Instance.DispatchOculusEvent(OculusHandsManager.EVENT_OCULUSHANDMANAGER_ROTATION_CAMERA_APPLIED, rotationFinalApplied);
+#endif
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_COLLISION_ENTER_TRIGGERED_WITH_PLAYER)
             {
@@ -1900,6 +1935,20 @@ namespace PartyCritical
             {
                 GameObject collideGOWithPlayer = (GameObject)_list[1];
             }
+            if (_nameEvent == TeleportController.EVENT_TELEPORTCONTROLLER_ACTIVATION)
+            {
+                if (LeftCameraRotationButton != null) LeftCameraRotationButton.SetActive(false);
+                if (RightCameraRotationButton != null) RightCameraRotationButton.SetActive(false);
+            }
+            if (_nameEvent == TeleportController.EVENT_TELEPORTCONTROLLER_DEACTIVATION)
+            {
+                if (m_isHandsMode)
+                {
+                    if (LeftCameraRotationButton != null) LeftCameraRotationButton.SetActive(true);
+                    if (RightCameraRotationButton != null) RightCameraRotationButton.SetActive(true);
+                }
+            }
+
 
 #if ENABLE_MULTIPLAYER_TIMELINE
             if (_nameEvent == GameLevelData.EVENT_GAMELEVELDATA_REQUEST_COLLISION_RAY)
@@ -2183,6 +2232,27 @@ namespace PartyCritical
                 m_enableFreeRotationCamera = (bool)_list[0];
                 m_enableFreeMovementCamera = (bool)_list[1];
             }
+            if (_nameEvent == EVENT_CAMERACONTROLLER_APPLY_LEFT_ROTATION_CAMERA)
+            {
+                BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA, true);
+            }
+            if (_nameEvent == EVENT_CAMERACONTROLLER_APPLY_RIGTH_ROTATION_CAMERA)
+            {
+                BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA, false);
+            }
+            if (_nameEvent == BaseVRScreenView.EVENT_SCREEN_OPEN_VIEW)
+            {
+                if (LeftCameraRotationButton != null) LeftCameraRotationButton.SetActive(false);
+                if (RightCameraRotationButton != null) RightCameraRotationButton.SetActive(false);
+            }
+            if (_nameEvent == BaseVRScreenView.EVENT_SCREEN_CLOSE_VIEW)
+            {
+                if (m_isHandsMode)
+                {
+                    if (LeftCameraRotationButton != null) LeftCameraRotationButton.SetActive(true);
+                    if (RightCameraRotationButton != null) RightCameraRotationButton.SetActive(true);
+                }
+            }
         }
 
         protected GameObject m_playerCameraActivated = null;
@@ -2382,16 +2452,22 @@ namespace PartyCritical
                 if (Mathf.Abs(pressedVector.x) > detectionDistance)
                 {
                     m_hasBeenRotated = true;
+                    Vector3 rotationFinalApplied = Vector3.zero;
                     if (pressedVector.x > 0)
                     {
                         m_currentLocalCamRotation += ROTATE_LOCALCAMERA_VALUE;
+                        rotationFinalApplied = new Vector3(0, ROTATE_LOCALCAMERA_VALUE, 0);
                         this.transform.Rotate(new Vector3(0, ROTATE_LOCALCAMERA_VALUE, 0));
                     }
                     else
                     {
                         m_currentLocalCamRotation -= ROTATE_LOCALCAMERA_VALUE;
+                        rotationFinalApplied = new Vector3(0, -ROTATE_LOCALCAMERA_VALUE, 0);
                         this.transform.Rotate(new Vector3(0, -ROTATE_LOCALCAMERA_VALUE, 0));
-                    }                    
+                    }
+#if ENABLE_OCULUS
+                    OculusEventObserver.Instance.DispatchOculusEvent(OculusHandsManager.EVENT_OCULUSHANDMANAGER_ROTATION_CAMERA_APPLIED, rotationFinalApplied);
+#endif
                 }
             }
             else
