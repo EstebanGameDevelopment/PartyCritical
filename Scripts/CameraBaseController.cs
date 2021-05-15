@@ -80,6 +80,8 @@ namespace PartyCritical
         public GameObject CenterEyeAnchor;
         public GameObject HandsRightDefault;
         public GameObject HandsLeftOptional;
+        public GameObject HandsLocalRightDefault;
+        public GameObject HandsLocalLeftOptional;
         public GameObject SubContainerCamera;
 
         public GameObject LeftCameraRotationButton;
@@ -124,6 +126,7 @@ namespace PartyCritical
 
         protected GameObject m_handRightDefault;
         protected GameObject m_handLeftOptional;
+
 
 #if (ONLY_REMOTE_CONNECTION || TELEPORT_INDIVIDUAL) && (ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE)
         protected bool m_teleportAvailable = true;
@@ -1728,6 +1731,53 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		 * InitNetworkRightHand
+		 */
+        protected virtual void InitNetworkRightHand()
+        {
+            if (!YourNetworkTools.Instance.IsLocalGame)
+            {
+                if (HandsRightDefault != null)
+                {
+                    YourNetworkTools.Instance.CreateLocalNetworkObject(HandsRightDefault.name, HandsRightDefault.name + "," + true.ToString() + "," + 100000 + "," + 100000 + "," + 100000, false, 10000, 10000, 10000);
+                }
+            }
+            else
+            {
+                if (HandsLocalRightDefault != null)
+                {
+                    YourNetworkTools.Instance.CreateLocalNetworkObject(HandsLocalRightDefault.name, HandsLocalRightDefault.name + "," + true.ToString() + "," + 100000 + "," + 100000 + "," + 100000, false, 10000, 10000, 10000);
+                }
+            }
+
+            Invoke("InitNetworkLeftHand", 0.2f);
+        }
+
+
+        // -------------------------------------------
+        /* 
+		 * InitNetworkLeftHand
+		 */
+        protected virtual void InitNetworkLeftHand()
+        {
+            if (!YourNetworkTools.Instance.IsLocalGame)
+            {
+                if (HandsLeftOptional != null)
+                {
+                    YourNetworkTools.Instance.CreateLocalNetworkObject(HandsLeftOptional.name, HandsLeftOptional.name + "," + false.ToString() + "," + 100000 + "," + 100000 + "," + 100000, false, 10000, 10000, 10000);
+                }
+            }
+            else
+            {
+                if (HandsLocalLeftOptional != null)
+                {
+                    YourNetworkTools.Instance.CreateLocalNetworkObject(HandsLocalLeftOptional.name, HandsLocalLeftOptional.name + "," + false.ToString() + "," + 100000 + "," + 100000 + "," + 100000, false, 10000, 10000, 10000);
+                }
+            }
+        }
+
+        // -------------------------------------------
+        /* 
 		 * OnBasicSystemEvent
 		 */
         protected virtual void OnBasicSystemEvent(string _nameEvent, object[] _list)
@@ -1783,21 +1833,15 @@ namespace PartyCritical
             {
                 if (!DirectorMode)
                 {
-                    Avatar = (GameObject)_list[0];
-                    if (!GameBaseController.InstanceBase.IsSinglePlayer)
+                    if (Avatar == null)
                     {
+                        Avatar = (GameObject)_list[0];
+                        if (!GameBaseController.InstanceBase.IsSinglePlayer)
+                        {
 #if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE
-                        if (HandsRightDefault != null)
-                        {
-                            string initialData = HandsRightDefault.name + "," + true.ToString() + "," + 100000 + "," + 100000 + "," + 100000;
-                            YourNetworkTools.Instance.CreateLocalNetworkObject(HandsRightDefault.name, initialData, false, 10000, 10000, 10000);
-                        }
-                        if (HandsLeftOptional != null)
-                        {
-                            string initialData = HandsLeftOptional.name + "," + false.ToString() + "," + 100000 + "," + 100000 + "," + 100000;
-                            YourNetworkTools.Instance.CreateLocalNetworkObject(HandsLeftOptional.name, initialData, false, 10000, 10000, 10000);
-                        }
+                            Invoke("InitNetworkRightHand", 0.2f);
 #endif
+                        }
                     }
                 }
             }

@@ -191,6 +191,7 @@ namespace PartyCritical
         public int CurrentLevel
         {
             get { return m_currentLevel; }
+            set { m_currentLevel = value; }
         }
         public int TotalNumberPlayers
         {
@@ -577,7 +578,7 @@ namespace PartyCritical
 
             if (_level != -1)
             {
-                m_currentLevel = _level;
+                CurrentLevel = _level;
             }
             if (m_level != null)
             {
@@ -595,14 +596,14 @@ namespace PartyCritical
 
                     if ((m_currentLevel < LevelsPrefab.Length) && (LevelsPrefab[m_currentLevel] != null))
                     {
-                        m_currentLevel = m_currentLevel % LevelsPrefab.Length;
+                        CurrentLevel = m_currentLevel % LevelsPrefab.Length;
                         m_level = Utilities.AddChild(LevelContainer.transform, LevelsPrefab[m_currentLevel]);
                         loadLevelFromAssetBundle = false;
                     }
 #endif
                     if (loadLevelFromAssetBundle)
                     {
-                        m_currentLevel = m_currentLevel % LevelsAssetsNames.Length;
+                        CurrentLevel = m_currentLevel % LevelsAssetsNames.Length;
                         m_level = AssetbundleController.Instance.CreateGameObject(LevelsAssetsNames[m_currentLevel]);
                     }
 #else
@@ -927,7 +928,7 @@ namespace PartyCritical
             {
                 if (m_isCreatorGame)
                 {
-                    Debug.LogError("++SENDING++::EVENT_GAMECONTROLLER_SELECTED_LEVEL::m_currentLevel=" + m_currentLevel);
+                    // Debug.LogError("++SENDING++::EVENT_GAMECONTROLLER_SELECTED_LEVEL::m_currentLevel=" + m_currentLevel);
                     NetworkEventController.Instance.PriorityDelayNetworkEvent(EVENT_GAMECONTROLLER_SELECTED_LEVEL, 0.1f, m_currentLevel.ToString());
                 }
             }
@@ -939,21 +940,21 @@ namespace PartyCritical
         */
         protected virtual void LoadSelectedLevel(int _level)
         {
-            m_currentLevel = _level;
+            CurrentLevel = _level;
 #if ENABLE_ASSET_BUNDLE
             if (LevelsAssetsNames.Length > 0)
             {
-                m_currentLevel = m_currentLevel % LevelsAssetsNames.Length;
+                CurrentLevel = m_currentLevel % LevelsAssetsNames.Length;
             }
             else
             {
                 if (LevelsPrefab.Length > 0)
                 {
-                    m_currentLevel = m_currentLevel % LevelsPrefab.Length;
+                    CurrentLevel = m_currentLevel % LevelsPrefab.Length;
                 }
             }
 #else
-            m_currentLevel = m_currentLevel % LevelsPrefab.Length;
+            CurrentLevel = m_currentLevel % LevelsPrefab.Length;
 #endif
             m_onNetworkRemoteConnection = true;
             if (m_isInitialConnectionEstablished)
@@ -1214,7 +1215,7 @@ namespace PartyCritical
                     CreateLoadingScreen();
                     if (YourNetworkTools.Instance.IsServer)
                     {
-                        m_currentLevel = nextLevelToLoad;
+                        CurrentLevel = nextLevelToLoad;
                         NetworkEventController.Instance.PriorityDelayNetworkEvent(EVENT_GAMECONTROLLER_NUMBER_LEVEL_TO_LOAD, 0.5f, m_currentLevel.ToString());
                     }
                 }
@@ -1253,7 +1254,7 @@ namespace PartyCritical
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_NUMBER_LEVEL_TO_LOAD)
             {
-                m_currentLevel = int.Parse((string)_list[0]);
+                CurrentLevel = int.Parse((string)_list[0]);
                 LoadNextLevelAction();
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_SELECTED_LEVEL)

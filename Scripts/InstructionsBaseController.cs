@@ -47,7 +47,7 @@ namespace PartyCritical
         protected List<string> m_teams = new List<string>();
 
         protected int m_timeMarker;
-        protected int m_timeSegment;
+        protected int m_timeSegment = 1000;
 
 #if ENABLE_MULTIPLAYER_TIMELINE
         protected LayerData m_mainLayer;
