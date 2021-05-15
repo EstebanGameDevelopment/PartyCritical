@@ -2,6 +2,9 @@
 using UnityEngine.UI;
 using YourCommonTools;
 using YourNetworkingTools;
+#if ENABLE_YOURVRUI
+using YourVRUI;
+#endif
 
 namespace PartyCritical
 {
