@@ -145,7 +145,7 @@ namespace PartyCritical
             {
                 if (_nameEvent == KeysEventInputController.ACTION_BUTTON_DOWN)
                 {
-                    BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_REQUEST_SELECTOR_DATA, this.gameObject.name);
+                    BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_REQUEST_SELECTOR_DATA, this.gameObject.name, LayerName);
                 }
             }
         }
@@ -176,13 +176,6 @@ namespace PartyCritical
                     if (_list.Length > 3)
                     {
                         maskToConsider = (string)_list[3];
-                    }
-                    if (LayerName.Length > 0)
-                    {
-                        for (int i= 0; i < States.Length; i++)
-                        {
-                            States[i].layer = LayerMask.NameToLayer(LayerName);
-                        }
                     }
                     RaycastHit raycastHit = new RaycastHit();
                     bool collided = false;

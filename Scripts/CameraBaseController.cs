@@ -1709,7 +1709,12 @@ namespace PartyCritical
                 fwd = Utilities.Clone(m_laserPointer.transform.forward);
             }
 #endif
-            BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_CAMERACONTROLLER_RESPONSE_SELECTOR_DATA, _list[0], pos, fwd);
+            string maskToConsider = "";
+            if (_list.Length > 1)
+            {
+                maskToConsider = (string)_list[1];
+            }
+            BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_CAMERACONTROLLER_RESPONSE_SELECTOR_DATA, _list[0], pos, fwd, maskToConsider);
         }
 
         // -------------------------------------------
