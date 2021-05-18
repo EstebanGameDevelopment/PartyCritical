@@ -1920,7 +1920,9 @@ namespace PartyCritical
                 // initialData = m_namePlayer + "," + NameModelPrefab[m_characterSelected] + "," + 0 + "," + initialPosition.y + "," + 0;
                 if (!IsSinglePlayer)
                 {
-                    YourNetworkTools.Instance.CreateLocalNetworkObject(PlayerPrefab[m_characterSelected].name, initialData, false);
+                    string finalNameNetworkAssets = PlayerPrefab[m_characterSelected].name;
+                    if (YourNetworkTools.Instance.IsLocalGame) finalNameNetworkAssets += "Local";
+                    YourNetworkTools.Instance.CreateLocalNetworkObject(finalNameNetworkAssets, initialData, false);
                     YourNetworkTools.Instance.ActivateTransformUpdate = true;
                 }
                 else
@@ -2180,7 +2182,9 @@ namespace PartyCritical
             m_globalCounterEnemies++;
             if (!IsSinglePlayer)
             {
-                YourNetworkTools.Instance.CreateLocalNetworkObject(EnemyPrefab[0].name, initialData, true, 10000, 10000, 10000);
+                string finalNameNetworkAssets = EnemyPrefab[0].name;
+                if (YourNetworkTools.Instance.IsLocalGame) finalNameNetworkAssets += "Local";
+                YourNetworkTools.Instance.CreateLocalNetworkObject(finalNameNetworkAssets, initialData, true, 10000, 10000, 10000);
             }
             else
             {
@@ -2206,7 +2210,9 @@ namespace PartyCritical
             m_globalCounterNPCs++;
             if (!IsSinglePlayer)
             {
-                YourNetworkTools.Instance.CreateLocalNetworkObject(NPCPrefab[0].name, initialData, true);
+                string finalNameNetworkAssets = NPCPrefab[0].name;
+                if (YourNetworkTools.Instance.IsLocalGame) finalNameNetworkAssets += "Local";
+                YourNetworkTools.Instance.CreateLocalNetworkObject(finalNameNetworkAssets, initialData, true);
             }
             else
             {

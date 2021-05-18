@@ -91,6 +91,7 @@ namespace PartyCritical
         public float ScaleMovementY = 2;
 
         public bool AreOculusHandsEnabled = false;
+        public GameObject ButtonsRotationHandTracking;
 
         // ----------------------------------------------
         // protected VARIABLES
