@@ -13,6 +13,9 @@ using VRPartyValidation;
 using Photon.Voice.Unity;
 using Photon.Voice.Unity.UtilityScripts;
 #endif
+#if ENABLE_VIVOX
+using VivoxUnity;
+#endif
 
 namespace PartyCritical
 {
@@ -100,13 +103,13 @@ namespace PartyCritical
         public GameObject LevelReference;
         public string[] LevelsAssetsNames;
         public GameObject[] LevelsPrefab;
-        public GameObject[] PlayerPrefab;
+        public string[] PlayerNetworkPrefab;
         public string[] NameModelPrefab;
         public GameObject[] ModelPrefab;
-        public GameObject[] EnemyPrefab;
+        public string[] EnemyNetworkPrefab;
         public string[] EnemyModelPrefab;
         public GameObject[] EnemyAnimationPrefab;
-        public GameObject[] NPCPrefab;
+        public string[] NPCNetworkPrefab;
         public string[] NPCModelPrefab;
         public GameObject[] FXPrefab;
         public GameObject[] ShootPrefab;
@@ -124,6 +127,11 @@ namespace PartyCritical
         public string[] SoundsLevels;
         public GameObject[] GenericObjects;
         public GameObject CloseRoomScreen;
+
+        public string VivoxServer = "";
+        public string VivoxDomain = "";
+        public string VivoxTokenIssuer = "";
+        public string VivoxTokeyKey = "";
 
         // ----------------------------------------------
         // protected MEMBERS
@@ -164,6 +172,7 @@ namespace PartyCritical
         protected bool m_enableListenToPauseEvent = false;
         protected bool m_enableBackgroundVR = true;
         protected bool m_isGyroscopeMode = false;
+        protected bool m_isLocalGame = false;
 
         protected bool m_isFirstTimeRun = true;
 
@@ -414,13 +423,20 @@ namespace PartyCritical
             NetworkEventController.Instance.NetworkEvent -= OnNetworkEvent;
 			BasicSystemEventController.Instance.BasicSystemEvent -= OnBasicSystemEvent;
             UIEventController.Instance.UIEvent -= OnUIEvent;
+
+            if (!m_isLocalGame)
+            {
+#if ENABLE_VIVOX
+                VivoxVoiceController.Instance.Destroy();
+#endif
+            }
         }
 
-		// -------------------------------------------
-		/* 
+        // -------------------------------------------
+        /* 
 		 * Destroy
 		 */
-		void OnDestroy()
+        void OnDestroy()
 		{
 			Destroy();
 		}
@@ -1009,10 +1025,19 @@ namespace PartyCritical
 #if SINGLE_PLAYER
                 m_totalNumberPlayers = 1;
 #endif
+
                 if ((isDirector) || ((m_totalNumberPlayers <= m_playersReady.Count) && (m_totalNumberPlayers != MultiplayerConfiguration.VALUE_FOR_JOINING)))
                 {
                     CloseRoomAndStartGame();
                 }
+            }
+
+            m_isLocalGame = YourNetworkTools.Instance.IsLocalGame;
+            if (!YourNetworkTools.Instance.IsLocalGame)
+            {
+#if ENABLE_VIVOX
+                Instantiate(Resources.Load("VivoxVoiceController") as GameObject);
+#endif
             }
 #endif
         }
@@ -1500,6 +1525,29 @@ namespace PartyCritical
                     NetworkEventController.Instance.PriorityDelayNetworkEvent(EVENT_GAMECONTROLLER_MARKER_BALL, 0.1f, isDirectorMode.ToString(), pc.x.ToString(), pc.y.ToString(), pc.z.ToString());
                 }
             }
+#if ENABLE_VIVOX
+            if (_nameEvent == VivoxVoiceController.EVENT_VIVOXVOICECONTROLLER_STARTED)
+            {
+                VivoxVoiceController.Instance.Initialize(VivoxServer, VivoxDomain, VivoxTokenIssuer, VivoxTokeyKey);
+            }
+            if (_nameEvent == VivoxVoiceController.EVENT_VIVOXVOICECONTROLLER_INITIALIZED)
+            {
+                string nameToLogin = Utilities.RandomCodeGeneration(NetworkEventController.Instance.NameRoomLobby);
+                VivoxVoiceController.Instance.Login();
+            }
+            if (_nameEvent == VivoxVoiceController.EVENT_VIVOXVOICECONTROLLER_LOGGED_IN)
+            {
+                // Debug.LogError("EVENT_VIVOXVOICECONTROLLER_LOGGED_IN::JOINING TO CHANNEL=" + NetworkEventController.Instance.NameRoomLobby);
+                VivoxVoiceController.Instance.JoinChannel(NetworkEventController.Instance.NameRoomLobby, ChannelType.NonPositional, VivoxVoiceController.ChatCapability.AudioOnly);
+            }
+            if (_nameEvent == VivoxVoiceController.EVENT_VIVOXVOICECONTROLLER_NEW_PARTICIPANT)
+            {
+                string username = (string)_list[0];
+                string channel = (string)_list[1];
+                bool participantCanTransmit = (bool)_list[2];
+                // Debug.LogError("EVENT_VIVOXVOICECONTROLLER_NEW_PARTICIPANT::username["+ username + "]::channel.Name["+ channel + "]::participant.IsTransmitting["+ participantCanTransmit + "]");
+            }
+#endif
         }
 
         // -------------------------------------------
@@ -1908,7 +1956,7 @@ namespace PartyCritical
 
                 string initialData = GetPositionBySpawnGO();
 
-                if (m_characterSelected >= PlayerPrefab.Length)
+                if (m_characterSelected >= PlayerNetworkPrefab.Length)
                 {
                     m_characterSelected = 0;
                 }
@@ -1920,14 +1968,12 @@ namespace PartyCritical
                 // initialData = m_namePlayer + "," + NameModelPrefab[m_characterSelected] + "," + 0 + "," + initialPosition.y + "," + 0;
                 if (!IsSinglePlayer)
                 {
-                    string finalNameNetworkAssets = PlayerPrefab[m_characterSelected].name;
-                    if (YourNetworkTools.Instance.IsLocalGame) finalNameNetworkAssets += "Local";
-                    YourNetworkTools.Instance.CreateLocalNetworkObject(finalNameNetworkAssets, initialData, false);
+                    YourNetworkTools.Instance.CreateLocalNetworkObject(PlayerNetworkPrefab[m_characterSelected], YourNetworkTools.Instance.CreatePathToPrefabInResources(PlayerNetworkPrefab[m_characterSelected], true), initialData, false);
                     YourNetworkTools.Instance.ActivateTransformUpdate = true;
                 }
                 else
                 {
-                    GameObject myOwnPlayer = Instantiate(PlayerPrefab[m_characterSelected]);
+                    GameObject myOwnPlayer = Instantiate(Resources.Load(YourNetworkTools.Instance.CreatePathToPrefabInResources(PlayerNetworkPrefab[m_characterSelected], true, true)) as GameObject);
                     if (myOwnPlayer.GetComponent<ActorTimeline>() != null) myOwnPlayer.GetComponent<ActorTimeline>().InitializeLocalData(initialData);
                 }
 
@@ -2182,13 +2228,11 @@ namespace PartyCritical
             m_globalCounterEnemies++;
             if (!IsSinglePlayer)
             {
-                string finalNameNetworkAssets = EnemyPrefab[0].name;
-                if (YourNetworkTools.Instance.IsLocalGame) finalNameNetworkAssets += "Local";
-                YourNetworkTools.Instance.CreateLocalNetworkObject(finalNameNetworkAssets, initialData, true, 10000, 10000, 10000);
+                YourNetworkTools.Instance.CreateLocalNetworkObject(EnemyNetworkPrefab[0], YourNetworkTools.Instance.CreatePathToPrefabInResources(EnemyNetworkPrefab[0], true), initialData, true, 10000, 10000, 10000);
             }
             else
             {
-                GameObject newZombie = Instantiate(EnemyPrefab[0]);
+                GameObject newZombie = Instantiate(Resources.Load(YourNetworkTools.Instance.CreatePathToPrefabInResources(EnemyNetworkPrefab[0], true, true)) as GameObject);
                 newZombie.GetComponent<IGameNetworkActor>().Initialize(initialData);
                 if (newZombie.GetComponent<ActorNetwork>() != null)
                 {
@@ -2210,13 +2254,11 @@ namespace PartyCritical
             m_globalCounterNPCs++;
             if (!IsSinglePlayer)
             {
-                string finalNameNetworkAssets = NPCPrefab[0].name;
-                if (YourNetworkTools.Instance.IsLocalGame) finalNameNetworkAssets += "Local";
-                YourNetworkTools.Instance.CreateLocalNetworkObject(finalNameNetworkAssets, initialData, true);
+                YourNetworkTools.Instance.CreateLocalNetworkObject(NPCNetworkPrefab[0], YourNetworkTools.Instance.CreatePathToPrefabInResources(NPCNetworkPrefab[0], true), initialData, true);
             }
             else
             {
-                GameObject newNPC = Instantiate(NPCPrefab[0]);
+                GameObject newNPC = Instantiate(Resources.Load(YourNetworkTools.Instance.CreatePathToPrefabInResources(NPCNetworkPrefab[0], true, true)) as GameObject);
                 newNPC.GetComponent<IGameNetworkActor>().Initialize(initialData);
             }
             return true;

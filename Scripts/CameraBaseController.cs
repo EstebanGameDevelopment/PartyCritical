@@ -78,10 +78,6 @@ namespace PartyCritical
         public Transform CameraLocal;
         public GameObject OVRPlayer;
         public GameObject CenterEyeAnchor;
-        public GameObject HandsRightDefault;
-        public GameObject HandsLeftOptional;
-        public GameObject HandsLocalRightDefault;
-        public GameObject HandsLocalLeftOptional;
         public GameObject SubContainerCamera;
 
         public GameObject LeftCameraRotationButton;
@@ -1741,22 +1737,13 @@ namespace PartyCritical
 		 */
         protected virtual void InitNetworkRightHand()
         {
-            if (!YourNetworkTools.Instance.IsLocalGame)
+            string nameRightHand = YourNetworkTools.Instance.CreatePathToPrefabInResources("HandRight", true);
+            if (nameRightHand != null)
             {
-                if (HandsRightDefault != null)
-                {
-                    YourNetworkTools.Instance.CreateLocalNetworkObject(HandsRightDefault.name, HandsRightDefault.name + "," + true.ToString() + "," + 100000 + "," + 100000 + "," + 100000, false, 10000, 10000, 10000);
-                }
-            }
-            else
-            {
-                if (HandsLocalRightDefault != null)
-                {
-                    YourNetworkTools.Instance.CreateLocalNetworkObject(HandsLocalRightDefault.name, HandsLocalRightDefault.name + "," + true.ToString() + "," + 100000 + "," + 100000 + "," + 100000, false, 10000, 10000, 10000);
-                }
+                YourNetworkTools.Instance.CreateLocalNetworkObject("HandRight", nameRightHand, "HandRight" + "," + true.ToString() + "," + 100000 + "," + 100000 + "," + 100000, false, 10000, 10000, 10000);
             }
 
-            Invoke("InitNetworkLeftHand", 0.2f);
+            Invoke("InitNetworkLeftHand", 0.1f);
         }
 
 
@@ -1766,19 +1753,10 @@ namespace PartyCritical
 		 */
         protected virtual void InitNetworkLeftHand()
         {
-            if (!YourNetworkTools.Instance.IsLocalGame)
+            string nameLeftHand = YourNetworkTools.Instance.CreatePathToPrefabInResources("HandLeft", true);
+            if (nameLeftHand != null)
             {
-                if (HandsLeftOptional != null)
-                {
-                    YourNetworkTools.Instance.CreateLocalNetworkObject(HandsLeftOptional.name, HandsLeftOptional.name + "," + false.ToString() + "," + 100000 + "," + 100000 + "," + 100000, false, 10000, 10000, 10000);
-                }
-            }
-            else
-            {
-                if (HandsLocalLeftOptional != null)
-                {
-                    YourNetworkTools.Instance.CreateLocalNetworkObject(HandsLocalLeftOptional.name, HandsLocalLeftOptional.name + "," + false.ToString() + "," + 100000 + "," + 100000 + "," + 100000, false, 10000, 10000, 10000);
-                }
+                YourNetworkTools.Instance.CreateLocalNetworkObject("HandLeft", nameLeftHand, "HandLeft" + "," + false.ToString() + "," + 100000 + "," + 100000 + "," + 100000, false, 10000, 10000, 10000);
             }
         }
 
