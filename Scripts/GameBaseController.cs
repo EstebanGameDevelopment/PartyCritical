@@ -2072,12 +2072,12 @@ namespace PartyCritical
         {
             if (!m_initializationRunningDone)
             {
+                m_initializationRunningDone = true;
                 UpdateSkyboxWithNewLevel();
                 UIEventController.Instance.DispatchUIEvent(MenuScreenController.EVENT_FORCE_DESTRUCTION_POPUP);
                 m_endLevelConfirmedPlayers.Clear();
                 if (m_directorMode)
                 {
-                    m_initializationRunningDone = true;
                     if (m_spectatorMode)
                     {
                         if (GameObject.FindObjectOfType<ScreenBaseSpectatorView>() == null)
@@ -2112,6 +2112,20 @@ namespace PartyCritical
                 bool previousStateIsFirstTimeRun = m_isFirstTimeRun;
                 m_isFirstTimeRun = false;
                 BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_GAMECONTROLLER_RESPONSE_IS_GAME_RUNNING, IsGameFakeRunning());
+#if FORCE_GAME
+#if ENABLE_MULTIPLAYER_TIMELINE
+	            NetworkEventController.Instance.DelayLocalEvent(InstructionsBaseController.EVENT_INSTRUCTION_CONTROLLER_START, 0.1f, 1.ToString());
+#endif
+                if (!m_isSinglePlayer)
+                {
+                    if (!YourNetworkTools.Instance.IsLocalGame)
+                    {
+#if ENABLE_VIVOX
+                        Instantiate(Resources.Load("VivoxVoiceController") as GameObject);
+#endif
+                    }
+                }
+#endif
                 return previousStateIsFirstTimeRun;
             }
             else
