@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.UI;
 using YourCommonTools;
 using YourNetworkingTools;
@@ -85,32 +86,36 @@ namespace PartyCritical
 		*/
         public override void Initialize(params object[] _list)
 		{
-			if (_list != null)
-			{
-				if (_list.Length > 0)
-				{
-					if (_list[0] != null)
-					{
-						if (_list[0] is string)
-						{
-							string[] initialData = ((string)_list[0]).Split(',');
-							Vector3 initialPosition = new Vector3(float.Parse(initialData[2]), float.Parse(initialData[3]), float.Parse(initialData[4]));
-							transform.position = initialPosition;
-                            Name = initialData[0];
-                            m_isRightHand = bool.Parse(initialData[1]);
-                            if (IsMine())
-							{
-								NetworkEventController.Instance.DispatchNetworkEvent(NetworkEventController.EVENT_WORLDOBJECTCONTROLLER_INITIAL_DATA, NetworkID.GetID(), (string)_list[0]);
-							}
-                            InitializeCommon();
+            try
+            {
+                if (_list != null)
+                {
+                    if (_list.Length > 0)
+                    {
+                        if (_list[0] != null)
+                        {
+                            if (_list[0] is string)
+                            {
+                                string[] initialData = ((string)_list[0]).Split(',');
+                                Vector3 initialPosition = new Vector3(float.Parse(initialData[2]), float.Parse(initialData[3]), float.Parse(initialData[4]));
+                                transform.position = initialPosition;
+                                Name = initialData[0];
+                                m_isRightHand = bool.Parse(initialData[1]);
+                                if (IsMine())
+                                {
+                                    NetworkEventController.Instance.DispatchNetworkEvent(NetworkEventController.EVENT_WORLDOBJECTCONTROLLER_INITIAL_DATA, NetworkID.GetID(), (string)_list[0]);
 #if ENABLE_OCULUS
-                            BasicSystemEventController.Instance.DispatchBasicSystemEvent(OculusHandsManager.EVENT_OCULUSHANDMANAGER_LINK_WITH_NETWORK_GAMEHAND, m_isRightHand, this.gameObject);
+                                    BasicSystemEventController.Instance.DispatchBasicSystemEvent(OculusHandsManager.EVENT_OCULUSHANDMANAGER_LINK_WITH_NETWORK_GAMEHAND, m_isRightHand, this.gameObject);
 #endif
+                                }
+                                InitializeCommon();
+                            }
                         }
-					}
-				}
-			}
-		}
+                    }
+                }
+            }
+            catch (Exception err) { }
+        }
 
         // -------------------------------------------
         /* 
