@@ -451,7 +451,10 @@ namespace PartyCritical
             if (_considerForce)
             {
 #if FORCE_GAME
-                displayScreen = false;
+                if (!m_isSinglePlayer)
+                {
+                    displayScreen = false;
+                }                
 #endif
             }
             EnableLaserVR(false);
@@ -1015,31 +1018,46 @@ namespace PartyCritical
         */
         protected virtual void PlayerReadyConfirmation(params object[] _list)
         {
-#if !FORCE_GAME
-            if (YourNetworkTools.Instance.IsServer)
+#if FORCE_GAME
+            bool checkPlayerReady = true;
+            if (m_isSinglePlayer)
             {
-                int networkID = int.Parse((string)_list[0]);
-                bool isDirector = bool.Parse((string)_list[1]);
-                if (m_playersReady.IndexOf(networkID) == -1) m_playersReady.Add(networkID);
-                // Debug.LogError("EVENT_SYSTEM_INITIALITZATION_REMOTE_COMPLETED::CONNECTED CLIENT[" + networkID + "] OF TOTAL["+ m_playersReady.Count + "] of EXPECTED[" + m_totalNumberPlayers +"]");
+                checkPlayerReady = true;
+            }
+            else
+            {
+                checkPlayerReady = false;
+            }
+#else
+            checkPlayerReady = true;
+#endif
+
+            if (checkPlayerReady)
+            {
+                if (YourNetworkTools.Instance.IsServer)
+                {
+                    int networkID = int.Parse((string)_list[0]);
+                    bool isDirector = bool.Parse((string)_list[1]);
+                    if (m_playersReady.IndexOf(networkID) == -1) m_playersReady.Add(networkID);
+                    // Debug.LogError("EVENT_SYSTEM_INITIALITZATION_REMOTE_COMPLETED::CONNECTED CLIENT[" + networkID + "] OF TOTAL["+ m_playersReady.Count + "] of EXPECTED[" + m_totalNumberPlayers +"]");
 #if SINGLE_PLAYER
                 m_totalNumberPlayers = 1;
 #endif
 
-                if ((isDirector) || ((m_totalNumberPlayers <= m_playersReady.Count) && (m_totalNumberPlayers != MultiplayerConfiguration.VALUE_FOR_JOINING)))
+                    if ((isDirector) || ((m_totalNumberPlayers <= m_playersReady.Count) && (m_totalNumberPlayers != MultiplayerConfiguration.VALUE_FOR_JOINING)))
+                    {
+                        CloseRoomAndStartGame();
+                    }
+                }
+
+                m_isLocalGame = YourNetworkTools.Instance.IsLocalGame;
+                if (!YourNetworkTools.Instance.IsLocalGame)
                 {
-                    CloseRoomAndStartGame();
+#if ENABLE_VIVOX
+                    Instantiate(Resources.Load("VivoxVoiceController") as GameObject);
+#endif
                 }
             }
-
-            m_isLocalGame = YourNetworkTools.Instance.IsLocalGame;
-            if (!YourNetworkTools.Instance.IsLocalGame)
-            {
-#if ENABLE_VIVOX
-                Instantiate(Resources.Load("VivoxVoiceController") as GameObject);
-#endif
-            }
-#endif
         }
 
         // -------------------------------------------
@@ -1476,11 +1494,20 @@ namespace PartyCritical
                 }
 #endif
 
-#if FORCE_GAME
-                SetState(STATE_RUNNING);
-#elif !UNITY_EDITOR
+                if (m_isSinglePlayer)
+                {
+#if !UNITY_EDITOR
                 CreateLoadingScreen();
 #endif
+                }
+                else
+                {
+#if FORCE_GAME
+                    SetState(STATE_RUNNING);
+#elif !UNITY_EDITOR
+                    CreateLoadingScreen();
+#endif
+                }
             }
 #endif
             if (_nameEvent == CardboardLoaderVR.EVENT_VRLOADER_LOADED_DEVICE_NAME)
@@ -1981,10 +2008,12 @@ namespace PartyCritical
                 {
                     CreateLoadingScreen();
                     NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), IsRealDirectorMode.ToString());
+                    if (!m_isSinglePlayer)
+                    {
 #if FORCE_GAME
-                            SetState(STATE_RUNNING);
+                        SetState(STATE_RUNNING);
 #endif
-
+                    }
                 }
                 else
                 {
@@ -2112,20 +2141,23 @@ namespace PartyCritical
                 bool previousStateIsFirstTimeRun = m_isFirstTimeRun;
                 m_isFirstTimeRun = false;
                 BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_GAMECONTROLLER_RESPONSE_IS_GAME_RUNNING, IsGameFakeRunning());
-#if FORCE_GAME
-#if ENABLE_MULTIPLAYER_TIMELINE
-	            NetworkEventController.Instance.DelayLocalEvent(InstructionsBaseController.EVENT_INSTRUCTION_CONTROLLER_START, 0.1f, 1.ToString());
-#endif
                 if (!m_isSinglePlayer)
                 {
-                    if (!YourNetworkTools.Instance.IsLocalGame)
+#if FORCE_GAME
+#if ENABLE_MULTIPLAYER_TIMELINE
+                    NetworkEventController.Instance.DelayLocalEvent(InstructionsBaseController.EVENT_INSTRUCTION_CONTROLLER_START, 0.1f, 1.ToString());
+#endif
+                    if (!m_isSinglePlayer)
                     {
+                        if (!YourNetworkTools.Instance.IsLocalGame)
+                        {
 #if ENABLE_VIVOX
-                        Instantiate(Resources.Load("VivoxVoiceController") as GameObject);
+                            Instantiate(Resources.Load("VivoxVoiceController") as GameObject);
 #endif
+                        }
                     }
-                }
 #endif
+                }
                 return previousStateIsFirstTimeRun;
             }
             else
