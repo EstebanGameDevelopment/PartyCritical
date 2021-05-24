@@ -1943,11 +1943,13 @@ namespace PartyCritical
                 Vector3 rotationFinalApplied = Vector3.zero;
                 if ((bool)_list[0])
                 {
+                    m_currentLocalCamRotation += ROTATE_LOCALCAMERA_VALUE;
                     rotationFinalApplied = new Vector3(0, ROTATE_LOCALCAMERA_VALUE, 0);
                     this.transform.Rotate(rotationFinalApplied);
                 }
                 else
                 {
+                    m_currentLocalCamRotation -= ROTATE_LOCALCAMERA_VALUE;
                     rotationFinalApplied = new Vector3(0, -ROTATE_LOCALCAMERA_VALUE, 0);
                     this.transform.Rotate(rotationFinalApplied);
                 }
