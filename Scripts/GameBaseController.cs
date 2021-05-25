@@ -1018,8 +1018,8 @@ namespace PartyCritical
         */
         protected virtual void PlayerReadyConfirmation(params object[] _list)
         {
-#if FORCE_GAME
             bool checkPlayerReady = true;
+#if FORCE_GAME
             if (m_isSinglePlayer)
             {
                 checkPlayerReady = true;
