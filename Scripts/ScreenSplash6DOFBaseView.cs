@@ -15,6 +15,9 @@ using YourBitcoinController;
 #if !UNITY_EDITOR && !ENABLE_OCULUS && !ENABLE_HTCVIVE && !DISABLE_REQUEST_PERMISSIONS
 using PartaGames.Android;
 #endif
+#if ENABLE_USER_SERVER
+using UserManagement;
+#endif
 
 namespace PartyCritical
 {
@@ -32,6 +35,7 @@ namespace PartyCritical
         // EVENTS
         // ----------------------------------------------	
         public const string EVENT_SPLASHBASE_REPORT_LOGIN_INFO = "EVENT_SPLASHBASE_REPORT_LOGIN_INFO";
+        public const string EVENT_SPLASHBASE_CONNECTION_SCREEN_TIMEOUT = "EVENT_SPLASHBASE_CONNECTION_SCREEN_TIMEOUT";
 
         // ----------------------------------------------
         // CONSTANTS
@@ -790,6 +794,100 @@ namespace PartyCritical
             return this.gameObject;
         }
 
+
+        // -------------------------------------------
+        /* 
+		 * CustomInitializeWithShortCut
+		 */
+        protected virtual void CustomInitializeWithShortCut(string _data)
+        {
+            m_runUpdate = true;
+            InitializeWithShortcut(_data);
+        }
+
+        private bool m_runActionLoadMenuScene = false;
+
+        // -------------------------------------------
+        /* 
+        * CustomUpdate
+        */
+        protected virtual void CustomUpdate()
+        {
+            if (!m_runActionLoadMenuScene)
+            {
+#if ENABLE_WORLDSENSE || ENABLE_OCULUS || ENABLE_HTCVIVE
+                if (m_runUpdate)
+                {
+                    if (MenuScreenController.Instance.VRComponents != null)
+                    {
+                        if (MenuScreenController.Instance.MainCamera2D != null) MenuScreenController.Instance.MainCamera2D.SetActive(false);
+                        MenuScreenController.Instance.VRComponents.SetActive(true);
+                    }
+                    m_timerToVRMenus -= Time.deltaTime;
+                    if (m_timerToVRMenus <= 0)
+                    {
+                        CheckIfThereIsUserServerData();
+                    }
+                }
+#else
+                if (m_runUpdate)
+                {
+                    if (MenuScreenController.Instance.MainCamera2D != null)
+                    {
+                        m_timerToVRMenus -= Time.deltaTime;
+                        if (m_timerToVRMenus > 0)
+                        {
+                            if (m_container.Find("Button_Play/Text") != null)
+                            {
+                                m_container.Find("Button_Play/Text").GetComponent<Text>().text = LanguageController.Instance.GetText("screen.splash.timer.2d.game", (int)m_timerToVRMenus);
+                            }
+                        }
+                        else
+                        {
+                            if (MenuScreenController.Instance.VRComponents != null)
+                            {
+                                MenuScreenController.Instance.MainCamera2D.SetActive(true);
+                                MenuScreenController.Instance.VRComponents.SetActive(false);
+                            }
+                            CheckIfThereIsUserServerData();
+                        }
+                    }
+                }
+#endif
+            }
+        }
+
+        // -------------------------------------------
+        /* 
+        * CheckIfThereIsUserServerData
+        */
+        protected virtual void CheckIfThereIsUserServerData()
+        {
+            m_runActionLoadMenuScene = true;
+#if ENABLE_USER_SERVER
+            BasicSystemEventController.Instance.DelayBasicSystemEvent(EVENT_SPLASHBASE_CONNECTION_SCREEN_TIMEOUT, 5);
+            CommsHTTPConstants.Instance.GetServerConfigurationParameters();
+#else
+            OpenMainMenuScreen();
+#endif
+        }
+
+        // -------------------------------------------
+        /* 
+        * OpenMainMenuScreen
+        */
+        protected void OpenMainMenuScreen()
+        {
+            if (MenuScreenController.Instance.AlphaAnimationNameStack != -1)
+            {
+                UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_LAYER_GENERIC_SCREEN, -1, new List<object> { ScreenController.ANIMATION_ALPHA, 0f, 1f, MenuScreenController.Instance.AlphaAnimationNameStack }, ScreenMenuMainView.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false, null);
+            }
+            else
+            {
+                UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN, ScreenMenuMainView.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false);
+            }
+        }
+
         // -------------------------------------------
         /* 
 		 * Global manager of events
@@ -887,16 +985,6 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
-		 * CustomInitializeWithShortCut
-		 */
-        protected virtual void CustomInitializeWithShortCut(string _data)
-        {
-            m_runUpdate = true;
-            InitializeWithShortcut(_data);
-        }
-
-        // -------------------------------------------
-        /* 
 		 * OnBasicSystemEvent
 		 */
         protected virtual void OnBasicSystemEvent(string _nameEvent, object[] _list)
@@ -913,68 +1001,36 @@ namespace PartyCritical
                 }
             }
 #endif
-        }
-
-        // -------------------------------------------
-        /* 
-        * CustomUpdate
-        */
-        protected virtual void CustomUpdate()
-        {
-#if ENABLE_WORLDSENSE || ENABLE_OCULUS || ENABLE_HTCVIVE
-            if (m_runUpdate)
+#if ENABLE_USER_SERVER
+            if (_nameEvent == UsersController.EVENT_CONFIGURATION_DATA_RECEIVED)
             {
-                if (MenuScreenController.Instance.VRComponents != null)
+                BasicSystemEventController.Instance.ClearBasicSystemEvents();
+                if ((bool)_list[0])
                 {
-                    if (MenuScreenController.Instance.MainCamera2D != null) MenuScreenController.Instance.MainCamera2D.SetActive(false);
-                    MenuScreenController.Instance.VRComponents.SetActive(true);
+                    CommsHTTPConstants.Instance.ThereIsConnection = true;
+                    if (!UserModel.LoginWithStoredLogin())
+                    {
+                        OpenMainMenuScreen();
+                    }
                 }
-                m_timerToVRMenus -= Time.deltaTime;
-                if (m_timerToVRMenus <= 0)
+                else
                 {
-                    if (MenuScreenController.Instance.AlphaAnimationNameStack != -1)
-                    {
-                        UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_LAYER_GENERIC_SCREEN, -1, new List<object> { ScreenController.ANIMATION_ALPHA, 0f, 1f, MenuScreenController.Instance.AlphaAnimationNameStack }, ScreenMenuMainView.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false, null);
-                    }
-                    else
-                    {
-                        UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN, ScreenMenuMainView.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false);
-                    }
+                    CommsHTTPConstants.Instance.ThereIsConnection = false;
+                    OpenMainMenuScreen();
                 }
             }
-#else
-            if (m_runUpdate)
+            if (_nameEvent == EVENT_SPLASHBASE_CONNECTION_SCREEN_TIMEOUT)
             {
-                if (MenuScreenController.Instance.MainCamera2D != null)
-                {
-                    m_timerToVRMenus -= Time.deltaTime;
-                    if (m_timerToVRMenus > 0)
-                    {
-                        if (m_container.Find("Button_Play/Text") != null)
-                        {
-                            m_container.Find("Button_Play/Text").GetComponent<Text>().text = LanguageController.Instance.GetText("screen.splash.timer.2d.game", (int)m_timerToVRMenus);
-                        }
-                    }
-                    else
-                    {
-                        if (MenuScreenController.Instance.VRComponents != null)
-                        {
-                            MenuScreenController.Instance.MainCamera2D.SetActive(true);
-                            MenuScreenController.Instance.VRComponents.SetActive(false);
-                        }
-                        if (MenuScreenController.Instance.AlphaAnimationNameStack != -1)
-                        {
-                            UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_LAYER_GENERIC_SCREEN, -1, new List<object> { ScreenController.ANIMATION_ALPHA, 0f, 1f, MenuScreenController.Instance.AlphaAnimationNameStack }, ScreenMenuMainView.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false, null);
-                        }
-                        else
-                        {
-                            UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN, ScreenMenuMainView.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false);
-                        }
-                    }
-                }
+                CommsHTTPConstants.Instance.ThereIsConnection = false;
+                OpenMainMenuScreen();
+            }
+            if (_nameEvent == UsersController.EVENT_USER_LOGIN_FORMATTED)
+            {
+                CommsHTTPConstants.Instance.ThereIsConnection = true;
+                OpenMainMenuScreen();
             }
 #endif
-                    }
+        }
 
         // -------------------------------------------
         /* 
@@ -984,5 +1040,6 @@ namespace PartyCritical
         {
             CustomUpdate();
         }
+
     }
 }
