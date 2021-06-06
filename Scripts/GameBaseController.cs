@@ -980,6 +980,9 @@ namespace PartyCritical
             {
                 FinallyLoadLevel();
             }
+#if ENABLE_MULTIPLAYER_TIMELINE
+            InstructionsBaseController.InstanceBase.CurrentLevel = m_currentLevel;
+#endif
         }
 
         // -------------------------------------------

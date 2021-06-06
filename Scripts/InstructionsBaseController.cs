@@ -27,12 +27,34 @@ namespace PartyCritical
         public const string EVENT_INSTRUCTION_CONTROLLER_START = "EVENT_INSTRUCTION_CONTROLLER_START";
 
         // ----------------------------------------------
+        // SINGLETON
+        // ----------------------------------------------	
+        private static InstructionsBaseController _instanceBase;
+
+        public static InstructionsBaseController InstanceBase
+        {
+            get
+            {
+                if (!_instanceBase)
+                {
+                    _instanceBase = GameObject.FindObjectOfType(typeof(InstructionsBaseController)) as InstructionsBaseController;
+                }
+                return _instanceBase;
+            }
+        }
+
+        // ----------------------------------------------
         // CONSTANTS
         // ----------------------------------------------	
         public const string GROUP_PLAYERS        = "GROUP_PLAYERS";
         public const string GROUP_DIRECTORS      = "DIRECTORS";
         public const string GROUP_EVERYBODY_HUMAN= "EVERYBODY_HUMAN";
         public const string GROUP_PICKABLE_ITEMS = "PICKABLE_ITEMS";
+
+        public const int SECONDS_BASE_END_LEVEL_0 = 100 * 1000;
+        public const int SECONDS_BASE_END_LEVEL_1 = 200 * 1000;
+        public const int SECONDS_BASE_END_LEVEL_2 = 300 * 1000;
+        public const int SECONDS_BASE_END_LEVEL_3 = 400 * 1000;
 
         // ----------------------------------------------
         // PRIVATE MEMBERS
@@ -157,6 +179,7 @@ namespace PartyCritical
             TimelineEventController.Instance.TimelineEvent -= OnTimelineEvent;
 #endif
             NetworkEventController.Instance.NetworkEvent -= OnNetworkEvent;
+            _instanceBase = null;
         }
 
         // -------------------------------------------
@@ -268,7 +291,17 @@ namespace PartyCritical
                 InitialitzationDirectors();
 
                 // TIMELINE FOR LEVEL 0
-                CreateTimeLineForLevel0(m_mainLayer, 100, 100 * 1000);
+                switch (m_currentLevel)
+                {
+                    case 0:
+                        CreateTimeLineForLevel0(m_mainLayer, 100, SECONDS_BASE_END_LEVEL_0);
+                        break;
+
+                    case 1:
+                        CreateTimeLineForLevel1(m_mainLayer, SECONDS_BASE_END_LEVEL_0, SECONDS_BASE_END_LEVEL_1);
+                        GameLevelData.Instance.SetCurrentTimePlaying(SECONDS_BASE_END_LEVEL_0, "");
+                        break;
+                }
             }
 
             GameLevelData.Instance.Logic();
@@ -585,26 +618,21 @@ namespace PartyCritical
         protected virtual void CreateNewTimelineForLevel(int _layer)
         {
 #if ENABLE_MULTIPLAYER_TIMELINE
-            int SECONDS_END_LEVEL_0 = 100 * 1000;
-            int SECONDS_END_LEVEL_1 = 200 * 1000;
-            int SECONDS_END_LEVEL_2 = 300 * 1000;
-            int SECONDS_END_LEVEL_3 = 400 * 1000;
-
-            switch (_layer)
+            if (m_mainLayer != null)
+            {
+                switch (_layer)
                 {
                     case 0:
-                        if (m_mainLayer != null)
-                        {
-                            CreateTimeLineForLevel0(m_mainLayer, 100, SECONDS_END_LEVEL_0);
-                            GameLevelData.Instance.SetCurrentTimePlaying(0, "");
-                        }
+                        CreateTimeLineForLevel0(m_mainLayer, 100, SECONDS_BASE_END_LEVEL_0);
+                        GameLevelData.Instance.SetCurrentTimePlaying(0, "");
                         break;
 
                     case 1:
-                        CreateTimeLineForLevel1(m_mainLayer, SECONDS_END_LEVEL_0, SECONDS_END_LEVEL_1);
-                        GameLevelData.Instance.SetCurrentTimePlaying(SECONDS_END_LEVEL_0, "");
+                        CreateTimeLineForLevel1(m_mainLayer, SECONDS_BASE_END_LEVEL_0, SECONDS_BASE_END_LEVEL_1);
+                        GameLevelData.Instance.SetCurrentTimePlaying(SECONDS_BASE_END_LEVEL_0, "");
                         break;
                 }
+            }
 #endif
         }
 
