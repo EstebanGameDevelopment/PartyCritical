@@ -654,7 +654,13 @@ namespace PartyCritical
         {
             if (IsGameReallyRunning())
             {
-                UpdateTimeline();
+                try
+                {
+                    UpdateTimeline();
+                } catch (Exception err)
+                {
+                    Debug.LogError(err.StackTrace);
+                }
 
                 // RESET CURRENT TIMELINE
                 if (Input.GetKeyDown(KeyCode.R))
