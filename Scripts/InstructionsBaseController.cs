@@ -174,11 +174,11 @@ namespace PartyCritical
         */
         void OnDestroy()
         {
-            BasicSystemEventController.Instance.BasicSystemEvent -= OnBasicSystemEvent;
+            if (BasicSystemEventController.Instance != null) BasicSystemEventController.Instance.BasicSystemEvent -= OnBasicSystemEvent;
 #if ENABLE_MULTIPLAYER_TIMELINE
-            TimelineEventController.Instance.TimelineEvent -= OnTimelineEvent;
+            if (TimelineEventController.Instance != null) TimelineEventController.Instance.TimelineEvent -= OnTimelineEvent;
 #endif
-            NetworkEventController.Instance.NetworkEvent -= OnNetworkEvent;
+            if (NetworkEventController.Instance!=null) NetworkEventController.Instance.NetworkEvent -= OnNetworkEvent;
             _instanceBase = null;
         }
 

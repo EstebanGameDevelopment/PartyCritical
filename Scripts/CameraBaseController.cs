@@ -502,9 +502,9 @@ namespace PartyCritical
             OculusEventObserver.Instance.OculusEvent -= OnOculusEvent;
 #endif
 
-            BasicSystemEventController.Instance.BasicSystemEvent -= OnBasicSystemEvent;
-            NetworkEventController.Instance.NetworkEvent -= OnNetworkEvent;
-            UIEventController.Instance.UIEvent -= OnUIEvent;
+            if (BasicSystemEventController.Instance != null) BasicSystemEventController.Instance.BasicSystemEvent -= OnBasicSystemEvent;
+            if (NetworkEventController.Instance != null) NetworkEventController.Instance.NetworkEvent -= OnNetworkEvent;
+            if (UIEventController.Instance != null) UIEventController.Instance.UIEvent -= OnUIEvent;
         }
 
         // -------------------------------------------

@@ -417,12 +417,12 @@ namespace PartyCritical
 		{
             base.Destroy();
 
-            NetworkEventController.Instance.Destroy();
-            KeysEventInputController.Instance.Destroy();
+            NetworkEventController.Instance?.Destroy();
+            KeysEventInputController.Instance?.Destroy();
 
-            NetworkEventController.Instance.NetworkEvent -= OnNetworkEvent;
-			BasicSystemEventController.Instance.BasicSystemEvent -= OnBasicSystemEvent;
-            UIEventController.Instance.UIEvent -= OnUIEvent;
+            if (NetworkEventController.Instance!=null) NetworkEventController.Instance.NetworkEvent -= OnNetworkEvent;
+            if (BasicSystemEventController.Instance != null) BasicSystemEventController.Instance.BasicSystemEvent -= OnBasicSystemEvent;
+            if (UIEventController.Instance != null) UIEventController.Instance.UIEvent -= OnUIEvent;
 
             if (!m_isLocalGame)
             {
@@ -707,7 +707,7 @@ namespace PartyCritical
             {
                 if (!CardboardLoaderVR.Instance.LoadEnableCardboard())
                 {
-                    KeysEventInputController.Instance.EnableActionButton = true;
+                    if (KeysEventInputController.Instance != null) KeysEventInputController.Instance.EnableActionButton = true;
                     BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION, true);
                     UIEventController.Instance.DispatchUIEvent(InteractionController.EVENT_INTERACTIONCONTROLLER_ENABLE_INTERACTION, true);
                 }
@@ -1617,7 +1617,7 @@ namespace PartyCritical
                 LaserPointer = YourVRUIScreenController.Instance.LaserPointer;
                 if (GameObject.FindObjectOfType<BaseVRScreenView>() == null)
                 {
-                    EnableLaserVR(CameraBaseController.InstanceBase.SignalClientEnabled);
+                    if (CameraBaseController.InstanceBase != null) EnableLaserVR(CameraBaseController.InstanceBase.SignalClientEnabled);
                 }
                 else
                 {
