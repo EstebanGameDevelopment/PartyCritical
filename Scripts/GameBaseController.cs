@@ -895,6 +895,8 @@ namespace PartyCritical
         */
         protected void FinallyLoadLevel()
         {
+            if (DEBUG) Debug.LogError("GameBaseController::FinallyLoadLevel::m_onNetworkRemoteConnection["+ m_onNetworkRemoteConnection + "]::m_isInitialConnectionEstablished["+ m_isInitialConnectionEstablished + "]::m_isCreatorGame["+ m_isCreatorGame + "]");
+
             if (m_onNetworkRemoteConnection && m_isInitialConnectionEstablished)
             {
                 if (!m_isCreatorGame)
@@ -914,6 +916,8 @@ namespace PartyCritical
         */
         protected virtual void OnNetworkEventInitialConnection()
         {
+            if (DEBUG) Debug.LogError("GameBaseController::OnNetworkEventInitialConnection");
+
             m_isInitialConnectionEstablished = true;
             m_isCreatorGame = YourNetworkTools.Instance.IsServer;
 
@@ -947,8 +951,8 @@ namespace PartyCritical
             {
                 if (m_isCreatorGame)
                 {
-                    // Debug.LogError("++SENDING++::EVENT_GAMECONTROLLER_SELECTED_LEVEL::m_currentLevel=" + m_currentLevel);
-                    NetworkEventController.Instance.PriorityDelayNetworkEvent(EVENT_GAMECONTROLLER_SELECTED_LEVEL, 0.1f, m_currentLevel.ToString());
+                    if (DEBUG) Debug.LogError("++SENDING++::EVENT_GAMECONTROLLER_SELECTED_LEVEL::m_currentLevel=" + m_currentLevel);
+                    NetworkEventController.Instance.PriorityDelayNetworkEvent(EVENT_GAMECONTROLLER_SELECTED_LEVEL, 0.5f, m_currentLevel.ToString());
                 }
             }
         }
@@ -1305,6 +1309,7 @@ namespace PartyCritical
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_SELECTED_LEVEL)
             {
+                if (DEBUG) Debug.LogError("--RECEIVED--::EVENT_GAMECONTROLLER_SELECTED_LEVEL::LEVEL["+ int.Parse((string)_list[0]) + "]");
                 LoadSelectedLevel(int.Parse((string)_list[0]));
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_PLAYER_IS_READY)
