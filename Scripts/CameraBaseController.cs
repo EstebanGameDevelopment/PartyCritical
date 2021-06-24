@@ -2200,6 +2200,23 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		 * ManageWhatOpeningInventory
+		 */
+        protected virtual void ManageWhatOpeningInventory()
+        {
+#if ENABLE_MULTIPLAYER_TIMELINE
+            if (GameObject.FindObjectOfType<ScreenInventoryView>() == null)
+            {
+                UIEventController.Instance.DispatchUIEvent(GameLevelData.EVENT_GAMELEVELDATA_OPEN_INVENTORY);
+            }
+#else
+            m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
+            OpenInventory(false);
+#endif
+        }
+
+        // -------------------------------------------
+        /* 
 		 * OnUIEvent
 		 */
         protected virtual void OnUIEvent(string _nameEvent, object[] _list)
@@ -2218,16 +2235,7 @@ namespace PartyCritical
 #endif
             if (_nameEvent == EVENT_CAMERACONTROLLER_OPEN_INVENTORY)
             {
-#if ENABLE_MULTIPLAYER_TIMELINE
-                if (GameObject.FindObjectOfType<ScreenInventoryView>() == null)
-                {
-                    UIEventController.Instance.DispatchUIEvent(GameLevelData.EVENT_GAMELEVELDATA_OPEN_INVENTORY);
-                }
-#else
-                m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
-                OpenInventory(false);
-#endif
-
+                ManageWhatOpeningInventory();
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_START_MOVING)
             {
