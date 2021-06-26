@@ -1045,6 +1045,10 @@ namespace PartyCritical
                 {
                     int networkID = int.Parse((string)_list[0]);
                     bool isDirector = bool.Parse((string)_list[1]);
+                    if (isDirector)
+                    {
+                        m_gameWithDirector = true;
+                    }
                     if (m_playersReady.IndexOf(networkID) == -1) m_playersReady.Add(networkID);
                     // Debug.LogError("EVENT_SYSTEM_INITIALITZATION_REMOTE_COMPLETED::CONNECTED CLIENT[" + networkID + "] OF TOTAL["+ m_playersReady.Count + "] of EXPECTED[" + m_totalNumberPlayers +"]");
 #if SINGLE_PLAYER
