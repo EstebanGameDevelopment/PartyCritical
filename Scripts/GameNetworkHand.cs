@@ -29,7 +29,7 @@ namespace PartyCritical
         // ----------------------------------------------
         // PRIVATE MEMBERS
         // ----------------------------------------------	
-        private bool m_isRightHand;
+        protected bool m_isRightHand;
 
         // ----------------------------------------------
         // GETTERS/SETTERS
@@ -96,19 +96,7 @@ namespace PartyCritical
                         {
                             if (_list[0] is string)
                             {
-                                string[] initialData = ((string)_list[0]).Split(',');
-                                Vector3 initialPosition = new Vector3(float.Parse(initialData[2]), float.Parse(initialData[3]), float.Parse(initialData[4]));
-                                transform.position = initialPosition;
-                                Name = initialData[0];
-                                m_isRightHand = bool.Parse(initialData[1]);
-                                if (IsMine())
-                                {
-                                    NetworkEventController.Instance.DispatchNetworkEvent(NetworkEventController.EVENT_WORLDOBJECTCONTROLLER_INITIAL_DATA, NetworkID.GetID(), (string)_list[0]);
-#if ENABLE_OCULUS
-                                    BasicSystemEventController.Instance.DispatchBasicSystemEvent(OculusHandsManager.EVENT_OCULUSHANDMANAGER_LINK_WITH_NETWORK_GAMEHAND, m_isRightHand, this.gameObject);
-#endif
-                                }
-                                InitializeCommon();
+                                InitializeWithData((string)_list[0]);
                             }
                         }
                     }
@@ -116,6 +104,29 @@ namespace PartyCritical
             }
             catch (Exception err) { }
         }
+
+        // -------------------------------------------
+        /* 
+		* InitializeWithData
+		*/
+        protected override void InitializeWithData(string _initialData)
+        {
+            m_initialData = _initialData;
+            string[] initialData = m_initialData.Split(',');
+            Vector3 initialPosition = new Vector3(float.Parse(initialData[2]), float.Parse(initialData[3]), float.Parse(initialData[4]));
+            transform.position = initialPosition;
+            Name = initialData[0];
+            m_isRightHand = bool.Parse(initialData[1]);
+            if (IsMine())
+            {
+                NetworkEventController.Instance.DispatchNetworkEvent(NetworkEventController.EVENT_WORLDOBJECTCONTROLLER_INITIAL_DATA, NetworkID.GetID(), m_initialData);
+#if ENABLE_OCULUS
+                BasicSystemEventController.Instance.DispatchBasicSystemEvent(OculusHandsManager.EVENT_OCULUSHANDMANAGER_LINK_WITH_NETWORK_GAMEHAND, m_isRightHand, this.gameObject);
+#endif
+            }
+            InitializeCommon();
+        }
+
 
         // -------------------------------------------
         /* 
