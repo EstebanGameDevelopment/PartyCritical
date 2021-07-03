@@ -96,7 +96,10 @@ namespace PartyCritical
                         {
                             if (_list[0] is string)
                             {
-                                InitializeWithData((string)_list[0]);
+                                if (m_initialData == null)
+                                {
+                                    InitializeWithData((string)_list[0]);
+                                }                                
                             }
                         }
                     }
@@ -119,7 +122,7 @@ namespace PartyCritical
             m_isRightHand = bool.Parse(initialData[1]);
             if (IsMine())
             {
-                NetworkEventController.Instance.DispatchNetworkEvent(NetworkEventController.EVENT_WORLDOBJECTCONTROLLER_INITIAL_DATA, NetworkID.GetID(), m_initialData);
+                NetworkEventController.Instance.PriorityDelayNetworkEvent(NetworkEventController.EVENT_WORLDOBJECTCONTROLLER_INITIAL_DATA, 0.1f, NetworkID.GetID(), m_initialData);
 #if ENABLE_OCULUS
                 BasicSystemEventController.Instance.DispatchBasicSystemEvent(OculusHandsManager.EVENT_OCULUSHANDMANAGER_LINK_WITH_NETWORK_GAMEHAND, m_isRightHand, this.gameObject);
 #endif

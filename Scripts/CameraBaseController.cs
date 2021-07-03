@@ -1856,8 +1856,11 @@ namespace PartyCritical
                         m_playerCameraActivated.GetComponent<Actor>().GetModel().gameObject.SetActive(true);
                     }
                     int indexPlayerToTake = (int)_list[0];
-                    m_playerCameraActivated = GameBaseController.InstanceBase.Players[indexPlayerToTake];
-                    m_playerCameraActivated.GetComponent<Actor>().GetModel().gameObject.SetActive(false);
+                    if ((indexPlayerToTake >= 0) && (indexPlayerToTake < GameBaseController.InstanceBase.Players.Count))
+                    {
+                        m_playerCameraActivated = GameBaseController.InstanceBase.Players[indexPlayerToTake];
+                        m_playerCameraActivated.GetComponent<Actor>().GetModel().gameObject.SetActive(false);
+                    }
                 }
                 if ((_nameEvent == EVENT_SPECTATOR_RESET_CAMERA_TO_DIRECTOR) ||
                     (_nameEvent == EVENT_DIRECTOR_RESET_CAMERA_TO_DIRECTOR))
