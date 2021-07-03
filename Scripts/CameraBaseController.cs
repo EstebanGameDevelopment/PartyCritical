@@ -1925,7 +1925,7 @@ namespace PartyCritical
                 m_teleportAvailable = (GameObject.FindObjectOfType<TeleportController>() != null);
                 if (m_teleportAvailable)
                 {
-                    TeleportController.Instance.ForwardDirection = (Transform)_list[0];
+                    BasicSystemEventController.Instance.DispatchBasicSystemEvent(TeleportController.EVENT_TELEPORTCONTROLLER_SET_FORWARD_DIRECTION, (Transform)_list[0]);
                 }
                 // UIEventController.Instance.DelayUIEvent(ScreenDebugLogView.EVENT_SCREEN_DEBUGLOG_NEW_TEXT, 0.1f, false, "IS TELEPORT FOUND["+ m_teleportAvailable + "]["+ m_teleportEnabled + "]::::::::::");
             }
@@ -2062,11 +2062,11 @@ namespace PartyCritical
                     }
                 }
             }
+#endif
             if (_nameEvent == TeleportController.EVENT_TELEPORTCONTROLLER_AWAKENED)
             {
                 m_teleportAvailable = true;
             }
-#endif
         }
 
         // -------------------------------------------
