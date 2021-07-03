@@ -344,7 +344,7 @@ namespace PartyCritical
             if (_nameEvent == CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_CHANGED_FOR_PLAYER)
             {
                 m_enabledSignalPlayers = (bool)_list[0];
-                m_stopSignalsEnabled.SetActive(!m_enabledSignalPlayers);
+                if (m_stopSignalsEnabled != null) m_stopSignalsEnabled.SetActive(!m_enabledSignalPlayers);
             }
 #if ENABLE_PHOTON_VOICE
             if (_nameEvent == PhotonController.EVENT_PHOTONCONTROLLER_VOICE_CHANGE_REPORTED)
