@@ -13,9 +13,6 @@ using VRPartyValidation;
 using Photon.Voice.Unity;
 using Photon.Voice.Unity.UtilityScripts;
 #endif
-#if ENABLE_VIVOX
-using VivoxUnity;
-#endif
 
 namespace PartyCritical
 {
@@ -35,7 +32,6 @@ namespace PartyCritical
         public const string EVENT_GAMECONTROLLER_CHANGE_STATE               = "EVENT_GAMECONTROLLER_CHANGE_STATE";
         public const string EVENT_GAMECONTROLLER_PLAYER_IS_READY            = "EVENT_GAMECONTROLLER_PLAYER_IS_READY";
         public const string EVENT_GAMECONTROLLER_ENEMIES_DISABLE_AUTO_SPAWN = "EVENT_GAMECONTROLLER_ENEMIES_DISABLE_AUTO_SPAWN";
-        public const string EVENT_GAMECONTROLLER_SHOOT_ENABLED              = "EVENT_GAMECONTROLLER_SHOOT_ENABLED";
         public const string EVENT_GAMECONTROLLER_CREATE_NEW_ENEMY           = "EVENT_GAMECONTROLLER_CREATE_NEW_ENEMY";
         public const string EVENT_GAMECONTROLLER_SELECTED_LEVEL             = "EVENT_GAMECONTROLLER_SELECTED_LEVEL";
         public const string EVENT_GAMECONTROLLER_COLLIDED_REPOSITION_BALL   = "EVENT_GAMECONTROLLER_COLLIDED_REPOSITION_BALL";
@@ -60,28 +56,8 @@ namespace PartyCritical
         public const string EVENT_GAMECONTROLLER_GAME_WITH_DIRECTOR         = "EVENT_GAMECONTROLLER_GAME_WITH_DIRECTOR";
         public const string EVENT_GAMECONTROLLER_GAME_SPAWN_POSITIONS       = "EVENT_GAMECONTROLLER_GAME_SPAWN_POSITIONS";
         public const string EVENT_GAMECONTROLLER_CONTROLLER_STARTED         = "EVENT_GAMECONTROLLER_CONTROLLER_STARTED";
-        public const string EVENT_GAMECONTROLLER_ASK_CONFIRM_TO_QUIT_APP    = "EVENT_GAMECONTROLLER_ASK_CONFIRM_TO_QUIT_APP";
-        public const string EVENT_GAMECONTROLLER_QUIT_APP                   = "EVENT_GAMECONTROLLER_QUIT_APP";
 
         public const string SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL = "SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL";
-        public const string SUB_EVENT_GAMECONTROLLER_CONFIRMATION_EXIT_APP = "SUB_EVENT_GAMECONTROLLER_CONFIRMATION_EXIT_APP";
-
-        // ----------------------------------------------
-        // SINGLETON
-        // ----------------------------------------------	
-        private static GameBaseController _instanceBase;
-
-        public static GameBaseController InstanceBase
-        {
-            get
-            {
-                if (!_instanceBase)
-                {
-                    _instanceBase = GameObject.FindObjectOfType(typeof(GameBaseController)) as GameBaseController;
-                }
-                return _instanceBase;
-            }
-        }
 
         // ----------------------------------------------
         // CONSTANTS
@@ -103,13 +79,13 @@ namespace PartyCritical
         public GameObject LevelReference;
         public string[] LevelsAssetsNames;
         public GameObject[] LevelsPrefab;
-        public string[] PlayerNetworkPrefab;
+        public GameObject[] PlayerPrefab;
         public string[] NameModelPrefab;
         public GameObject[] ModelPrefab;
-        public string[] EnemyNetworkPrefab;
+        public GameObject[] EnemyPrefab;
         public string[] EnemyModelPrefab;
         public GameObject[] EnemyAnimationPrefab;
-        public string[] NPCNetworkPrefab;
+        public GameObject[] NPCPrefab;
         public string[] NPCModelPrefab;
         public GameObject[] FXPrefab;
         public GameObject[] ShootPrefab;
@@ -119,6 +95,7 @@ namespace PartyCritical
         public GameObject DirectorScreen;
         public GameObject SpectatorScreen;
         public GameObject PlayerScreen;
+        public GameObject LaserPointer;
         public GameObject MarkerPlayer;
         public GameObject MarkerDirector;
         public TextAsset PathfindingData;
@@ -127,11 +104,6 @@ namespace PartyCritical
         public string[] SoundsLevels;
         public GameObject[] GenericObjects;
         public GameObject CloseRoomScreen;
-
-        public string VivoxServer = "";
-        public string VivoxDomain = "";
-        public string VivoxTokenIssuer = "";
-        public string VivoxTokeyKey = "";
 
         // ----------------------------------------------
         // protected MEMBERS
@@ -172,15 +144,12 @@ namespace PartyCritical
         protected bool m_enableListenToPauseEvent = false;
         protected bool m_enableBackgroundVR = true;
         protected bool m_isGyroscopeMode = false;
-        protected bool m_isLocalGame = false;
 
         protected bool m_isFirstTimeRun = true;
 
         protected string m_currentMelody = "";
 
         protected bool m_gameWithDirector = false;
-
-        private GameObject m_laserPointer = null;
 
         // ----------------------------------------------
         // GETTERS/SETTERS
@@ -200,7 +169,6 @@ namespace PartyCritical
         public int CurrentLevel
         {
             get { return m_currentLevel; }
-            set { m_currentLevel = value; }
         }
         public int TotalNumberPlayers
         {
@@ -264,11 +232,6 @@ namespace PartyCritical
         public bool GameWithDirector
         {
             get { return m_gameWithDirector; }
-        }
-        public GameObject LaserPointer
-        {
-            get { return m_laserPointer; }
-            set { m_laserPointer = value; }
         }
 
         // -------------------------------------------
@@ -417,26 +380,19 @@ namespace PartyCritical
 		{
             base.Destroy();
 
-            NetworkEventController.Instance?.Destroy();
-            KeysEventInputController.Instance?.Destroy();
+            NetworkEventController.Instance.Destroy();
+            KeysEventInputController.Instance.Destroy();
 
-            if (NetworkEventController.Instance!=null) NetworkEventController.Instance.NetworkEvent -= OnNetworkEvent;
-            if (BasicSystemEventController.Instance != null) BasicSystemEventController.Instance.BasicSystemEvent -= OnBasicSystemEvent;
-            if (UIEventController.Instance != null) UIEventController.Instance.UIEvent -= OnUIEvent;
-
-            if (!m_isLocalGame)
-            {
-#if ENABLE_VIVOX
-                VivoxVoiceController.Instance.Destroy();
-#endif
-            }
+            NetworkEventController.Instance.NetworkEvent -= OnNetworkEvent;
+			BasicSystemEventController.Instance.BasicSystemEvent -= OnBasicSystemEvent;
+            UIEventController.Instance.UIEvent -= OnUIEvent;
         }
 
-        // -------------------------------------------
-        /* 
+		// -------------------------------------------
+		/* 
 		 * Destroy
 		 */
-        void OnDestroy()
+		void OnDestroy()
 		{
 			Destroy();
 		}
@@ -451,10 +407,7 @@ namespace PartyCritical
             if (_considerForce)
             {
 #if FORCE_GAME
-                if (!m_isSinglePlayer)
-                {
-                    displayScreen = false;
-                }                
+                displayScreen = false;
 #endif
             }
             EnableLaserVR(false);
@@ -597,7 +550,7 @@ namespace PartyCritical
 
             if (_level != -1)
             {
-                CurrentLevel = _level;
+                m_currentLevel = _level;
             }
             if (m_level != null)
             {
@@ -615,14 +568,14 @@ namespace PartyCritical
 
                     if ((m_currentLevel < LevelsPrefab.Length) && (LevelsPrefab[m_currentLevel] != null))
                     {
-                        CurrentLevel = m_currentLevel % LevelsPrefab.Length;
+                        m_currentLevel = m_currentLevel % LevelsPrefab.Length;
                         m_level = Utilities.AddChild(LevelContainer.transform, LevelsPrefab[m_currentLevel]);
                         loadLevelFromAssetBundle = false;
                     }
 #endif
                     if (loadLevelFromAssetBundle)
                     {
-                        CurrentLevel = m_currentLevel % LevelsAssetsNames.Length;
+                        m_currentLevel = m_currentLevel % LevelsAssetsNames.Length;
                         m_level = AssetbundleController.Instance.CreateGameObject(LevelsAssetsNames[m_currentLevel]);
                     }
 #else
@@ -693,7 +646,6 @@ namespace PartyCritical
 #else
             if (LaserPointer!=null) LaserPointer.SetActive(false);
 #endif
-            UIEventController.Instance.DispatchUIEvent(YourVRUIScreenController.EVENT_SCREENMANAGER_CHECK_LINERENDER_LASER);
         }
 
         // -------------------------------------------
@@ -707,13 +659,12 @@ namespace PartyCritical
             {
                 if (!CardboardLoaderVR.Instance.LoadEnableCardboard())
                 {
-                    if (KeysEventInputController.Instance != null) KeysEventInputController.Instance.EnableActionButton = true;
+                    KeysEventInputController.Instance.EnableInteractions = true;
+                    KeysEventInputController.Instance.EnableActionButton = true;
                     BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION, true);
                     UIEventController.Instance.DispatchUIEvent(InteractionController.EVENT_INTERACTIONCONTROLLER_ENABLE_INTERACTION, true);
                 }
             }
-#else
-            BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER, CameraBaseController.InstanceBase.SignalClientEnabled);
 #endif
         }
 
@@ -861,7 +812,7 @@ namespace PartyCritical
                     YourVRUIScreenController.Instance.Destroy();
                 }
             }
-            if (_nameEvent == UIEventController.EVENT_SCREENMANAGER_REPORT_DESTROYED)
+            if ((_nameEvent == UIEventController.EVENT_SCREENMANAGER_DESTROY_SCREEN) || (_nameEvent == UIEventController.EVENT_SCREENMANAGER_DESTROY_ALL_SCREEN))
             {
                 PostDestroyScreenAction();
             }
@@ -895,8 +846,6 @@ namespace PartyCritical
         */
         protected void FinallyLoadLevel()
         {
-            if (DEBUG) Debug.LogError("GameBaseController::FinallyLoadLevel::m_onNetworkRemoteConnection["+ m_onNetworkRemoteConnection + "]::m_isInitialConnectionEstablished["+ m_isInitialConnectionEstablished + "]::m_isCreatorGame["+ m_isCreatorGame + "]");
-
             if (m_onNetworkRemoteConnection && m_isInitialConnectionEstablished)
             {
                 if (!m_isCreatorGame)
@@ -912,21 +861,39 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+        * SetUpVoiceChannel
+        */
+        protected void SetUpVoiceChannel()
+        {
+#if ENABLE_PHOTON && ENABLE_VOICE
+            if (GameObject.FindObjectOfType<Recorder>() != null)
+            {
+                if (m_isSinglePlayer || YourNetworkTools.Instance.IsLocalGame)
+                {
+                    GameObject.Destroy(GameObject.FindObjectOfType<Recorder>().gameObject);
+                }
+                else
+                {
+                    GameObject.FindObjectOfType<Recorder>().TransmitEnabled = true;
+                    GameObject.FindObjectOfType<Recorder>().StartRecording();
+                    ConnectAndJoin connVoice = GameObject.FindObjectOfType<ConnectAndJoin>();
+                    connVoice.RoomName = NetworkEventController.Instance.NameRoomLobby;
+                    connVoice.ConnectNow();
+                }
+            }
+#endif
+        }
+
+        // -------------------------------------------
+        /* 
         * OnNetworkEventInitialConnection
         */
         protected virtual void OnNetworkEventInitialConnection()
         {
-            if (DEBUG) Debug.LogError("GameBaseController::OnNetworkEventInitialConnection");
-
             m_isInitialConnectionEstablished = true;
             m_isCreatorGame = YourNetworkTools.Instance.IsServer;
 
-#if ENABLE_PHOTON_VOICE
-            if (!YourNetworkTools.Instance.IsLocalGame)
-            {
-                PhotonController.Instance.StartVoiceStreaming(true);
-            }
-#endif
+            SetUpVoiceChannel();
 
             if (m_isCreatorGame)
             {
@@ -951,8 +918,8 @@ namespace PartyCritical
             {
                 if (m_isCreatorGame)
                 {
-                    if (DEBUG) Debug.LogError("++SENDING++::EVENT_GAMECONTROLLER_SELECTED_LEVEL::m_currentLevel=" + m_currentLevel);
-                    NetworkEventController.Instance.PriorityDelayNetworkEvent(EVENT_GAMECONTROLLER_SELECTED_LEVEL, 0.5f, m_currentLevel.ToString());
+                    Debug.LogError("++SENDING++::EVENT_GAMECONTROLLER_SELECTED_LEVEL::m_currentLevel=" + m_currentLevel);
+                    NetworkEventController.Instance.PriorityDelayNetworkEvent(EVENT_GAMECONTROLLER_SELECTED_LEVEL, 0.1f, m_currentLevel.ToString());
                 }
             }
         }
@@ -963,30 +930,27 @@ namespace PartyCritical
         */
         protected virtual void LoadSelectedLevel(int _level)
         {
-            CurrentLevel = _level;
+            m_currentLevel = _level;
 #if ENABLE_ASSET_BUNDLE
             if (LevelsAssetsNames.Length > 0)
             {
-                CurrentLevel = m_currentLevel % LevelsAssetsNames.Length;
+                m_currentLevel = m_currentLevel % LevelsAssetsNames.Length;
             }
             else
             {
                 if (LevelsPrefab.Length > 0)
                 {
-                    CurrentLevel = m_currentLevel % LevelsPrefab.Length;
+                    m_currentLevel = m_currentLevel % LevelsPrefab.Length;
                 }
             }
 #else
-            CurrentLevel = m_currentLevel % LevelsPrefab.Length;
+            m_currentLevel = m_currentLevel % LevelsPrefab.Length;
 #endif
             m_onNetworkRemoteConnection = true;
             if (m_isInitialConnectionEstablished)
             {
                 FinallyLoadLevel();
             }
-#if ENABLE_MULTIPLAYER_TIMELINE
-            InstructionsBaseController.InstanceBase.CurrentLevel = m_currentLevel;
-#endif
         }
 
         // -------------------------------------------
@@ -1025,50 +989,22 @@ namespace PartyCritical
         */
         protected virtual void PlayerReadyConfirmation(params object[] _list)
         {
-            bool checkPlayerReady = true;
-#if FORCE_GAME
-            if (m_isSinglePlayer)
+#if !FORCE_GAME
+            if (YourNetworkTools.Instance.IsServer)
             {
-                checkPlayerReady = true;
-            }
-            else
-            {
-                checkPlayerReady = false;
-            }
-#else
-            checkPlayerReady = true;
-#endif
-
-            if (checkPlayerReady)
-            {
-                if (YourNetworkTools.Instance.IsServer)
-                {
-                    int networkID = int.Parse((string)_list[0]);
-                    bool isDirector = bool.Parse((string)_list[1]);
-                    if (isDirector)
-                    {
-                        m_gameWithDirector = true;
-                    }
-                    if (m_playersReady.IndexOf(networkID) == -1) m_playersReady.Add(networkID);
-                    // Debug.LogError("EVENT_SYSTEM_INITIALITZATION_REMOTE_COMPLETED::CONNECTED CLIENT[" + networkID + "] OF TOTAL["+ m_playersReady.Count + "] of EXPECTED[" + m_totalNumberPlayers +"]");
+                int networkID = int.Parse((string)_list[0]);
+                bool isDirector = bool.Parse((string)_list[1]);
+                if (m_playersReady.IndexOf(networkID) == -1) m_playersReady.Add(networkID);
+                // Debug.LogError("EVENT_SYSTEM_INITIALITZATION_REMOTE_COMPLETED::CONNECTED CLIENT[" + networkID + "] OF TOTAL["+ m_playersReady.Count + "] of EXPECTED[" + m_totalNumberPlayers +"]");
 #if SINGLE_PLAYER
                 m_totalNumberPlayers = 1;
 #endif
-
-                    if ((isDirector) || ((m_totalNumberPlayers <= m_playersReady.Count) && (m_totalNumberPlayers != MultiplayerConfiguration.VALUE_FOR_JOINING)))
-                    {
-                        CloseRoomAndStartGame();
-                    }
-                }
-
-                m_isLocalGame = YourNetworkTools.Instance.IsLocalGame;
-                if (!YourNetworkTools.Instance.IsLocalGame)
+                if ((isDirector) || ((m_totalNumberPlayers <= m_playersReady.Count) && (m_totalNumberPlayers != MultiplayerConfiguration.VALUE_FOR_JOINING)))
                 {
-#if ENABLE_VIVOX
-                    Instantiate(Resources.Load("VivoxVoiceController") as GameObject);
-#endif
+                    CloseRoomAndStartGame();
                 }
             }
+#endif
         }
 
         // -------------------------------------------
@@ -1269,7 +1205,7 @@ namespace PartyCritical
                     CreateLoadingScreen();
                     if (YourNetworkTools.Instance.IsServer)
                     {
-                        CurrentLevel = nextLevelToLoad;
+                        m_currentLevel = nextLevelToLoad;
                         NetworkEventController.Instance.PriorityDelayNetworkEvent(EVENT_GAMECONTROLLER_NUMBER_LEVEL_TO_LOAD, 0.5f, m_currentLevel.ToString());
                     }
                 }
@@ -1308,12 +1244,11 @@ namespace PartyCritical
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_NUMBER_LEVEL_TO_LOAD)
             {
-                CurrentLevel = int.Parse((string)_list[0]);
+                m_currentLevel = int.Parse((string)_list[0]);
                 LoadNextLevelAction();
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_SELECTED_LEVEL)
             {
-                if (DEBUG) Debug.LogError("--RECEIVED--::EVENT_GAMECONTROLLER_SELECTED_LEVEL::LEVEL["+ int.Parse((string)_list[0]) + "]");
                 LoadSelectedLevel(int.Parse((string)_list[0]));
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_PLAYER_IS_READY)
@@ -1345,7 +1280,7 @@ namespace PartyCritical
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_SELECT_SKYBOX)
             {
-                SelectedSkybox((string)_list[0]);
+                SelectedSkybox(int.Parse((string)_list[0]));
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_CREATE_FX)
             {
@@ -1367,13 +1302,6 @@ namespace PartyCritical
             {
                 m_gameWithDirector = true;
             }
-#if ENABLE_PHOTON_VOICE
-            if (_nameEvent == PhotonController.EVENT_PHOTONCONTROLLER_VOICE_NETWORK_ENABLED)
-            {
-                bool enableVoice = bool.Parse((string)_list[0]);
-                BasicSystemEventController.Instance.DispatchBasicSystemEvent(PhotonController.EVENT_PHOTONCONTROLLER_VOICE_ENABLED, enableVoice);
-            }
-#endif
 
             OnNetworkEventEnemy(_nameEvent, _isLocalEvent, _networkOriginID, _networkTargetID, _list);
         }
@@ -1430,15 +1358,15 @@ namespace PartyCritical
         protected virtual void ReloadMenus()
         {
 #if UNITY_WEBGL
-            SceneManager.LoadScene("Menus6DOF");
+            SceneManager.LoadScene("Menus6DOF_WebGL");
 #elif ENABLE_OCULUS
             SceneManager.LoadScene("OculusMenus6DOF");
 #elif ENABLE_HTCVIVE
             SceneManager.LoadScene("HTCMenus6DOF");
 #elif ENABLE_WORLDSENSE
-            SceneManager.LoadScene("Menus6DOF");
+            SceneManager.LoadScene("WorldMenus6DOF");
 #elif UNITY_STANDALONE
-            SceneManager.LoadScene("Menus6DOF");
+            SceneManager.LoadScene("Menus6DOF_Desktop");
 #else
             SceneManager.LoadScene("Menus6DOF");
 #endif
@@ -1506,20 +1434,11 @@ namespace PartyCritical
                 }
 #endif
 
-                if (m_isSinglePlayer)
-                {
-#if !UNITY_EDITOR
+#if FORCE_GAME
+                SetState(STATE_RUNNING);
+#elif !UNITY_EDITOR
                 CreateLoadingScreen();
 #endif
-                }
-                else
-                {
-#if FORCE_GAME
-                    SetState(STATE_RUNNING);
-#elif !UNITY_EDITOR
-                    CreateLoadingScreen();
-#endif
-                }
             }
 #endif
             if (_nameEvent == CardboardLoaderVR.EVENT_VRLOADER_LOADED_DEVICE_NAME)
@@ -1545,48 +1464,12 @@ namespace PartyCritical
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_SELECT_SKYBOX)
             {
-                SelectedSkybox((string)_list[0]);
+                SelectedSkybox((int)_list[0]);
             }
             if (_nameEvent == CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER)
             {
                 EnableLaserVR((bool)_list[0]);
             }
-            if (_nameEvent == CameraBaseController.EVENT_GAMECONTROLLER_MARKER_BALL)
-            {
-                bool isDirectorMode = (bool)_list[0];
-                Vector3 pc = (Vector3)_list[1];
-                if (m_isSinglePlayer)
-                {
-                    NetworkEventController.Instance.DispatchLocalEvent(EVENT_GAMECONTROLLER_MARKER_BALL, isDirectorMode.ToString(), pc.x.ToString(), pc.y.ToString(), pc.z.ToString());
-                }
-                else
-                {
-                    NetworkEventController.Instance.PriorityDelayNetworkEvent(EVENT_GAMECONTROLLER_MARKER_BALL, 0.1f, isDirectorMode.ToString(), pc.x.ToString(), pc.y.ToString(), pc.z.ToString());
-                }
-            }
-#if ENABLE_VIVOX
-            if (_nameEvent == VivoxVoiceController.EVENT_VIVOXVOICECONTROLLER_STARTED)
-            {
-                VivoxVoiceController.Instance.Initialize(VivoxServer, VivoxDomain, VivoxTokenIssuer, VivoxTokeyKey);
-            }
-            if (_nameEvent == VivoxVoiceController.EVENT_VIVOXVOICECONTROLLER_INITIALIZED)
-            {
-                string nameToLogin = Utilities.RandomCodeGeneration(NetworkEventController.Instance.NameRoomLobby);
-                VivoxVoiceController.Instance.Login();
-            }
-            if (_nameEvent == VivoxVoiceController.EVENT_VIVOXVOICECONTROLLER_LOGGED_IN)
-            {
-                // Debug.LogError("EVENT_VIVOXVOICECONTROLLER_LOGGED_IN::JOINING TO CHANNEL=" + NetworkEventController.Instance.NameRoomLobby);
-                VivoxVoiceController.Instance.JoinChannel(NetworkEventController.Instance.NameRoomLobby, ChannelType.NonPositional, VivoxVoiceController.ChatCapability.AudioOnly);
-            }
-            if (_nameEvent == VivoxVoiceController.EVENT_VIVOXVOICECONTROLLER_NEW_PARTICIPANT)
-            {
-                string username = (string)_list[0];
-                string channel = (string)_list[1];
-                bool participantCanTransmit = (bool)_list[2];
-                // Debug.LogError("EVENT_VIVOXVOICECONTROLLER_NEW_PARTICIPANT::username["+ username + "]::channel.Name["+ channel + "]::participant.IsTransmitting["+ participantCanTransmit + "]");
-            }
-#endif
         }
 
         // -------------------------------------------
@@ -1602,11 +1485,6 @@ namespace PartyCritical
             if ((YourVRUIScreenController.Instance == null) || isDirector || m_isGyroscopeMode)
             {
                 ProcessScreenEvents(_nameEvent, _list);
-
-                if (_nameEvent == UIEventController.EVENT_SCREENMANAGER_REPORT_DESTROYED)
-                {
-                    PostDestroyScreenAction();
-                }
             }
             else
             {
@@ -1620,24 +1498,6 @@ namespace PartyCritical
          */
         protected override void OnUIEvent(string _nameEvent, object[] _list)
         {
-#if ENABLE_OCULUS && !ENABLE_PARTY_2018
-            if (_nameEvent == YourVRUIScreenController.EVENT_SCREENMANAGER_ASSIGNED_LASER)
-            {
-                LaserPointer = YourVRUIScreenController.Instance.LaserPointer;
-                if (GameObject.FindObjectOfType<BaseVRScreenView>() == null)
-                {
-                    if (CameraBaseController.InstanceBase != null) EnableLaserVR(CameraBaseController.InstanceBase.SignalClientEnabled);
-                }
-                else
-                {
-                    EnableLaserVR(true);
-                }
-            }
-#endif
-            if (_nameEvent == EVENT_GAMECONTROLLER_ASK_CONFIRM_TO_QUIT_APP)
-            {
-                UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_INFORMATION_SCREEN, ScreenInformationView.SCREEN_CONFIRMATION, UIScreenTypePreviousAction.KEEP_CURRENT_SCREEN, LanguageController.Instance.GetText("message.warning"), LanguageController.Instance.GetText("message.do.you.want.exit"), null, SUB_EVENT_GAMECONTROLLER_CONFIRMATION_EXIT_APP);
-            }
             if (_nameEvent == ScreenController.EVENT_APP_LOST_FOCUS)
             {
 #if ENABLE_WORLDSENSE
@@ -1652,20 +1512,15 @@ namespace PartyCritical
             if (_nameEvent == ScreenController.EVENT_CONFIRMATION_POPUP)
             {
                 string subEvent = (string)_list[2];
-                bool accepted = (bool)_list[1];
                 if (subEvent == SUBEVENT_CONFIRMATION_GO_TO_NEXT_LEVEL)
                 {
                     CreateLoadingScreen(false);
                     NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_CONFIRMATION_NEXT_LEVEL, YourNetworkTools.Instance.GetUniversalNetworkID().ToString());
                 }
-                if (subEvent == SUB_EVENT_GAMECONTROLLER_CONFIRMATION_EXIT_APP)
-                {
-                    if (accepted)
-                    {
-                        SetState(STATE_NULL);
-                        DestroyAllResources(false, true, 0.1f);
-                    }
-                }
+            }
+            if (_nameEvent == UIEventController.EVENT_SCREENMANAGER_DESTROY_SCREEN)
+            {
+                EnableLaserVR(false);
             }
         }
 
@@ -1673,25 +1528,17 @@ namespace PartyCritical
         /* 
 		* SelectedSkybox
 		*/
-        public virtual void SelectedSkybox(string _skyboxPrefab)
+        public void SelectedSkybox(int _skybox)
         {
+            int selectedSkybox = _skybox;
             if (SkyboxesLevels != null)
             {
-                int indexSkybox = -1;
-                for (int i = 0; i < SkyboxesLevels.Length; i++)
+                if (selectedSkybox < SkyboxesLevels.Length)
                 {
-                    if (SkyboxesLevels[i].name == _skyboxPrefab)
-                    {
-                        indexSkybox = i;
-                    }
-                }
-
-                if (indexSkybox != -1)
-                {
-                    if (SkyboxesLevels[indexSkybox] != null)
+                    if (SkyboxesLevels[selectedSkybox] != null)
                     {
                         BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_ACTIVATE_SKYBOX);
-                        RenderSettings.skybox = SkyboxesLevels[indexSkybox];
+                        RenderSettings.skybox = SkyboxesLevels[selectedSkybox];
                     }
                 }
             }
@@ -1995,7 +1842,7 @@ namespace PartyCritical
 
                 string initialData = GetPositionBySpawnGO();
 
-                if (m_characterSelected >= PlayerNetworkPrefab.Length)
+                if (m_characterSelected >= PlayerPrefab.Length)
                 {
                     m_characterSelected = 0;
                 }
@@ -2007,12 +1854,12 @@ namespace PartyCritical
                 // initialData = m_namePlayer + "," + NameModelPrefab[m_characterSelected] + "," + 0 + "," + initialPosition.y + "," + 0;
                 if (!IsSinglePlayer)
                 {
-                    YourNetworkTools.Instance.CreateLocalNetworkObject(PlayerNetworkPrefab[m_characterSelected], YourNetworkTools.Instance.CreatePathToPrefabInResources(PlayerNetworkPrefab[m_characterSelected], true), initialData, false);
+                    YourNetworkTools.Instance.CreateLocalNetworkObject(PlayerPrefab[m_characterSelected].name, initialData, false);
                     YourNetworkTools.Instance.ActivateTransformUpdate = true;
                 }
                 else
                 {
-                    GameObject myOwnPlayer = Instantiate(Resources.Load(YourNetworkTools.Instance.CreatePathToPrefabInResources(PlayerNetworkPrefab[m_characterSelected], true, true)) as GameObject);
+                    GameObject myOwnPlayer = Instantiate(PlayerPrefab[m_characterSelected]);
                     if (myOwnPlayer.GetComponent<ActorTimeline>() != null) myOwnPlayer.GetComponent<ActorTimeline>().InitializeLocalData(initialData);
                 }
 
@@ -2020,12 +1867,10 @@ namespace PartyCritical
                 {
                     CreateLoadingScreen();
                     NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECONTROLLER_PLAYER_IS_READY, YourNetworkTools.Instance.GetUniversalNetworkID().ToString(), IsRealDirectorMode.ToString());
-                    if (!m_isSinglePlayer)
-                    {
 #if FORCE_GAME
-                        SetState(STATE_RUNNING);
+                            SetState(STATE_RUNNING);
 #endif
-                    }
+
                 }
                 else
                 {
@@ -2113,12 +1958,12 @@ namespace PartyCritical
         {
             if (!m_initializationRunningDone)
             {
-                m_initializationRunningDone = true;
                 UpdateSkyboxWithNewLevel();
                 UIEventController.Instance.DispatchUIEvent(MenuScreenController.EVENT_FORCE_DESTRUCTION_POPUP);
                 m_endLevelConfirmedPlayers.Clear();
                 if (m_directorMode)
                 {
+                    m_initializationRunningDone = true;
                     if (m_spectatorMode)
                     {
                         if (GameObject.FindObjectOfType<ScreenBaseSpectatorView>() == null)
@@ -2153,23 +1998,6 @@ namespace PartyCritical
                 bool previousStateIsFirstTimeRun = m_isFirstTimeRun;
                 m_isFirstTimeRun = false;
                 BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_GAMECONTROLLER_RESPONSE_IS_GAME_RUNNING, IsGameFakeRunning());
-                if (!m_isSinglePlayer)
-                {
-#if FORCE_GAME
-#if ENABLE_MULTIPLAYER_TIMELINE
-                    NetworkEventController.Instance.DelayLocalEvent(InstructionsBaseController.EVENT_INSTRUCTION_CONTROLLER_START, 0.1f, 1.ToString());
-#endif
-                    if (!m_isSinglePlayer)
-                    {
-                        if (!YourNetworkTools.Instance.IsLocalGame)
-                        {
-#if ENABLE_VIVOX
-                            Instantiate(Resources.Load("VivoxVoiceController") as GameObject);
-#endif
-                        }
-                    }
-#endif
-                }
                 return previousStateIsFirstTimeRun;
             }
             else
@@ -2286,11 +2114,11 @@ namespace PartyCritical
             m_globalCounterEnemies++;
             if (!IsSinglePlayer)
             {
-                YourNetworkTools.Instance.CreateLocalNetworkObject(EnemyNetworkPrefab[0], YourNetworkTools.Instance.CreatePathToPrefabInResources(EnemyNetworkPrefab[0], true), initialData, true, 10000, 10000, 10000);
+                YourNetworkTools.Instance.CreateLocalNetworkObject(EnemyPrefab[0].name, initialData, true, 10000, 10000, 10000);
             }
             else
             {
-                GameObject newZombie = Instantiate(Resources.Load(YourNetworkTools.Instance.CreatePathToPrefabInResources(EnemyNetworkPrefab[0], true, true)) as GameObject);
+                GameObject newZombie = Instantiate(EnemyPrefab[0]);
                 newZombie.GetComponent<IGameNetworkActor>().Initialize(initialData);
                 if (newZombie.GetComponent<ActorNetwork>() != null)
                 {
@@ -2312,11 +2140,11 @@ namespace PartyCritical
             m_globalCounterNPCs++;
             if (!IsSinglePlayer)
             {
-                YourNetworkTools.Instance.CreateLocalNetworkObject(NPCNetworkPrefab[0], YourNetworkTools.Instance.CreatePathToPrefabInResources(NPCNetworkPrefab[0], true), initialData, true);
+                YourNetworkTools.Instance.CreateLocalNetworkObject(NPCPrefab[0].name, initialData, true);
             }
             else
             {
-                GameObject newNPC = Instantiate(Resources.Load(YourNetworkTools.Instance.CreatePathToPrefabInResources(NPCNetworkPrefab[0], true, true)) as GameObject);
+                GameObject newNPC = Instantiate(NPCPrefab[0]);
                 newNPC.GetComponent<IGameNetworkActor>().Initialize(initialData);
             }
             return true;

@@ -27,34 +27,12 @@ namespace PartyCritical
         public const string EVENT_INSTRUCTION_CONTROLLER_START = "EVENT_INSTRUCTION_CONTROLLER_START";
 
         // ----------------------------------------------
-        // SINGLETON
-        // ----------------------------------------------	
-        private static InstructionsBaseController _instanceBase;
-
-        public static InstructionsBaseController InstanceBase
-        {
-            get
-            {
-                if (!_instanceBase)
-                {
-                    _instanceBase = GameObject.FindObjectOfType(typeof(InstructionsBaseController)) as InstructionsBaseController;
-                }
-                return _instanceBase;
-            }
-        }
-
-        // ----------------------------------------------
         // CONSTANTS
         // ----------------------------------------------	
         public const string GROUP_PLAYERS        = "GROUP_PLAYERS";
         public const string GROUP_DIRECTORS      = "DIRECTORS";
         public const string GROUP_EVERYBODY_HUMAN= "EVERYBODY_HUMAN";
         public const string GROUP_PICKABLE_ITEMS = "PICKABLE_ITEMS";
-
-        public const int SECONDS_BASE_END_LEVEL_0 = 100 * 1000;
-        public const int SECONDS_BASE_END_LEVEL_1 = 200 * 1000;
-        public const int SECONDS_BASE_END_LEVEL_2 = 300 * 1000;
-        public const int SECONDS_BASE_END_LEVEL_3 = 400 * 1000;
 
         // ----------------------------------------------
         // PRIVATE MEMBERS
@@ -69,7 +47,7 @@ namespace PartyCritical
         protected List<string> m_teams = new List<string>();
 
         protected int m_timeMarker;
-        protected int m_timeSegment = 1000;
+        protected int m_timeSegment;
 
 #if ENABLE_MULTIPLAYER_TIMELINE
         protected LayerData m_mainLayer;
@@ -174,12 +152,11 @@ namespace PartyCritical
         */
         void OnDestroy()
         {
-            if (BasicSystemEventController.Instance != null) BasicSystemEventController.Instance.BasicSystemEvent -= OnBasicSystemEvent;
+            BasicSystemEventController.Instance.BasicSystemEvent -= OnBasicSystemEvent;
 #if ENABLE_MULTIPLAYER_TIMELINE
-            if (TimelineEventController.Instance != null) TimelineEventController.Instance.TimelineEvent -= OnTimelineEvent;
+            TimelineEventController.Instance.TimelineEvent -= OnTimelineEvent;
 #endif
-            if (NetworkEventController.Instance!=null) NetworkEventController.Instance.NetworkEvent -= OnNetworkEvent;
-            _instanceBase = null;
+            NetworkEventController.Instance.NetworkEvent -= OnNetworkEvent;
         }
 
         // -------------------------------------------
@@ -291,17 +268,7 @@ namespace PartyCritical
                 InitialitzationDirectors();
 
                 // TIMELINE FOR LEVEL 0
-                switch (m_currentLevel)
-                {
-                    case 0:
-                        CreateTimeLineForLevel0(m_mainLayer, 100, SECONDS_BASE_END_LEVEL_0);
-                        break;
-
-                    case 1:
-                        CreateTimeLineForLevel1(m_mainLayer, SECONDS_BASE_END_LEVEL_0, SECONDS_BASE_END_LEVEL_1);
-                        GameLevelData.Instance.SetCurrentTimePlaying(SECONDS_BASE_END_LEVEL_0, "");
-                        break;
-                }
+                CreateTimeLineForLevel0(m_mainLayer, 100, 100 * 1000);
             }
 
             GameLevelData.Instance.Logic();
@@ -618,21 +585,26 @@ namespace PartyCritical
         protected virtual void CreateNewTimelineForLevel(int _layer)
         {
 #if ENABLE_MULTIPLAYER_TIMELINE
-            if (m_mainLayer != null)
-            {
-                switch (_layer)
+            int SECONDS_END_LEVEL_0 = 100 * 1000;
+            int SECONDS_END_LEVEL_1 = 200 * 1000;
+            int SECONDS_END_LEVEL_2 = 300 * 1000;
+            int SECONDS_END_LEVEL_3 = 400 * 1000;
+
+            switch (_layer)
                 {
                     case 0:
-                        CreateTimeLineForLevel0(m_mainLayer, 100, SECONDS_BASE_END_LEVEL_0);
-                        GameLevelData.Instance.SetCurrentTimePlaying(0, "");
+                        if (m_mainLayer != null)
+                        {
+                            CreateTimeLineForLevel0(m_mainLayer, 100, SECONDS_END_LEVEL_0);
+                            GameLevelData.Instance.SetCurrentTimePlaying(0, "");
+                        }
                         break;
 
                     case 1:
-                        CreateTimeLineForLevel1(m_mainLayer, SECONDS_BASE_END_LEVEL_0, SECONDS_BASE_END_LEVEL_1);
-                        GameLevelData.Instance.SetCurrentTimePlaying(SECONDS_BASE_END_LEVEL_0, "");
+                        CreateTimeLineForLevel1(m_mainLayer, SECONDS_END_LEVEL_0, SECONDS_END_LEVEL_1);
+                        GameLevelData.Instance.SetCurrentTimePlaying(SECONDS_END_LEVEL_0, "");
                         break;
                 }
-            }
 #endif
         }
 
@@ -654,13 +626,7 @@ namespace PartyCritical
         {
             if (IsGameReallyRunning())
             {
-                try
-                {
-                    UpdateTimeline();
-                } catch (Exception err)
-                {
-                    Debug.LogError(err.StackTrace);
-                }
+                UpdateTimeline();
 
                 // RESET CURRENT TIMELINE
                 if (Input.GetKeyDown(KeyCode.R))

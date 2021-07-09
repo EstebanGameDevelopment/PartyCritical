@@ -99,13 +99,6 @@ namespace PartyCritical
                     if (States[i] != null)
                     {
                         States[i].SetActive((i == m_currentState));
-                        if (LayerName != null)
-                        {
-                            if (LayerName.Length > 0)
-                            {
-                                States[i].layer = LayerMask.NameToLayer(LayerName);
-                            }
-                        }                        
                         hasBeenActivated = true;
                     }
                 }
@@ -152,7 +145,7 @@ namespace PartyCritical
             {
                 if (_nameEvent == KeysEventInputController.ACTION_BUTTON_DOWN)
                 {
-                    BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_REQUEST_SELECTOR_DATA, this.gameObject.name, LayerName);
+                    BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_REQUEST_SELECTOR_DATA, this.gameObject.name);
                 }
             }
         }
@@ -183,6 +176,13 @@ namespace PartyCritical
                     if (_list.Length > 3)
                     {
                         maskToConsider = (string)_list[3];
+                    }
+                    if (LayerName.Length > 0)
+                    {
+                        for (int i= 0; i < States.Length; i++)
+                        {
+                            States[i].layer = LayerMask.NameToLayer(LayerName);
+                        }
                     }
                     RaycastHit raycastHit = new RaycastHit();
                     bool collided = false;
@@ -250,10 +250,6 @@ namespace PartyCritical
 		 */
         private void OnNetworkEvent(string _nameEvent, bool _isLocalEvent, int _networkOriginID, int _networkTargetID, object[] _list)
         {
-            if (_nameEvent == GameBaseController.EVENT_GAMECONTROLLER_RECALCULATE_COLLISIONS)
-            {
-                SwitchByState(m_currentState);
-            }
             if (_nameEvent == ClientTCPEventsController.EVENT_CLIENT_TCP_CLOSE_CURRENT_ROOM)
             {
                 m_enableSwitcher = true;

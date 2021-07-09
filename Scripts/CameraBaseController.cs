@@ -28,6 +28,7 @@ namespace PartyCritical
         // ----------------------------------------------	
         public const string EVENT_CAMERACONTROLLER_REQUEST_SELECTOR_DATA = "EVENT_CAMERACONTROLLER_REQUEST_SELECTOR_DATA";
         public const string EVENT_CAMERACONTROLLER_RESPONSE_SELECTOR_DATA = "EVENT_CAMERACONTROLLER_RESPONSE_SELECTOR_DATA";
+        public const string EVENT_CAMERACONTROLLER_DATA_SHOTGUN = "EVENT_CAMERACONTROLLER_DATA_SHOTGUN";
         public const string EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION = "EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION";
         public const string EVENT_GAMECAMERA_REAL_PLAYER_FORWARD = "EVENT_GAMECAMERA_REAL_PLAYER_FORWARD";
         public const string EVENT_CAMERACONTROLLER_OPEN_INVENTORY = "EVENT_CAMERACONTROLLER_OPEN_INVENTORY";
@@ -37,40 +38,11 @@ namespace PartyCritical
         public const string EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER = "EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER";
         public const string EVENT_CAMERACONTROLLER_ACTIVATE_SKYBOX = "EVENT_CAMERACONTROLLER_ACTIVATE_SKYBOX";
         public const string EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA = "EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA";
-        public const string EVENT_CAMERACONTROLLER_APPLY_LEFT_ROTATION_CAMERA = "EVENT_CAMERACONTROLLER_APPLY_LEFT_ROTATION_CAMERA";
-        public const string EVENT_CAMERACONTROLLER_APPLY_RIGTH_ROTATION_CAMERA = "EVENT_CAMERACONTROLLER_APPLY_RIGTH_ROTATION_CAMERA";
-        public const string EVENT_CAMERACONTROLLER_ENABLE_CONTROL_CAMERA = "EVENT_CAMERACONTROLLER_ENABLE_CONTROL_CAMERA";
-        public const string EVENT_CAMERACONTROLLER_ENABLE_NETWORK_SIGNAL_PLAYER = "EVENT_CAMERACONTROLLER_ENABLE_NETWORK_SIGNAL_PLAYER";
-        public const string EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_PLAYER = "EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_PLAYER";
-        public const string EVENT_CAMERACONTROLLER_ENABLE_CHECK_SIGNAL_PLAYER = "EVENT_CAMERACONTROLLER_ENABLE_CHECK_SIGNAL_PLAYER";
-        public const string EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_CHANGED_FOR_PLAYER = "EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_CHANGED_FOR_PLAYER";
-        public const string EVENT_GAMECONTROLLER_MARKER_BALL = "EVENT_GAMECONTROLLER_MARKER_BALL";
 
         public const string EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN = "EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN";
         public const string EVENT_CAMERACONTROLLER_GENERIC_ACTION_UP = "EVENT_CAMERACONTROLLER_GENERIC_ACTION_UP";
-        
-        public const string EVENT_CAMERACONTROLLER_COLLISION_ENTER_TRIGGERED_WITH_PLAYER = "EVENT_CAMERACONTROLLER_COLLISION_ENTER_TRIGGERED_WITH_PLAYER";
-        public const string EVENT_CAMERACONTROLLER_COLLISION_EXIT_TRIGGERED_WITH_PLAYER = "EVENT_CAMERACONTROLLER_COLLISION_EXIT_TRIGGERED_WITH_PLAYER";
-
 
         public const string MARKER_NAME = "MARKER";
-
-        // ----------------------------------------------
-        // SINGLETON
-        // ----------------------------------------------	
-        private static CameraBaseController _instanceBase;
-
-        public static CameraBaseController InstanceBase
-        {
-            get
-            {
-                if (!_instanceBase)
-                {
-                    _instanceBase = GameObject.FindObjectOfType(typeof(CameraBaseController)) as CameraBaseController;
-                }
-                return _instanceBase;
-            }
-        }
 
         // ----------------------------------------------
         // PUBLIC VARIABLES
@@ -78,16 +50,16 @@ namespace PartyCritical
         public Transform CameraLocal;
         public GameObject OVRPlayer;
         public GameObject CenterEyeAnchor;
+        public GameObject ShotgunContainer;
+        public GameObject ShotgunRightContainer;
+        public GameObject ShotgunLeftContainer;
         public GameObject SubContainerCamera;
-
-        public GameObject LeftCameraRotationButton;
-        public GameObject RightCameraRotationButton;
+        public GameObject[] HandTrackingObjects;
 
         public float ScaleMovementXZ = 4;
         public float ScaleMovementY = 2;
 
         public bool AreOculusHandsEnabled = false;
-        public GameObject ButtonsRotationHandTracking;
 
         // ----------------------------------------------
         // protected VARIABLES
@@ -114,16 +86,13 @@ namespace PartyCritical
         protected bool m_shotTriggerDetected = false;
 
         protected bool m_enableFreeMovementCamera = false;
-        protected bool m_enableFreeRotationCamera = true;
 
         protected bool m_activateMovement = false;
 
         protected bool m_enableShootAction = true;
         protected bool m_ignoreNextShootAction = false;
 
-        protected GameObject m_handRightDefault;
-        protected GameObject m_handLeftOptional;
-
+        protected bool m_enabledCameraInput = true;
 
 #if (ONLY_REMOTE_CONNECTION || TELEPORT_INDIVIDUAL) && (ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE)
         protected bool m_teleportAvailable = true;
@@ -137,18 +106,12 @@ namespace PartyCritical
         protected Vector3 m_fixedCameraPosition;
         protected Vector3 m_fixedCameraForward;
 
-        protected bool m_signalClientEnabled = false;
-        protected bool m_signalDirectorAllowsClient = true;
-
-        protected bool m_enableShoots = false;
-
         protected float m_timeShotgun = 0;
-
-        protected bool m_isHandsMode = false;
-
 #if ENABLE_WORLDSENSE || ENABLE_OCULUS || ENABLE_HTCVIVE
         protected GameObject m_armModel;
         protected GameObject m_laserPointer;
+        protected Vector3 m_originLaser;
+        protected Vector3 m_forwardLaser;
         protected Vector3 m_incrementJoystickTranslation = Vector3.zero;
 #endif
 
@@ -208,6 +171,10 @@ namespace PartyCritical
         {
             get { return false; }
         }
+        public virtual string EVENT_GAMECONTROLLER_MARKER_BALL
+        {
+            get { return ""; }
+        }
         public virtual string EVENT_GAMESHOOT_NEW
         {
             get { return ""; }
@@ -246,6 +213,10 @@ namespace PartyCritical
         public virtual float CAMERA_SHIFT_HEIGHT_OCULUS  // NOT USED
         {
             get { return -1; }
+        }
+        public virtual List<GameObject> Players
+        {
+            get { return null; }
         }
         public virtual float PLAYER_SPEED
         {
@@ -287,14 +258,7 @@ namespace PartyCritical
         {
             get { return m_shiftCameraFromOrigin; }
         }
-        public bool SignalClientEnabled
-        {
-            get { return m_signalClientEnabled; }
-        }
-        public bool SignalDirectorAllowsClient
-        {
-            get { return m_signalDirectorAllowsClient; }
-        }
+
 
         // -------------------------------------------
         /* 
@@ -327,11 +291,58 @@ namespace PartyCritical
         {
             InitialitzeHMDHeight();
 
-            if (LeftCameraRotationButton != null) LeftCameraRotationButton.SetActive(false);
-            if (RightCameraRotationButton != null) RightCameraRotationButton.SetActive(false);
+            m_teleportAvailable = (GameObject.FindObjectOfType<TeleportController>() != null);
 
+#if ENABLE_OCULUS || ENABLE_HTCVIVE
+            if (KeysEventInputController.Instance.IsRightHanded())
+            {
+                if (ShotgunRightContainer != null)
+                {
+                    ShotgunContainer = ShotgunRightContainer;
+                    if (ShotgunLeftContainer != null) ShotgunLeftContainer.SetActive(false);
+                }
+                else
+                {
+                    if (ShotgunLeftContainer != null)
+                    {
+                        ShotgunContainer = ShotgunLeftContainer;
+                        if (ShotgunRightContainer != null) ShotgunRightContainer.SetActive(false);
+                    }
+                }
+            }
+            else
+            {
+                if (ShotgunLeftContainer != null)
+                {
+                    ShotgunContainer = ShotgunLeftContainer;
+                    if (ShotgunRightContainer != null) ShotgunRightContainer.SetActive(false);
+                }
+                else
+                {
+                    if (ShotgunRightContainer != null)
+                    {
+                        ShotgunContainer = ShotgunRightContainer;
+                        if (ShotgunLeftContainer != null) ShotgunLeftContainer.SetActive(false);
+                    }
+                }
+            }
+#else
+            if (ShotgunLeftContainer != null) ShotgunLeftContainer.SetActive(false);
+            if (ShotgunRightContainer != null)
+            {
+                ShotgunRightContainer.SetActive(true);
+                ShotgunContainer = ShotgunRightContainer;
+            }
+#endif
+
+#if ENABLE_WORLDSENSE || ENABLE_OCULUS || ENABLE_HTCVIVE
+            if (ShotgunContainer != null) ShotgunContainer.SetActive(true);
+#else
+            if (ShotgunContainer != null) ShotgunContainer.SetActive(false);
+#endif
+            
 #if ENABLE_OCULUS
-        m_enableVR = true;
+            m_enableVR = true;
             AreOculusHandsEnabled = false;
             CameraLocal.gameObject.SetActive(false);
             if (OVRPlayer!=null) OVRPlayer.SetActive(true);
@@ -339,8 +350,35 @@ namespace PartyCritical
             this.GetComponent<Rigidbody>().isKinematic = true;
             this.GetComponent<Collider>().isTrigger = true;
 
-            OculusEventObserver.Instance.OculusEvent += new OculusEventHandler(OnOculusEvent);
+            if (ScreenOculusControlSelectionView.ControOculusWithHands())
+            {
+                if (ShotgunContainer != null) ShotgunContainer.SetActive(false);
+            }
+            else
+            {
+                if (GameObject.FindObjectsOfType<HandRayToolView>() != null)
+                {
+                    HandRayToolView[] handRays = GameObject.FindObjectsOfType<HandRayToolView>();
+                    for (int j = 0; j < handRays.Length; j++)
+                    {
+                        if (handRays[j] != null)
+                        {
+                            handRays[j].gameObject.SetActive(false);
+                        }
+                    }
+                }
 
+                if (HandTrackingObjects != null)
+                {
+                    for (int k = 0; k < HandTrackingObjects.Length; k++)
+                    {
+                        if (HandTrackingObjects[k] != null)
+                        {
+                            HandTrackingObjects[k].gameObject.SetActive(false);
+                        }
+                    }
+                }
+            }
 #elif ENABLE_HTCVIVE
             m_enableVR = true;
             if (CameraLocal != null) CameraLocal.gameObject.SetActive(false);
@@ -353,8 +391,12 @@ namespace PartyCritical
             if (OVRPlayer != null) OVRPlayer.SetActive(false);
 #endif
 
+            InitialitzationLaserPointer();
+
             if (DirectorMode)
             {
+                if (ShotgunContainer != null) ShotgunContainer.SetActive(false);
+
                 m_fixedCameraPosition = new Vector3(6.1f, 7.4f, -5.1f);
                 m_fixedCameraForward = new Vector3(-0.6f, -0.7f, 0.4f);
             }
@@ -446,49 +488,8 @@ namespace PartyCritical
             }            
 #endif
 
-#if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE
-            KeysEventInputController.Instance.EnableActionOnMouseDown = false;
-#else
-            KeysEventInputController.Instance.EnableInteractions = false;
-#endif
-
             BasicSystemEventController.Instance.DelayBasicSystemEvent(GameBaseController.EVENT_GAMECONTROLLER_REPORT_GYROSCOPE_MODE, 0.1f, m_enableGyroscope);
         }
-
-#if ENABLE_OCULUS
-        protected bool m_oculusTriggerDownFlag = true;
-        protected bool m_oculusTriggerUpFlag = true;
-
-        // -------------------------------------------
-        /* OnOculusEvent
-		 */
-        private void OnOculusEvent(string _nameEvent, object[] _list)
-        {
-            if (_nameEvent == OculusControllerInputs.EVENT_OCULUSINPUTCONTROLLER_INDEX_TRIGGER_DOWN)
-            {
-                m_oculusTriggerDownFlag = true;
-            }
-            if (_nameEvent == OculusControllerInputs.EVENT_OCULUSINPUTCONTROLLER_INDEX_TRIGGER_UP)
-            {
-                m_oculusTriggerUpFlag = true;
-            }
-            if (_nameEvent == OculusHandsManager.EVENT_OCULUSHANDMANAGER_SET_UP_LASER_POINTER_INITIALIZE)
-            {
-                m_isHandsMode = (bool)_list[0];
-                if (m_isHandsMode)
-                {
-                    if (LeftCameraRotationButton != null) LeftCameraRotationButton.SetActive(true);
-                    if (RightCameraRotationButton != null) RightCameraRotationButton.SetActive(true);
-                }
-                else
-                {
-                    if (LeftCameraRotationButton != null) LeftCameraRotationButton.SetActive(false);
-                    if (RightCameraRotationButton != null) RightCameraRotationButton.SetActive(false);
-                }
-            }
-            
-        }
-#endif
 
         // -------------------------------------------
         /* 
@@ -498,13 +499,9 @@ namespace PartyCritical
         {
             m_avatar = null;
 
-#if ENABLE_OCULUS
-            OculusEventObserver.Instance.OculusEvent -= OnOculusEvent;
-#endif
-
-            if (BasicSystemEventController.Instance != null) BasicSystemEventController.Instance.BasicSystemEvent -= OnBasicSystemEvent;
-            if (NetworkEventController.Instance != null) NetworkEventController.Instance.NetworkEvent -= OnNetworkEvent;
-            if (UIEventController.Instance != null) UIEventController.Instance.UIEvent -= OnUIEvent;
+            BasicSystemEventController.Instance.BasicSystemEvent -= OnBasicSystemEvent;
+            NetworkEventController.Instance.NetworkEvent -= OnNetworkEvent;
+            UIEventController.Instance.UIEvent -= OnUIEvent;
         }
 
         // -------------------------------------------
@@ -519,37 +516,34 @@ namespace PartyCritical
             }
             else
             {
-                if (m_enableFreeRotationCamera)
+                RotationAxes axes = RotationAxes.None;
+
+                if ((Input.GetAxis("Mouse X") != 0) || (Input.GetAxis("Mouse Y") != 0))
                 {
-                    RotationAxes axes = RotationAxes.None;
+                    axes = RotationAxes.MouseXAndY;
+                }
 
-                    if ((Input.GetAxis("Mouse X") != 0) || (Input.GetAxis("Mouse Y") != 0))
+                if ((axes != RotationAxes.Controller) && (axes != RotationAxes.None))
+                {
+                    if (axes == RotationAxes.MouseXAndY)
                     {
-                        axes = RotationAxes.MouseXAndY;
+                        float rotationX = CameraLocal.localEulerAngles.y + Input.GetAxis("Mouse X") * m_sensitivityX;
+
+                        m_rotationY += Input.GetAxis("Mouse Y") * m_sensitivityY;
+                        m_rotationY = Mathf.Clamp(m_rotationY, m_minimumY, m_maximumY);
+
+                        CameraLocal.localEulerAngles = new Vector3(-m_rotationY, rotationX, 0);
                     }
-
-                    if ((axes != RotationAxes.Controller) && (axes != RotationAxes.None))
+                    else if (axes == RotationAxes.MouseX)
                     {
-                        if (axes == RotationAxes.MouseXAndY)
-                        {
-                            float rotationX = CameraLocal.localEulerAngles.y + Input.GetAxis("Mouse X") * m_sensitivityX;
+                        CameraLocal.Rotate(0, Input.GetAxis("Mouse X") * m_sensitivityX, 0);
+                    }
+                    else
+                    {
+                        m_rotationY += Input.GetAxis("Mouse Y") * m_sensitivityY;
+                        m_rotationY = Mathf.Clamp(m_rotationY, m_minimumY, m_maximumY);
 
-                            m_rotationY += Input.GetAxis("Mouse Y") * m_sensitivityY;
-                            m_rotationY = Mathf.Clamp(m_rotationY, m_minimumY, m_maximumY);
-
-                            CameraLocal.localEulerAngles = new Vector3(-m_rotationY, rotationX, 0);
-                        }
-                        else if (axes == RotationAxes.MouseX)
-                        {
-                            CameraLocal.Rotate(0, Input.GetAxis("Mouse X") * m_sensitivityX, 0);
-                        }
-                        else
-                        {
-                            m_rotationY += Input.GetAxis("Mouse Y") * m_sensitivityY;
-                            m_rotationY = Mathf.Clamp(m_rotationY, m_minimumY, m_maximumY);
-
-                            CameraLocal.localEulerAngles = new Vector3(-m_rotationY, transform.localEulerAngles.y, 0);
-                        }
+                        CameraLocal.localEulerAngles = new Vector3(-m_rotationY, transform.localEulerAngles.y, 0);
                     }
                 }
             }
@@ -621,7 +615,7 @@ namespace PartyCritical
 #if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE
             if ((m_armModel != null) && (m_laserPointer != null))
             {
-                pos = Utilities.Clone(m_laserPointer.transform.position);
+                pos = Utilities.Clone(m_originLaser);
             }
 #endif
 
@@ -642,7 +636,7 @@ namespace PartyCritical
 #if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE
             if ((m_armModel != null) && (m_laserPointer != null))
             {
-                fwd = Utilities.Clone(m_laserPointer.transform.forward);
+                fwd = Utilities.Clone(m_forwardLaser);
             }
 #endif
 
@@ -687,11 +681,11 @@ namespace PartyCritical
             Vector3 fwd = Utilities.Clone(CameraLocal.transform.forward.normalized);
 #endif
 #if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE
-            if ((m_armModel != null) && (m_laserPointer != null))
-            {
-                pos = Utilities.Clone(m_laserPointer.transform.position);
-                fwd = Utilities.Clone(m_laserPointer.transform.forward);
-            }
+                if ((m_armModel != null) && (m_laserPointer != null))
+                {
+                    pos = Utilities.Clone(m_originLaser);
+                    fwd = Utilities.Clone(m_forwardLaser);
+                }
 #endif
 
             return pos + fwd * _distance;
@@ -713,8 +707,8 @@ namespace PartyCritical
 #if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE
             if ((m_armModel != null) && (m_laserPointer != null))
             {
-                pos = Utilities.Clone(m_laserPointer.transform.position);
-                fwd = Utilities.Clone(m_laserPointer.transform.forward);
+                pos = Utilities.Clone(m_originLaser);
+                fwd = Utilities.Clone(m_forwardLaser);
             }
 #endif
 
@@ -742,8 +736,8 @@ namespace PartyCritical
 #if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE
             if ((m_armModel != null) && (m_laserPointer != null))
             {
-                pos = Utilities.Clone(m_laserPointer.transform.position);
-                fwd = Utilities.Clone(m_laserPointer.transform.forward);
+                pos = Utilities.Clone(m_originLaser);
+                fwd = Utilities.Clone(m_forwardLaser);
             }
 #endif
 
@@ -798,36 +792,26 @@ namespace PartyCritical
          */
         protected virtual void SetAMarkerSignal()
         {
-            if (m_signalDirectorAllowsClient)
-            {
-                if (m_signalClientEnabled)
-                {
 #if ENABLE_YOURVRUI
-                    Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
-                    Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
+            Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
+            Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
 #else
-                    Vector3 pos = Utilities.Clone(CameraLocal.transform.position);
-                    Vector3 fwd = Utilities.Clone(CameraLocal.transform.forward.normalized);
+            Vector3 pos = Utilities.Clone(CameraLocal.transform.position);
+            Vector3 fwd = Utilities.Clone(CameraLocal.transform.forward.normalized);
 #endif
 #if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE
-                    if ((m_armModel != null) && (m_laserPointer != null))
-                    {
-                        pos = Utilities.Clone(m_laserPointer.transform.position);
-                        fwd = Utilities.Clone(m_laserPointer.transform.forward);
-                    }
-#else
-                    Ray rayCamera = CameraLocal.GetComponent<Camera>().ScreenPointToRay(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0));
-                    pos = rayCamera.origin;
-                    fwd = rayCamera.direction;
+            if ((m_armModel != null) && (m_laserPointer != null))
+            {
+                pos = Utilities.Clone(m_originLaser);
+                fwd = Utilities.Clone(m_forwardLaser);
+            }
 #endif
 
-                    RaycastHit raycastHit = new RaycastHit();
-                    if (Utilities.GetRaycastHitInfoByRay(pos, fwd, ref raycastHit, ActorTimeline.LAYER_PLAYERS))
-                    {
-                        Vector3 pc = Utilities.Clone(raycastHit.point);
-                        BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_GAMECONTROLLER_MARKER_BALL, DirectorMode, pc);
-                    }
-                }
+            RaycastHit raycastHit = new RaycastHit();
+            if (Utilities.GetRaycastHitInfoByRay(pos, fwd, ref raycastHit, ActorTimeline.LAYER_PLAYERS))
+            {
+                Vector3 pc = Utilities.Clone(raycastHit.point);
+                NetworkEventController.Instance.PriorityDelayNetworkEvent(EVENT_GAMECONTROLLER_MARKER_BALL, 0.1f, DirectorMode.ToString(), pc.x.ToString(), pc.y.ToString(), pc.z.ToString());
             }
         }
 
@@ -845,11 +829,11 @@ namespace PartyCritical
             Vector3 fwd = Utilities.Clone(CameraLocal.transform.forward.normalized);
 #endif
 #if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE
-            if ((m_armModel != null) && (m_laserPointer != null))
-            {
-                pos = Utilities.Clone(m_laserPointer.transform.position);
-                fwd = Utilities.Clone(m_laserPointer.transform.forward);
-            }
+                if ((m_armModel != null) && (m_laserPointer != null))
+                {
+                    pos = Utilities.Clone(m_originLaser);
+                    fwd = Utilities.Clone(m_forwardLaser);
+                }
 #endif
 
             RaycastHit raycastHit = new RaycastHit();
@@ -870,12 +854,12 @@ namespace PartyCritical
             string forward = "";
             bool shootDone = false;
 #if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE
-            if ((m_armModel != null) && (m_laserPointer != null))
+			if ((m_armModel != null) && (m_laserPointer != null))
 			{
-				position = m_laserPointer.transform.position.x + "," + m_laserPointer.transform.position.y + "," + m_laserPointer.transform.position.z;
-				forward = m_laserPointer.transform.forward.x + "," + m_laserPointer.transform.forward.y + "," + m_laserPointer.transform.forward.z;
+				position = m_originLaser.x + "," + m_originLaser.y + "," + m_originLaser.z;
+				forward = m_forwardLaser.x + "," + m_forwardLaser.y + "," + m_forwardLaser.z;
 				shootDone = true;
-            }
+			}
 #else
 #if ENABLE_YOURVRUI
             Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
@@ -961,13 +945,181 @@ namespace PartyCritical
             }
         }
 
+        protected bool m_destroyScreensOnStartMovement = true;
+
+        // -------------------------------------------
+        /* 
+        * RunOnMoveTimeoutPressed
+        */
+        protected virtual void RunMoveOnTimeoutPressed()
+        {
+#if (UNITY_EDITOR || (!ENABLE_OCULUS && !ENABLE_WORLDSENSE && !ENABLE_HTCVIVE))
+            if (m_timeoutToMove >= TIMEOUT_TO_MOVE)
+            {
+                bool allowMovement = !EnableARCore;
+#if UNITY_EDITOR
+                allowMovement = true;
+#endif
+                Vector3 normalForward = CameraLocal.forward.normalized;
+                normalForward = new Vector3(normalForward.x, 0, normalForward.z);
+                if (allowMovement)
+                {
+                    transform.GetComponent<Rigidbody>().MovePosition(transform.position + normalForward * PLAYER_SPEED * Time.deltaTime);
+                }
+                else
+                {
+                    m_shiftCameraFromOrigin += normalForward * PLAYER_SPEED * Time.deltaTime;
+                }
+                if (m_destroyScreensOnStartMovement)
+                {
+                    m_destroyScreensOnStartMovement = false;
+                    UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_DESTROY_ALL_SCREEN);
+                }
+            }
+            else
+            {
+                m_destroyScreensOnStartMovement = true;
+            }
+#endif
+        }
+
+        // -------------------------------------------
+        /* 
+        * UpdateTransformShotgun
+        */
+        protected virtual void UpdateTransformShotgun()
+        {
+#if ENABLE_WORLDSENSE || ENABLE_OCULUS || ENABLE_HTCVIVE
+            if ((m_armModel == null) && (m_laserPointer == null))
+            {
+#if ENABLE_WORLDSENSE
+                WorldsenseHandController deviceController = GameObject.FindObjectOfType<WorldsenseHandController>();
+                if (deviceController == null)
+                {
+                    if (GameObject.FindObjectOfType<GvrArmModel>() != null) m_armModel = GameObject.FindObjectOfType<GvrArmModel>().gameObject;
+                    if (GameObject.FindObjectOfType<GvrControllerVisual>() != null) m_laserPointer = GameObject.FindObjectOfType<GvrControllerVisual>().gameObject;
+                }
+                else
+                {
+                    m_armModel = deviceController.ControlledObject.gameObject;
+                    m_laserPointer = deviceController.ControlledObject.gameObject;
+                }
+#elif ENABLE_HTCVIVE
+                HTCHandController deviceController = GameObject.FindObjectOfType<HTCHandController>();
+                if (deviceController != null)
+                {
+#if UNITY_EDITOR
+                    m_armModel = YourVRUIScreenController.Instance.GameCamera.gameObject;
+                    m_laserPointer = YourVRUIScreenController.Instance.GameCamera.gameObject;
+#else
+                    m_armModel = deviceController.ControlledObject.gameObject;
+                    m_laserPointer = deviceController.ControlledObject.gameObject;
+#endif
+                }
+#elif ENABLE_OCULUS
+                bool lookForLaser = true;
+                if (ScreenOculusControlSelectionView.ControOculusWithHands() &&
+                    (GameObject.FindObjectsOfType<HandRayToolView>() != null))
+                {
+                    HandRayToolView[] handRays = GameObject.FindObjectsOfType<HandRayToolView>();
+                    for (int j = 0; j < handRays.Length; j++)
+                    {
+                        if (handRays[j].EnableState)
+                        {
+                            m_armModel = new GameObject();
+                            m_laserPointer = handRays[j].gameObject;
+                            lookForLaser = false;
+                            AreOculusHandsEnabled = true;
+                        }
+                    }
+                }
+                if (GameObject.FindObjectOfType<OVRControllerHelper>() != null)
+                {
+                    if (lookForLaser)
+                    {
+                        m_armModel = new GameObject();
+                        m_laserPointer = GameObject.FindObjectOfType<OVRControllerHelper>().gameObject;
+                        if (m_laserPointer != null)
+                        {
+                            if (GameObject.FindObjectOfType<InteractableOculusHandsCreator>() != null)
+                            {
+                                GameObject.FindObjectOfType<InteractableOculusHandsCreator>().gameObject.SetActive(false);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        GameObject.FindObjectOfType<OVRControllerHelper>().gameObject.SetActive(false);
+                    }
+                }
+#endif
+            }
+            if ((m_armModel != null) && (m_laserPointer != null))
+            {
+                m_originLaser = m_laserPointer.transform.position;
+#if ENABLE_WORLDSENSE
+                WorldsenseHandController deviceController = GameObject.FindObjectOfType<WorldsenseHandController>();
+                if (deviceController == null)
+                {
+                    m_forwardLaser = m_armModel.GetComponent<GvrArmModel>().ControllerRotationFromHead * Vector3.forward;
+                }
+                else
+                {
+                    m_forwardLaser = m_laserPointer.transform.forward;
+                }
+#elif ENABLE_OCULUS
+                m_forwardLaser = m_laserPointer.transform.forward;
+#elif ENABLE_HTCVIVE
+                m_forwardLaser = m_laserPointer.transform.forward;
+#endif
+                m_forwardLaser.Normalize();
+            }
+            m_timeShotgun += Time.deltaTime;
+            if (m_timeShotgun > TIME_UPDATE_SHOTGUN)
+            {
+                m_timeShotgun = 0;
+                SendDataShotgun();
+            }
+#endif
+        }
+
         // -------------------------------------------
         /* 
         * IsThereBlockingScreen
         */
         protected virtual bool IsThereBlockingScreen()
         {
+#if !ENABLE_YOURVRUI
             return false;
+#else
+            // ENABLE DEFAULT INPUTS WHEN THERE ARE SCREEN ACTIVATED
+            if (YourVRUIScreenController.Instance.ScreensTemporal.Count > 0)
+            {
+#if ENABLE_OCULUS
+                KeysEventInputController.Instance.EnableActionButton = false;
+#elif ENABLE_HTCVIVE
+                KeysEventInputController.Instance.EnableActionButton = false;
+#elif ENABLE_WORLDSENSE
+                KeysEventInputController.Instance.EnableActionButton = true;
+                return true;
+#else
+                KeysEventInputController.Instance.EnableActionButton = true;
+                bool allowBlocking = EnableARCore;
+#if UNITY_EDITOR
+                allowBlocking = false;
+#endif
+                if (allowBlocking || (m_timeoutToMove < 1))
+                {
+                    return true;
+                }
+#endif
+            }
+            else
+            {
+                KeysEventInputController.Instance.EnableActionButton = false;
+            }
+            return false;
+#endif
         }
 
         // -------------------------------------------
@@ -976,9 +1128,13 @@ namespace PartyCritical
          */
         protected virtual bool CheckKeyInventoryTriggered(bool _keyEventUpToActivateInventory)
         {
-            bool output = _keyEventUpToActivateInventory
+            return _keyEventUpToActivateInventory
 #if ENABLE_OCULUS
+#if ENABLE_QUEST
                 || KeysEventInputController.Instance.GetAppButtonDownOculusController();
+#else
+                || KeysEventInputController.Instance.GetActionCurrentStateOculusController();
+#endif
 #elif ENABLE_HTCVIVE
                 || KeysEventInputController.Instance.GetAppDownHTCViveController();
 #elif ENABLE_WORLDSENSE
@@ -986,13 +1142,6 @@ namespace PartyCritical
 #else
                 || KeysEventInputController.Instance.GetActionCurrentStateDefaultController();
 #endif
-            if (output)
-            {
-#if ENABLE_OCULUS
-                m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
-#endif
-            }
-            return output;
         }
 
         // -------------------------------------------
@@ -1049,11 +1198,10 @@ namespace PartyCritical
                         m_timeoutToTeleport = 0;
                     }
                 }
-#endif                
+#endif
 #if ENABLE_OCULUS
                 if (m_teleportEnabled)
                 {
-                
                     if (KeysEventInputController.Instance.GetHandTriggerOculusController())
                     {
 #if ENABLE_QUEST
@@ -1067,6 +1215,17 @@ namespace PartyCritical
                         m_timeoutToTeleport = 0;
                     }
                 }
+#if ENABLE_QUEST
+                if (KeysEventInputController.Instance.GetAppButtonDownOculusController())
+                {
+                    m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
+                }
+#else
+                if (KeysEventInputController.Instance.GetActionCurrentStateOculusController())
+                {
+                    m_timeoutPressed += Time.deltaTime;
+                }
+#endif
 #endif
 #if ENABLE_HTCVIVE
                 if (m_teleportEnabled)
@@ -1225,6 +1384,23 @@ namespace PartyCritical
         protected virtual void ProcessOculusCustomerInput()
         {
 #if ENABLE_OCULUS
+            if (KeysEventInputController.Instance.GetActionOculusController(true))
+            {
+                m_timeoutPressed = 0;
+                if (KeysEventInputController.Instance.EnableActionOnMouseDown)
+                {
+                    UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_DOWN);
+                }
+                else
+                {
+                    UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_SET_ANCHOR_POSITION);
+                }
+                if (YourVRUIScreenController.Instance.ScreensTemporal.Count == 0)
+                {
+                    SetAMarkerSignal();
+                }
+            }
+
 #if ENABLE_QUEST
 #if TELEPORT_INDIVIDUAL || ONLY_REMOTE_CONNECTION
             LogicTeleportQuest();
@@ -1250,44 +1426,6 @@ namespace PartyCritical
                 }
             }
 #endif
-#endif
-        }
-
-        protected bool m_destroyScreensOnStartMovement = true;
-
-        // -------------------------------------------
-        /* 
-        * RunOnMoveTimeoutPressed
-        */
-        protected virtual void RunMoveOnTimeoutPressed()
-        {
-#if (UNITY_EDITOR || (!ENABLE_OCULUS && !ENABLE_WORLDSENSE && !ENABLE_HTCVIVE))
-            if (m_timeoutToMove >= TIMEOUT_TO_MOVE)
-            {
-                bool allowMovement = !EnableARCore;
-#if UNITY_EDITOR
-                allowMovement = true;
-#endif
-                Vector3 normalForward = CameraLocal.forward.normalized;
-                normalForward = new Vector3(normalForward.x, 0, normalForward.z);
-                if (allowMovement)
-                {
-                    transform.GetComponent<Rigidbody>().MovePosition(transform.position + normalForward * PLAYER_SPEED * Time.deltaTime);
-                }
-                else
-                {
-                    m_shiftCameraFromOrigin += normalForward * PLAYER_SPEED * Time.deltaTime;
-                }
-                if (m_destroyScreensOnStartMovement)
-                {
-                    m_destroyScreensOnStartMovement = false;
-                    UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_DESTROY_ALL_SCREEN);
-                }
-            }
-            else
-            {
-                m_destroyScreensOnStartMovement = true;
-            }
 #endif
         }
 
@@ -1328,10 +1466,8 @@ namespace PartyCritical
         {
             // INPUTS FOR THE IN-GAME, NOT THE SCREENS
             if (false
-#if ENABLE_OCULUS && ENABLE_PARTY_2018
+#if ENABLE_OCULUS
                 || KeysEventInputController.Instance.GetActionOculusController(false)
-#elif ENABLE_OCULUS && !ENABLE_PARTY_2018
-                || m_oculusTriggerDownFlag
 #elif ENABLE_WORLDSENSE
                 || KeysEventInputController.Instance.GetActionDaydreamController(false)
 #elif ENABLE_HTCVIVE
@@ -1342,34 +1478,24 @@ namespace PartyCritical
 #endif
                 )
             {
-#if ENABLE_OCULUS && !ENABLE_PARTY_2018
-                m_oculusTriggerDownFlag = false;
-#endif
                 m_shotTriggerDetected = false;
-                if (m_enableShoots)
-                {
-                    if (YourVRUIScreenController.Instance.ScreensTemporal.Count == 0)
-                    {                        
-                        ActionShootPlayer();
-                    }
-                }
-                else
-                {
-                    if (m_signalClientEnabled)
-                    {
-                        if (YourVRUIScreenController.Instance.ScreensTemporal.Count == 0)
-                        {
-                            SetAMarkerSignal();
-                        }
-                    }
-                }
+                ActionShootPlayer();
 
                 m_timeoutPressed = 0;
 #if !ENABLE_OCULUS && !ENABLE_WORLDSENSE && !ENABLE_HTCVIVE
                 m_timeoutToMove = 0;
 #endif
 
-#if !(ENABLE_OCULUS || ENABLE_HTCVIVE)
+#if ENABLE_OCULUS || ENABLE_HTCVIVE
+                if (KeysEventInputController.Instance.EnableActionOnMouseDown)
+                {
+                    UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_UP);
+                }
+                else
+                {
+                    UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_DOWN);
+                }
+#else
                 UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_UP);
 #endif
             }
@@ -1408,10 +1534,35 @@ namespace PartyCritical
 #if !ENABLE_OCULUS && !ENABLE_WORLDSENSE && !ENABLE_HTCVIVE
                 m_timeoutToMove = 0;
 #endif
+                if (m_enabledCameraInput)
+                {
+                    UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_DOWN);
+                    SetAMarkerSignal();
+                }
             }
 #endif
 
             UpdateLogicTeleportInventory();
+
+            // SHOTGUN
+            UpdateTransformShotgun();
+        }
+
+        // -------------------------------------------
+        /* 
+         * SendDataShotgun
+         */
+        protected virtual void SendDataShotgun()
+        {
+            /*
+            if (Avatar != null)
+            {
+                if (Avatar.GetComponent<GamePlayer>() != null)
+                {
+                    NetworkEventController.Instance.DispatchNetworkEvent(EVENT_CAMERACONTROLLER_DATA_SHOTGUN, Avatar.GetComponent<GamePlayer>().NetworkID.NetID.ToString(), Avatar.GetComponent<GamePlayer>().NetworkID.UID.ToString(), Utilities.Vector3ToString(m_originLaser), Utilities.Vector3ToString(m_forwardLaser));
+                }
+            }
+            */
         }
 
         // -------------------------------------------
@@ -1574,8 +1725,8 @@ namespace PartyCritical
 #if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE
             if ((m_armModel != null) && (m_laserPointer != null))
             {
-                pos = Utilities.Clone(m_laserPointer.transform.position);
-                fwd = Utilities.Clone(m_laserPointer.transform.forward);
+                pos = Utilities.Clone(m_originLaser);
+                fwd = Utilities.Clone(m_forwardLaser);
             }
 #endif
 
@@ -1702,16 +1853,11 @@ namespace PartyCritical
 #if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE
             if ((m_armModel != null) && (m_laserPointer != null))
             {
-                pos = Utilities.Clone(m_laserPointer.transform.position);
-                fwd = Utilities.Clone(m_laserPointer.transform.forward);
+                pos = Utilities.Clone(m_originLaser);
+                fwd = Utilities.Clone(m_forwardLaser);
             }
 #endif
-            string maskToConsider = "";
-            if (_list.Length > 1)
-            {
-                maskToConsider = (string)_list[1];
-            }
-            BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_CAMERACONTROLLER_RESPONSE_SELECTOR_DATA, _list[0], pos, fwd, maskToConsider);
+            BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_CAMERACONTROLLER_RESPONSE_SELECTOR_DATA, _list[0], pos, fwd);
         }
 
         // -------------------------------------------
@@ -1728,35 +1874,6 @@ namespace PartyCritical
             if (this.gameObject.GetComponent<Collider>() != null)
             {
                 this.gameObject.GetComponent<Collider>().isTrigger = false;
-            }
-        }
-
-        // -------------------------------------------
-        /* 
-		 * InitNetworkRightHand
-		 */
-        protected virtual void InitNetworkRightHand()
-        {
-            string nameRightHand = YourNetworkTools.Instance.CreatePathToPrefabInResources("HandRight", true);
-            if (nameRightHand != null)
-            {
-                YourNetworkTools.Instance.CreateLocalNetworkObject("HandRight", nameRightHand, "HandRight" + "," + true.ToString() + "," + 100000 + "," + 100000 + "," + 100000, false, 10000, 10000, 10000);
-            }
-
-            Invoke("InitNetworkLeftHand", 0.1f);
-        }
-
-
-        // -------------------------------------------
-        /* 
-		 * InitNetworkLeftHand
-		 */
-        protected virtual void InitNetworkLeftHand()
-        {
-            string nameLeftHand = YourNetworkTools.Instance.CreatePathToPrefabInResources("HandLeft", true);
-            if (nameLeftHand != null)
-            {
-                YourNetworkTools.Instance.CreateLocalNetworkObject("HandLeft", nameLeftHand, "HandLeft" + "," + false.ToString() + "," + 100000 + "," + 100000 + "," + 100000, false, 10000, 10000, 10000);
             }
         }
 
@@ -1796,15 +1913,6 @@ namespace PartyCritical
                 }
             }
 #endif
-            if (_nameEvent == EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_PLAYER)
-            {
-                m_signalClientEnabled = (bool)_list[0];
-                BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_CHANGED_FOR_PLAYER, m_signalClientEnabled);
-            }
-            if (_nameEvent == EVENT_CAMERACONTROLLER_ENABLE_CHECK_SIGNAL_PLAYER)
-            {
-                BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_CHANGED_FOR_PLAYER, m_signalClientEnabled);
-            }
             if (_nameEvent == EVENT_CAMERACONTROLLER_ACTIVATE_SKYBOX)
             {
 #if !ENABLE_OCULUS && !ENABLE_HTCVIVE
@@ -1817,16 +1925,7 @@ namespace PartyCritical
             {
                 if (!DirectorMode)
                 {
-                    if (Avatar == null)
-                    {
-                        Avatar = (GameObject)_list[0];
-                        if (!GameBaseController.InstanceBase.IsSinglePlayer)
-                        {
-#if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE
-                            Invoke("InitNetworkRightHand", 0.2f);
-#endif
-                        }
-                    }
+                    Avatar = (GameObject)_list[0];
                 }
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_REQUEST_SELECTOR_DATA)
@@ -1855,12 +1954,8 @@ namespace PartyCritical
                     {
                         m_playerCameraActivated.GetComponent<Actor>().GetModel().gameObject.SetActive(true);
                     }
-                    int indexPlayerToTake = (int)_list[0];
-                    if ((indexPlayerToTake >= 0) && (indexPlayerToTake < GameBaseController.InstanceBase.Players.Count))
-                    {
-                        m_playerCameraActivated = GameBaseController.InstanceBase.Players[indexPlayerToTake];
-                        m_playerCameraActivated.GetComponent<Actor>().GetModel().gameObject.SetActive(false);
-                    }
+                    m_playerCameraActivated = Players[(int)_list[0]];
+                    m_playerCameraActivated.GetComponent<Actor>().GetModel().gameObject.SetActive(false);
                 }
                 if ((_nameEvent == EVENT_SPECTATOR_RESET_CAMERA_TO_DIRECTOR) ||
                     (_nameEvent == EVENT_DIRECTOR_RESET_CAMERA_TO_DIRECTOR))
@@ -1898,6 +1993,10 @@ namespace PartyCritical
             {
                 ActionAfterLevelLoad();
             }
+            if (_nameEvent == EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION)
+            {
+                m_enabledCameraInput = (bool)_list[0];
+            }
             if (_nameEvent == GrabNetworkObject.EVENT_GRABOBJECT_REQUEST_RAYCASTING)
             {
                 if (!DirectorMode)
@@ -1928,7 +2027,7 @@ namespace PartyCritical
                 m_teleportAvailable = (GameObject.FindObjectOfType<TeleportController>() != null);
                 if (m_teleportAvailable)
                 {
-                    BasicSystemEventController.Instance.DispatchBasicSystemEvent(TeleportController.EVENT_TELEPORTCONTROLLER_SET_FORWARD_DIRECTION, (Transform)_list[0]);
+                    TeleportController.Instance.ForwardDirection = (Transform)_list[0];
                 }
                 // UIEventController.Instance.DelayUIEvent(ScreenDebugLogView.EVENT_SCREEN_DEBUGLOG_NEW_TEXT, 0.1f, false, "IS TELEPORT FOUND["+ m_teleportAvailable + "]["+ m_teleportEnabled + "]::::::::::");
             }
@@ -1943,45 +2042,15 @@ namespace PartyCritical
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA)
             {
-                Vector3 rotationFinalApplied = Vector3.zero;
                 if ((bool)_list[0])
                 {
-                    m_currentLocalCamRotation += ROTATE_LOCALCAMERA_VALUE;
-                    rotationFinalApplied = new Vector3(0, ROTATE_LOCALCAMERA_VALUE, 0);
-                    this.transform.Rotate(rotationFinalApplied);
+                    this.transform.Rotate(new Vector3(0, ROTATE_LOCALCAMERA_VALUE, 0));
                 }
                 else
                 {
-                    m_currentLocalCamRotation -= ROTATE_LOCALCAMERA_VALUE;
-                    rotationFinalApplied = new Vector3(0, -ROTATE_LOCALCAMERA_VALUE, 0);
-                    this.transform.Rotate(rotationFinalApplied);
-                }
-#if ENABLE_OCULUS
-                OculusEventObserver.Instance.DispatchOculusEvent(OculusHandsManager.EVENT_OCULUSHANDMANAGER_ROTATION_CAMERA_APPLIED, rotationFinalApplied);
-#endif
-            }
-            if (_nameEvent == EVENT_CAMERACONTROLLER_COLLISION_ENTER_TRIGGERED_WITH_PLAYER)
-            {
-                GameObject collideGOWithPlayer = (GameObject)_list[1];
-            }
-            if (_nameEvent == EVENT_CAMERACONTROLLER_COLLISION_EXIT_TRIGGERED_WITH_PLAYER)
-            {
-                GameObject collideGOWithPlayer = (GameObject)_list[1];
-            }
-            if (_nameEvent == TeleportController.EVENT_TELEPORTCONTROLLER_ACTIVATION)
-            {
-                if (LeftCameraRotationButton != null) LeftCameraRotationButton.SetActive(false);
-                if (RightCameraRotationButton != null) RightCameraRotationButton.SetActive(false);
-            }
-            if (_nameEvent == TeleportController.EVENT_TELEPORTCONTROLLER_DEACTIVATION)
-            {
-                if (m_isHandsMode)
-                {
-                    if (LeftCameraRotationButton != null) LeftCameraRotationButton.SetActive(true);
-                    if (RightCameraRotationButton != null) RightCameraRotationButton.SetActive(true);
+                    this.transform.Rotate(new Vector3(0, -ROTATE_LOCALCAMERA_VALUE, 0));
                 }
             }
-
 
 #if ENABLE_MULTIPLAYER_TIMELINE
             if (_nameEvent == GameLevelData.EVENT_GAMELEVELDATA_REQUEST_COLLISION_RAY)
@@ -1989,56 +2058,11 @@ namespace PartyCritical
                 if (_list.Length > 1)
                 {
                     RaycastHit raycastHit = new RaycastHit();
-                    string maskToCheck = (string)_list[1];
-                    if (_list.Length > 2)
+                    GameObject originRay = (GameObject)_list[1];
+                    Vector3 forwardView = Utilities.Clone(originRay.transform.forward.normalized);
+                    if (Utilities.GetCollidedInfoByRay(originRay.transform.position, forwardView, ref raycastHit))
                     {
-                        GameObject originRay = (GameObject)_list[2];
-                        Vector3 forwardView = Utilities.Clone(originRay.transform.forward.normalized);
-                        if ((maskToCheck != null) && (maskToCheck.Length > 0))
-                        {
-                            if (Utilities.GetRaycastHitInfoByRayWithMask(originRay.transform.position, forwardView, ref raycastHit, maskToCheck))
-                            {
-                                BasicSystemEventController.Instance.DispatchBasicSystemEvent(GameLevelData.EVENT_GAMELEVELDATA_RESPONSE_COLLISION_RAY, _list[0], raycastHit.collider.gameObject, raycastHit);
-                            }
-                        }
-                        else
-                        {
-                            if (Utilities.GetCollidedInfoByRay(originRay.transform.position, forwardView, ref raycastHit))
-                            {
-                                BasicSystemEventController.Instance.DispatchBasicSystemEvent(GameLevelData.EVENT_GAMELEVELDATA_RESPONSE_COLLISION_RAY, _list[0], raycastHit.collider.gameObject, raycastHit);
-                            }
-                        }
-                    }
-                    else
-                    {
-#if ENABLE_YOURVRUI
-                        Vector3 pos = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.position);
-                        Vector3 fwd = Utilities.Clone(YourVRUIScreenController.Instance.GameCamera.transform.forward.normalized);
-#else
-                        Vector3 pos = Utilities.Clone(CameraLocal.transform.position);
-                        Vector3 fwd = Utilities.Clone(CameraLocal.transform.forward.normalized);
-#endif
-#if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE
-                        if ((m_armModel != null) && (m_laserPointer != null))
-                        {
-                            pos = Utilities.Clone(m_laserPointer.transform.position);
-                            fwd = Utilities.Clone(m_laserPointer.transform.forward);
-                        }
-#endif
-                        if ((maskToCheck != null) && (maskToCheck.Length > 0))
-                        {
-                            if (Utilities.GetRaycastHitInfoByRayWithMask(pos, fwd, ref raycastHit, maskToCheck))
-                            {
-                                BasicSystemEventController.Instance.DispatchBasicSystemEvent(GameLevelData.EVENT_GAMELEVELDATA_RESPONSE_COLLISION_RAY, _list[0], raycastHit.collider.gameObject, raycastHit);
-                            }
-                        }
-                        else
-                        {
-                            if (Utilities.GetCollidedInfoByRay(pos, fwd, ref raycastHit))
-                            {
-                                BasicSystemEventController.Instance.DispatchBasicSystemEvent(GameLevelData.EVENT_GAMELEVELDATA_RESPONSE_COLLISION_RAY, _list[0], raycastHit.collider.gameObject, raycastHit);
-                            }
-                        }
+                        BasicSystemEventController.Instance.DispatchBasicSystemEvent(GameLevelData.EVENT_GAMELEVELDATA_RESPONSE_COLLISION_RAY, _list[0], raycastHit.collider.gameObject, raycastHit);
                     }
                 }
                 else
@@ -2066,10 +2090,6 @@ namespace PartyCritical
                 }
             }
 #endif
-            if (_nameEvent == TeleportController.EVENT_TELEPORTCONTROLLER_AWAKENED)
-            {
-                m_teleportAvailable = true;
-            }
         }
 
         // -------------------------------------------
@@ -2078,36 +2098,6 @@ namespace PartyCritical
 		 */
         protected virtual void OnNetworkEvent(string _nameEvent, bool _isLocalEvent, int _networkOriginID, int _networkTargetID, object[] _list)
         {
-#if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE
-            if (_nameEvent == GameNetworkHand.EVENT_GAMENETWORKHAND_CREATED_NEW)
-            {
-                if (GameBaseController.InstanceBase.IsSinglePlayer)
-                {
-                    Debug.LogError("HANDS SHOULD NOT BE CREATED IN SINGLE PLAYER MODE");
-                    throw new Exception("HANDS SHOULD NOT BE CREATED IN SINGLE PLAYER MODE");
-                }
-                else
-                {
-                    GameObject newHand = ((GameObject)_list[0]);
-                    GameNetworkHand networkHand = newHand.GetComponent<GameNetworkHand>();
-                    if (networkHand != null)
-                    {
-                        if (networkHand.IsMine())
-                        {
-                            if (networkHand.IsRightHand)
-                            {
-                                m_handRightDefault = newHand;
-                            }
-                            else
-                            {
-                                m_handLeftOptional = newHand;
-                            }
-                            networkHand.HideModelOwnHand();
-                        }
-                    }
-                }
-            }
-#endif
             if (_nameEvent == CloudGameAnchorController.EVENT_6DOF_UPDATE_SCALE_MOVEMENT_XZ)
             {
                 ScaleMovementXZ = float.Parse((string)_list[0]);
@@ -2134,15 +2124,6 @@ namespace PartyCritical
             if (_nameEvent == TeleportController.EVENT_TELEPORTCONTROLLER_TELEPORT)
             {
                 ApplyTeleport(_networkOriginID, (string)_list[0]);
-            }
-            if (_nameEvent == EVENT_CAMERACONTROLLER_ENABLE_NETWORK_SIGNAL_PLAYER)
-            {
-                m_signalDirectorAllowsClient = bool.Parse((string)_list[0]);
-                BasicSystemEventController.Instance.DispatchBasicSystemEvent(EVENT_CAMERACONTROLLER_ENABLE_SIGNAL_PLAYER, m_signalDirectorAllowsClient);
-            }
-            if (_nameEvent == GameBaseController.EVENT_GAMECONTROLLER_SHOOT_ENABLED)
-            {
-                m_enableShoots = bool.Parse((string)_list[0]);
             }
         }
 
@@ -2203,42 +2184,24 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
-		 * ManageWhatOpeningInventory
-		 */
-        protected virtual void ManageWhatOpeningInventory()
-        {
-#if ENABLE_MULTIPLAYER_TIMELINE
-            if (GameObject.FindObjectOfType<ScreenInventoryView>() == null)
-            {
-                UIEventController.Instance.DispatchUIEvent(GameLevelData.EVENT_GAMELEVELDATA_OPEN_INVENTORY);
-            }
-#else
-            m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
-            OpenInventory(false);
-#endif
-        }
-
-        // -------------------------------------------
-        /* 
 		 * OnUIEvent
 		 */
         protected virtual void OnUIEvent(string _nameEvent, object[] _list)
         {
             EnableLaserLogic(_nameEvent, _list);
 
-#if ENABLE_OCULUS && !ENABLE_PARTY_2018
-            if (_nameEvent == YourVRUIScreenController.EVENT_SCREENMANAGER_ASSIGNED_LASER)
-            {
-                if (m_armModel == null)
-                {
-                    m_armModel = new GameObject();
-                }
-                m_laserPointer = YourVRUIScreenController.Instance.LaserPointer;
-            }
-#endif
             if (_nameEvent == EVENT_CAMERACONTROLLER_OPEN_INVENTORY)
             {
-                ManageWhatOpeningInventory();
+#if ENABLE_MULTIPLAYER_TIMELINE
+                if (GameObject.FindObjectOfType<ScreenInventoryView>() == null)
+                {
+                    UIEventController.Instance.DispatchUIEvent(GameLevelData.EVENT_GAMELEVELDATA_OPEN_INVENTORY);
+                }
+#else
+                m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
+                OpenInventory(false);
+#endif
+
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_START_MOVING)
             {
@@ -2267,32 +2230,6 @@ namespace PartyCritical
                     UIEventController.Instance.DispatchUIEvent(GameLevelData.EVENT_GAMELEVELDATA_OPEN_INVENTORY);
                 }
 #endif
-            }
-            if (_nameEvent == EVENT_CAMERACONTROLLER_ENABLE_CONTROL_CAMERA)
-            {
-                m_enableFreeRotationCamera = (bool)_list[0];
-                m_enableFreeMovementCamera = (bool)_list[1];
-            }
-            if (_nameEvent == EVENT_CAMERACONTROLLER_APPLY_LEFT_ROTATION_CAMERA)
-            {
-                BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA, true);
-            }
-            if (_nameEvent == EVENT_CAMERACONTROLLER_APPLY_RIGTH_ROTATION_CAMERA)
-            {
-                BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA, false);
-            }
-            if (_nameEvent == BaseVRScreenView.EVENT_SCREEN_OPEN_VIEW)
-            {
-                if (LeftCameraRotationButton != null) LeftCameraRotationButton.SetActive(false);
-                if (RightCameraRotationButton != null) RightCameraRotationButton.SetActive(false);
-            }
-            if (_nameEvent == BaseVRScreenView.EVENT_SCREEN_CLOSE_VIEW)
-            {
-                if (m_isHandsMode)
-                {
-                    if (LeftCameraRotationButton != null) LeftCameraRotationButton.SetActive(true);
-                    if (RightCameraRotationButton != null) RightCameraRotationButton.SetActive(true);
-                }
             }
         }
 
@@ -2493,22 +2430,16 @@ namespace PartyCritical
                 if (Mathf.Abs(pressedVector.x) > detectionDistance)
                 {
                     m_hasBeenRotated = true;
-                    Vector3 rotationFinalApplied = Vector3.zero;
                     if (pressedVector.x > 0)
                     {
                         m_currentLocalCamRotation += ROTATE_LOCALCAMERA_VALUE;
-                        rotationFinalApplied = new Vector3(0, ROTATE_LOCALCAMERA_VALUE, 0);
                         this.transform.Rotate(new Vector3(0, ROTATE_LOCALCAMERA_VALUE, 0));
                     }
                     else
                     {
                         m_currentLocalCamRotation -= ROTATE_LOCALCAMERA_VALUE;
-                        rotationFinalApplied = new Vector3(0, -ROTATE_LOCALCAMERA_VALUE, 0);
                         this.transform.Rotate(new Vector3(0, -ROTATE_LOCALCAMERA_VALUE, 0));
-                    }
-#if ENABLE_OCULUS
-                    OculusEventObserver.Instance.DispatchOculusEvent(OculusHandsManager.EVENT_OCULUSHANDMANAGER_ROTATION_CAMERA_APPLIED, rotationFinalApplied);
-#endif
+                    }                    
                 }
             }
             else
