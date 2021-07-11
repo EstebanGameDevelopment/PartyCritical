@@ -1955,7 +1955,16 @@ namespace PartyCritical
                         m_playerCameraActivated.GetComponent<Actor>().GetModel().gameObject.SetActive(true);
                     }
                     m_playerCameraActivated = Players[(int)_list[0]];
-                    m_playerCameraActivated.GetComponent<Actor>().GetModel().gameObject.SetActive(false);
+                    if (m_playerCameraActivated != null)
+                    {
+                        if (m_playerCameraActivated.GetComponent<Actor>() != null)
+                        {
+                            if (m_playerCameraActivated.GetComponent<Actor>().GetModel() != null)
+                            {
+                                m_playerCameraActivated.GetComponent<Actor>().GetModel().gameObject.SetActive(false);
+                            }
+                        }
+                    }
                 }
                 if ((_nameEvent == EVENT_SPECTATOR_RESET_CAMERA_TO_DIRECTOR) ||
                     (_nameEvent == EVENT_DIRECTOR_RESET_CAMERA_TO_DIRECTOR))
