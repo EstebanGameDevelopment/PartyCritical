@@ -1455,6 +1455,7 @@ namespace PartyCritical
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_LEVEL_LOAD_COMPLETED)
             {
+                UIEventController.Instance.DispatchUIEvent(ScreenController.EVENT_FORCE_DESTRUCTION_POPUP);
                 GameHasLoadedLevel(_list);
                 InitializeNetworkedObject();
             }
