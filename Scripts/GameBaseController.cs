@@ -980,6 +980,10 @@ namespace PartyCritical
 
                     StartRunningGame();
                 }
+                else
+                {
+                    StartRunningGame();
+                }
             }
         }
 
