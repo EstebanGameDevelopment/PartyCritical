@@ -167,5 +167,13 @@ namespace PartyCritical
 		{
             base.OnNetworkEvent(_nameEvent, _isLocalEvent, _networkOriginID, _networkTargetID, _list);
         }
-	}
+
+        // -------------------------------------------
+        /* 
+		 * LateUpdate
+		 */
+        protected override void LateUpdate()
+        {
+        }
+    }
 }

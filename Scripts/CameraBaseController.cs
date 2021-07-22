@@ -2319,13 +2319,13 @@ namespace PartyCritical
             {
                 if (YourVRUIScreenController.Instance != null)
                 {
-                    YourVRUIScreenController.Instance.GameCamera.transform.position = m_playerCameraActivated.GetComponent<Actor>().RealPosition;
-                    YourVRUIScreenController.Instance.GameCamera.transform.forward = m_playerCameraActivated.GetComponent<Actor>().RealForward;
+                    YourVRUIScreenController.Instance.GameCamera.transform.position = m_playerCameraActivated.transform.position - (Vector3.up * CAMERA_SHIFT_HEIGHT_WORLDSENSE);
+                    YourVRUIScreenController.Instance.GameCamera.transform.forward = m_playerCameraActivated.transform.forward;
                 }
                 else
                 {
-                    CameraLocal.transform.position = m_playerCameraActivated.GetComponent<Actor>().RealPosition;
-                    CameraLocal.transform.forward = m_playerCameraActivated.GetComponent<Actor>().RealForward;
+                    CameraLocal.transform.position = m_playerCameraActivated.transform.position - (Vector3.up * CAMERA_SHIFT_HEIGHT_WORLDSENSE);
+                    CameraLocal.transform.forward = m_playerCameraActivated.transform.forward;
                 }
                 return true;
             }
@@ -2458,9 +2458,7 @@ namespace PartyCritical
                     if (m_avatar != null)
                     {
                         m_avatar.transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z);
-                        m_avatar.transform.forward = new Vector3(CameraLocal.forward.x, 0, CameraLocal.forward.z);
-                        m_avatar.GetComponent<Actor>().ForwardPlayer = CameraLocal.forward;
-                        m_avatar.GetComponent<Actor>().PositionPlayer = CameraLocal.transform.position;
+                        m_avatar.transform.forward = new Vector3(CameraLocal.forward.x, CameraLocal.forward.y, CameraLocal.forward.z);
                     }
                     LogicDaydream6DOF();
                 }
