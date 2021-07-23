@@ -29,7 +29,6 @@ namespace PartyCritical
         public const string EVENT_CAMERACONTROLLER_REQUEST_SELECTOR_DATA = "EVENT_CAMERACONTROLLER_REQUEST_SELECTOR_DATA";
         public const string EVENT_CAMERACONTROLLER_RESPONSE_SELECTOR_DATA = "EVENT_CAMERACONTROLLER_RESPONSE_SELECTOR_DATA";
         public const string EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION = "EVENT_CAMERACONTROLLER_ENABLE_INPUT_INTERACTION";
-        public const string EVENT_GAMECAMERA_REAL_PLAYER_FORWARD = "EVENT_GAMECAMERA_REAL_PLAYER_FORWARD";
         public const string EVENT_CAMERACONTROLLER_OPEN_INVENTORY = "EVENT_CAMERACONTROLLER_OPEN_INVENTORY";
         public const string EVENT_CAMERACONTROLLER_START_MOVING = "EVENT_CAMERACONTROLLER_START_MOVING";
         public const string EVENT_CAMERACONTROLLER_STOP_MOVING = "EVENT_CAMERACONTROLLER_STOP_MOVING";
@@ -1884,16 +1883,6 @@ namespace PartyCritical
                 }
             }
 
-            if (_nameEvent == ActorTimeline.EVENT_GAMEPLAYER_DATA_POSITION_PLAYER)
-            {
-                int netID = (int)_list[0];
-                int uid = (int)_list[1];
-                Vector3 positionPlayer = (Vector3)_list[2];
-                Vector3 forwardPlayer = (Vector3)_list[3];
-                NetworkEventController.Instance.DispatchNetworkEvent(EVENT_GAMECAMERA_REAL_PLAYER_FORWARD, netID.ToString(), uid.ToString(),
-                    positionPlayer.x.ToString(), positionPlayer.y.ToString(), positionPlayer.z.ToString(),
-                    forwardPlayer.x.ToString(), forwardPlayer.y.ToString(), forwardPlayer.z.ToString());
-            }
             if (_nameEvent == GameBaseController.EVENT_GAMECONTROLLER_LEVEL_LOAD_COMPLETED)
             {
                 ActionAfterLevelLoad();
@@ -2378,9 +2367,7 @@ namespace PartyCritical
             {
                 // m_avatar.transform.position = new Vector3(transform.position.x, -CAMERA_SHIFT_HEIGHT_WORLDSENSE + transform.position.y, transform.position.z);
                 m_avatar.transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z);
-                m_avatar.transform.forward = new Vector3(CenterEyeAnchor.transform.forward.x, 0, CenterEyeAnchor.transform.forward.z);
-                m_avatar.GetComponent<Actor>().ForwardPlayer = CenterEyeAnchor.transform.forward;
-                m_avatar.GetComponent<Actor>().PositionPlayer = CenterEyeAnchor.transform.position;
+                m_avatar.transform.forward = new Vector3(CenterEyeAnchor.transform.forward.x, CenterEyeAnchor.transform.forward.y, CenterEyeAnchor.transform.forward.z);
             }
 
             Vector3 posWorld = Utilities.Clone(CenterEyeAnchor.transform.localPosition);
@@ -2415,9 +2402,7 @@ namespace PartyCritical
             {
                 // m_avatar.transform.position = new Vector3(transform.position.x, -CAMERA_SHIFT_HEIGHT_WORLDSENSE + transform.position.y, transform.position.z);
                 m_avatar.transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z);
-                m_avatar.transform.forward = new Vector3(CenterEyeAnchor.transform.forward.x, 0, CenterEyeAnchor.transform.forward.z);
-                m_avatar.GetComponent<Actor>().ForwardPlayer = CenterEyeAnchor.transform.forward;
-                m_avatar.GetComponent<Actor>().PositionPlayer = CenterEyeAnchor.transform.position;
+                m_avatar.transform.forward = new Vector3(CenterEyeAnchor.transform.forward.x, CenterEyeAnchor.transform.forward.y, CenterEyeAnchor.transform.forward.z);
             }
 
             Vector3 posWorld = Utilities.Clone(CenterEyeAnchor.transform.localPosition);
