@@ -361,9 +361,7 @@ namespace PartyCritical
          */
         void OnApplicationFocus(bool hasFocus)
         {
-#if !ENABLE_PICONEO
             UIEventController.Instance.DispatchUIEvent(ScreenController.EVENT_APP_LOST_FOCUS, hasFocus);
-#endif
         }
 
         // -------------------------------------------
@@ -372,9 +370,7 @@ namespace PartyCritical
          */
         void OnApplicationPause(bool pauseStatus)
         {
-#if !ENABLE_PICONEO
             UIEventController.Instance.DispatchUIEvent(ScreenController.EVENT_APP_PAUSED, pauseStatus);
-#endif
         }
 
         // -------------------------------------------
@@ -1514,7 +1510,7 @@ namespace PartyCritical
         {
             if (_nameEvent == ScreenController.EVENT_APP_LOST_FOCUS)
             {
-#if ENABLE_WORLDSENSE
+#if ENABLE_WORLDSENSE || ENABLE_PICONEO
                 if ((bool)_list[0])
                 {
                     Application.Quit();
