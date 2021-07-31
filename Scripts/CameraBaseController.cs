@@ -2364,13 +2364,13 @@ namespace PartyCritical
             {
                 if (YourVRUIScreenController.Instance != null)
                 {
-                    YourVRUIScreenController.Instance.GameCamera.transform.position = m_playerCameraActivated.transform.position - (Vector3.up * CAMERA_SHIFT_HEIGHT_WORLDSENSE);
-                    YourVRUIScreenController.Instance.GameCamera.transform.forward = m_playerCameraActivated.transform.forward;
+                    YourVRUIScreenController.Instance.GameCamera.transform.position = m_playerCameraActivated.GetComponent<ActorNetwork>().GetCameraPosition() - (Vector3.up * CAMERA_SHIFT_HEIGHT_WORLDSENSE);
+                    YourVRUIScreenController.Instance.GameCamera.transform.forward = m_playerCameraActivated.GetComponent<ActorNetwork>().GetCameraForward();
                 }
                 else
                 {
-                    CameraLocal.transform.position = m_playerCameraActivated.transform.position - (Vector3.up * CAMERA_SHIFT_HEIGHT_WORLDSENSE);
-                    CameraLocal.transform.forward = m_playerCameraActivated.transform.forward;
+                    CameraLocal.transform.position = m_playerCameraActivated.GetComponent<ActorNetwork>().GetCameraPosition() - (Vector3.up * CAMERA_SHIFT_HEIGHT_WORLDSENSE);
+                    CameraLocal.transform.forward = m_playerCameraActivated.GetComponent<ActorNetwork>().GetCameraForward();
                 }
                 return true;
             }
