@@ -12,7 +12,7 @@ using VRPartyValidation;
 #if ENABLE_BITCOIN
 using YourBitcoinController;
 #endif
-#if !UNITY_EDITOR && !ENABLE_OCULUS && !ENABLE_HTCVIVE && !DISABLE_REQUEST_PERMISSIONS
+#if !UNITY_EDITOR && !ENABLE_OCULUS && !ENABLE_HTCVIVE && !ENABLE_PICONEO && !DISABLE_REQUEST_PERMISSIONS
 using PartaGames.Android;
 #endif
 #if ENABLE_USER_SERVER
@@ -132,7 +132,7 @@ namespace PartyCritical
 		 */
         public void Awake()
         {
-#if !UNITY_EDITOR && !ENABLE_OCULUS && !ENABLE_HTCVIVE && !DISABLE_REQUEST_PERMISSIONS
+#if !UNITY_EDITOR && !ENABLE_OCULUS && !ENABLE_HTCVIVE && !ENABLE_PICONEO && !DISABLE_REQUEST_PERMISSIONS
             if (!PermissionGranterUnity.IsPermissionGranted(WRITE_EXTERNAL_STORAGE))
             {
                 PermissionGranterUnity.GrantPermission(WRITE_EXTERNAL_STORAGE, PermissionGrantedCallback);
@@ -155,7 +155,7 @@ namespace PartyCritical
             m_hasPermissionsBeenGranted = true;
         }
 
-#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE && !ENABLE_HTCVIVE
+#if !ENABLE_OCULUS && !ENABLE_WORLDSENSE && !ENABLE_HTCVIVE && !ENABLE_PICONEO
         // -------------------------------------------
         /* 
 		 * OnApplicationFocus
@@ -183,7 +183,7 @@ namespace PartyCritical
 		 */
         public void DoNotRun()
         {
-#if !UNITY_EDITOR && !ENABLE_OCULUS && !ENABLE_HTCVIVE && !DISABLE_REQUEST_PERMISSIONS
+#if !UNITY_EDITOR && !ENABLE_OCULUS && !ENABLE_HTCVIVE && !ENABLE_PICONEO && !DISABLE_REQUEST_PERMISSIONS
             PermissionGranterUnity.IsPermissionGranted(WRITE_EXTERNAL_STORAGE);
             PermissionGranterUnity.GrantPermission(WRITE_EXTERNAL_STORAGE, PermissionGrantedCallback);
 #endif
@@ -409,7 +409,7 @@ namespace PartyCritical
 
             InitializeSecondPhase(delayShortcutSplash);
 
-#if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE
+#if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE || ENABLE_PICONEO
             KeysEventInputController.Instance.EnableActionOnMouseDown = false;
             UIEventController.Instance.DispatchUIEvent(EventSystemController.EVENT_EVENTSYSTEMCONTROLLER_RAYCASTING_SYSTEM, false);
 #endif
@@ -742,7 +742,7 @@ namespace PartyCritical
         {
             if (base.Destroy()) return true;
 
-#if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE
+#if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE || ENABLE_PICONEO
             KeysEventInputController.Instance.EnableActionOnMouseDown = false;
 #endif
 
@@ -815,7 +815,7 @@ namespace PartyCritical
         {
             if (!m_runActionLoadMenuScene)
             {
-#if ENABLE_WORLDSENSE || ENABLE_OCULUS || ENABLE_HTCVIVE
+#if ENABLE_WORLDSENSE || ENABLE_OCULUS || ENABLE_HTCVIVE || ENABLE_PICONEO
                 if (m_runUpdate)
                 {
                     if (MenuScreenController.Instance.VRComponents != null)

@@ -123,8 +123,10 @@ namespace PartyCritical
             if (IsMine())
             {
                 NetworkEventController.Instance.PriorityDelayNetworkEvent(NetworkEventController.EVENT_WORLDOBJECTCONTROLLER_INITIAL_DATA, 0.1f, NetworkID.GetID(), m_initialData);
-#if ENABLE_OCULUS
+#if ENABLE_OCULUS 
                 BasicSystemEventController.Instance.DispatchBasicSystemEvent(OculusHandsManager.EVENT_OCULUSHANDMANAGER_LINK_WITH_NETWORK_GAMEHAND, m_isRightHand, this.gameObject);
+#elif ENABLE_PICONEO
+                BasicSystemEventController.Instance.DispatchBasicSystemEvent(PicoNeoHandController.EVENT_PICONEOHANDCONTROLLER_LINK_WITH_NETWORK_GAMEHAND, m_isRightHand, this.gameObject);
 #endif
             }
             InitializeCommon();
