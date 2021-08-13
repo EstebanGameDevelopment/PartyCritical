@@ -1339,22 +1339,6 @@ namespace PartyCritical
         protected virtual void ProcessHTCViveCustomerInput()
         {
 #if ENABLE_HTCVIVE
-            if (KeysEventInputController.Instance.GetActionHTCViveController(true))
-            {
-                m_timeoutPressed = 0;
-                if (KeysEventInputController.Instance.EnableActionOnMouseDown)
-                {
-                    UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_DOWN);
-                }
-                else
-                {
-                    UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_SET_ANCHOR_POSITION);
-                }
-                if (YourVRUIScreenController.Instance.ScreensTemporal.Count == 0)
-                {
-                    SetAMarkerSignal();
-                }
-            }
 #if TELEPORT_INDIVIDUAL || ONLY_REMOTE_CONNECTION
             LogicTeleportHTCVive();
 #endif
@@ -1368,22 +1352,6 @@ namespace PartyCritical
         protected virtual void ProcessPicoNeoCustomerInput()
         {
 #if ENABLE_PICONEO
-            if (KeysEventInputController.Instance.GetActionPicoNeoController(true))
-            {
-                m_timeoutPressed = 0;
-                if (KeysEventInputController.Instance.EnableActionOnMouseDown)
-                {
-                    UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_BUTTON_DOWN);
-                }
-                else
-                {
-                    UIEventController.Instance.DispatchUIEvent(KeysEventInputController.ACTION_SET_ANCHOR_POSITION);
-                }
-                if (YourVRUIScreenController.Instance.ScreensTemporal.Count == 0)
-                {
-                    SetAMarkerSignal();
-                }
-            }
 #if TELEPORT_INDIVIDUAL || ONLY_REMOTE_CONNECTION
             LogicTeleportPicoNeo();
 #endif
