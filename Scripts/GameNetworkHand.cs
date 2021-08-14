@@ -120,9 +120,18 @@ namespace PartyCritical
             transform.position = initialPosition;
             Name = initialData[0];
             m_isRightHand = bool.Parse(initialData[1]);
-            if (IsMine())
+            bool linkToHands = false;
+            if (!GameBaseController.InstanceBase.IsSinglePlayer)                
             {
-                NetworkEventController.Instance.PriorityDelayNetworkEvent(NetworkEventController.EVENT_WORLDOBJECTCONTROLLER_INITIAL_DATA, 0.1f, NetworkID.GetID(), m_initialData);
+                linkToHands = IsMine();
+            }
+            else
+            {
+                linkToHands = true;
+            }
+            if (linkToHands)
+            {
+                if (!GameBaseController.InstanceBase.IsSinglePlayer) NetworkEventController.Instance.PriorityDelayNetworkEvent(NetworkEventController.EVENT_WORLDOBJECTCONTROLLER_INITIAL_DATA, 0.1f, NetworkID.GetID(), m_initialData);
 #if ENABLE_OCULUS 
                 BasicSystemEventController.Instance.DispatchBasicSystemEvent(OculusHandsManager.EVENT_OCULUSHANDMANAGER_LINK_WITH_NETWORK_GAMEHAND, m_isRightHand, this.gameObject);
 #elif ENABLE_PICONEO

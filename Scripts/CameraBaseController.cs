@@ -1779,10 +1779,23 @@ namespace PartyCritical
 		 */
         protected virtual void InitNetworkRightHand()
         {
-            string nameRightHand = YourNetworkTools.Instance.CreatePathToPrefabInResources("HandRight", true);
+            string nameRightHand = YourNetworkTools.Instance.CreatePathToPrefabInResources("HandRight", true, GameBaseController.InstanceBase.IsSinglePlayer);
+            string dataInit = "HandRight" + "," + true.ToString() + "," + 100000 + "," + 100000 + "," + 100000;
             if (nameRightHand != null)
             {
-                YourNetworkTools.Instance.CreateLocalNetworkObject("HandRight", nameRightHand, "HandRight" + "," + true.ToString() + "," + 100000 + "," + 100000 + "," + 100000, false, 10000, 10000, 10000);
+                if (GameBaseController.InstanceBase.IsSinglePlayer)
+                {
+                    GameObject localHandRight = Instantiate(Resources.Load(nameRightHand) as GameObject);
+                    localHandRight.GetComponent<IGameNetworkActor>().Initialize(dataInit);
+                    if (localHandRight.GetComponent<ActorNetwork>() != null)
+                    {
+                        localHandRight.GetComponent<ActorNetwork>().SetSinglePlayerNetworkID(0, YourNetworkTools.Instance.IncreaseInstanceCounter());
+                    }
+                }
+                else
+                {
+                    YourNetworkTools.Instance.CreateLocalNetworkObject("HandRight", nameRightHand, dataInit, false, 10000, 10000, 10000);
+                }
             }
 
             Invoke("InitNetworkLeftHand", 0.1f);
@@ -1795,10 +1808,23 @@ namespace PartyCritical
 		 */
         protected virtual void InitNetworkLeftHand()
         {
-            string nameLeftHand = YourNetworkTools.Instance.CreatePathToPrefabInResources("HandLeft", true);
+            string nameLeftHand = YourNetworkTools.Instance.CreatePathToPrefabInResources("HandLeft", true, GameBaseController.InstanceBase.IsSinglePlayer);
+            string dataInit = "HandLeft" + "," + false.ToString() + "," + 100000 + "," + 100000 + "," + 100000;
             if (nameLeftHand != null)
             {
-                YourNetworkTools.Instance.CreateLocalNetworkObject("HandLeft", nameLeftHand, "HandLeft" + "," + false.ToString() + "," + 100000 + "," + 100000 + "," + 100000, false, 10000, 10000, 10000);
+                if (GameBaseController.InstanceBase.IsSinglePlayer)
+                {
+                    GameObject localHandLeft = Instantiate(Resources.Load(nameLeftHand) as GameObject);
+                    localHandLeft.GetComponent<IGameNetworkActor>().Initialize(dataInit);
+                    if (localHandLeft.GetComponent<ActorNetwork>() != null)
+                    {
+                        localHandLeft.GetComponent<ActorNetwork>().SetSinglePlayerNetworkID(0, YourNetworkTools.Instance.IncreaseInstanceCounter());
+                    }
+                }
+                else
+                {
+                    YourNetworkTools.Instance.CreateLocalNetworkObject("HandLeft", nameLeftHand, dataInit, false, 10000, 10000, 10000);
+                }
             }
         }
 
@@ -1862,12 +1888,9 @@ namespace PartyCritical
                     if (Avatar == null)
                     {
                         Avatar = (GameObject)_list[0];
-                        if (!GameBaseController.InstanceBase.IsSinglePlayer)
-                        {
 #if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE || ENABLE_PICONEO
-                            Invoke("InitNetworkRightHand", 0.2f);
+                        Invoke("InitNetworkRightHand", 0.2f);
 #endif
-                        }
                     }
                 }
             }
