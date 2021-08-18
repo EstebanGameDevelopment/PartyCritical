@@ -1064,6 +1064,10 @@ namespace PartyCritical
                         m_timeoutToTeleport = 0;
                     }
                 }
+                if (KeysEventInputController.Instance.GetAppButtonDownOculusController(null, true, false))
+                {
+                    m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
+                }
 #endif
 #if ENABLE_HTCVIVE
                 if (m_teleportEnabled)
@@ -1204,7 +1208,7 @@ namespace PartyCritical
         */
         protected virtual void LogicTeleportQuest()
         {
-#if ENABLE_OCULUS
+#if ENABLE_OCULUS && !ENABLE_QUEST
             Vector2 axisValueRight = OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick, OVRInput.Controller.RTouch);
             if (axisValueRight.sqrMagnitude > 0.2f)
             {
