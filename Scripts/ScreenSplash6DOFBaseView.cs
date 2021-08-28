@@ -947,7 +947,7 @@ namespace PartyCritical
                     string extraData = room.Items[3];
                     Debug.LogError("roomNumber[" + roomNumber + "]::nameRoom[" + nameRoom + "]::extraData[" + extraData + "]******************************************************************************");
 
-#if ENABLE_PHOTON
+#if ENABLE_PHOTON || ENABLE_NAKAMA
                     NetworkEventController.Instance.MenuController_SaveRoomNameInServer(nameRoom);
 #else
                     NetworkEventController.Instance.MenuController_SaveRoomNumberInServer(roomNumber);

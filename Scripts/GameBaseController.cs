@@ -182,6 +182,8 @@ namespace PartyCritical
 
         private GameObject m_laserPointer = null;
 
+        private bool m_hasBeenDestroyed = false;
+
         // ----------------------------------------------
         // GETTERS/SETTERS
         // ----------------------------------------------	
@@ -415,6 +417,9 @@ namespace PartyCritical
 		 */
         public override void Destroy()
 		{
+            if (m_hasBeenDestroyed) return;
+            m_hasBeenDestroyed = true;
+
             base.Destroy();
 
             NetworkEventController.Instance?.Destroy();
@@ -423,6 +428,21 @@ namespace PartyCritical
             if (NetworkEventController.Instance!=null) NetworkEventController.Instance.NetworkEvent -= OnNetworkEvent;
             if (BasicSystemEventController.Instance != null) BasicSystemEventController.Instance.BasicSystemEvent -= OnBasicSystemEvent;
             if (UIEventController.Instance != null) UIEventController.Instance.UIEvent -= OnUIEvent;
+
+#if ENABLE_VALIDATION
+            Destroy(VRPartyValidation.VRPartyValidationController.Instance.gameObject);
+#endif
+#if ENABLE_BITCOIN
+            Destroy(YourBitcoinController.BitCoinController.Instance.gameObject);
+            Destroy(YourBitcoinController.BitcoinEventController.Instance.gameObject);
+#endif
+#if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE || ENABLE_PICONEO
+            EventSystemController.Instance.Destroy();
+            Destroy(EventSystemController.Instance.gameObject);
+#endif
+            YourNetworkTools.Instance.Destroy();
+            NetworkEventController.Instance.Destroy();
+
 
             if (!m_isLocalGame)
             {
@@ -949,6 +969,8 @@ namespace PartyCritical
         */
         protected virtual void OnNetworkEventRemoteConnection()
         {
+            if (DEBUG) Debug.LogError("GameBaseController::OnNetworkEventRemoteConnection::m_isInitialConnectionEstablished["+ m_isInitialConnectionEstablished + "]::m_isCreatorGame[" + m_currentLevel + "]");
+
             if (m_isInitialConnectionEstablished)
             {
                 if (m_isCreatorGame)
@@ -1210,6 +1232,11 @@ namespace PartyCritical
         */
         protected virtual void OnNetworkEvent(string _nameEvent, bool _isLocalEvent, int _networkOriginID, int _networkTargetID, params object[] _list)
 		{
+            if (_nameEvent == EVENT_GAMECONTROLLER_QUIT_APP)
+            {
+                SetState(STATE_NULL);
+                DestroyAllResources(false, true, 0.1f);
+            }
             if (_nameEvent == NetworkedObject.EVENT_NETWORKED_REQUEST_EXISTANCE)
             {
                 if ((_networkOriginID != YourNetworkTools.Instance.GetUniversalNetworkID()) || YourNetworkTools.Instance.IsServer)
@@ -1410,19 +1437,7 @@ namespace PartyCritical
 		 */
         protected virtual void DestroySingletonsGame()
         {
-#if ENABLE_VALIDATION
-            Destroy(VRPartyValidation.VRPartyValidationController.Instance.gameObject);
-#endif
-#if ENABLE_BITCOIN
-            Destroy(YourBitcoinController.BitCoinController.Instance.gameObject);
-            Destroy(YourBitcoinController.BitcoinEventController.Instance.gameObject);
-#endif
-#if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE || ENABLE_PICONEO
-            EventSystemController.Instance.Destroy();
-            Destroy(EventSystemController.Instance.gameObject);
-#endif
-            Destroy(YourNetworkTools.Instance.gameObject);
-            Destroy(NetworkEventController.Instance.gameObject);
+            Destroy();
         }
 
         // -------------------------------------------
@@ -1667,8 +1682,7 @@ namespace PartyCritical
                 {
                     if (accepted)
                     {
-                        SetState(STATE_NULL);
-                        DestroyAllResources(false, true, 0.1f);
+                        NetworkEventController.Instance.PriorityDelayNetworkEvent(EVENT_GAMECONTROLLER_QUIT_APP, 0.1f);
                     }
                 }
             }
@@ -2006,7 +2020,6 @@ namespace PartyCritical
                 }
 
                 initialData = SetUpInitialGamePlayerData(initialData);
-
 
                 // TO FORCE REPOSITION ON EDITOR
                 // initialData = m_namePlayer + "," + NameModelPrefab[m_characterSelected] + "," + 0 + "," + initialPosition.y + "," + 0;
