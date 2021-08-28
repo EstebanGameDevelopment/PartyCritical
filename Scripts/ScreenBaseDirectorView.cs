@@ -137,7 +137,7 @@ namespace PartyCritical
             if (m_container.Find("VoiceActivation") != null)
             {
                 m_voiceActivationButton = m_container.Find("VoiceActivation").gameObject;
-#if ENABLE_PHOTON_VOICE
+#if ENABLE_PHOTON_VOICE && ENABLE_PHOTON
                 m_voiceActivationButton.SetActive(true);
                 m_voiceActivationButton.GetComponent<Button>().onClick.AddListener(VoiceActivationChanged);
                 m_stopVoiceTransmission = m_container.Find("VoiceActivation/Stop").gameObject;
@@ -280,7 +280,7 @@ namespace PartyCritical
 		*/
         private void VoiceActivationChanged()
         {
-#if ENABLE_PHOTON_VOICE
+#if ENABLE_PHOTON_VOICE && ENABLE_PHOTON
             if (!YourNetworkTools.Instance.IsLocalGame)
             {
                 NetworkEventController.Instance.PriorityDelayNetworkEvent(PhotonController.EVENT_PHOTONCONTROLLER_VOICE_NETWORK_ENABLED, 0.01f, (!PhotonController.Instance.VoiceEnabled).ToString());
@@ -346,7 +346,7 @@ namespace PartyCritical
                 m_enabledSignalPlayers = (bool)_list[0];
                 if (m_stopSignalsEnabled != null) m_stopSignalsEnabled.SetActive(!m_enabledSignalPlayers);
             }
-#if ENABLE_PHOTON_VOICE
+#if ENABLE_PHOTON_VOICE && ENABLE_PHOTON
             if (_nameEvent == PhotonController.EVENT_PHOTONCONTROLLER_VOICE_CHANGE_REPORTED)
             {
                 m_stopVoiceTransmission.SetActive(!PhotonController.Instance.VoiceEnabled);

@@ -943,7 +943,7 @@ namespace PartyCritical
             m_isInitialConnectionEstablished = true;
             m_isCreatorGame = YourNetworkTools.Instance.IsServer;
 
-#if ENABLE_PHOTON_VOICE
+#if ENABLE_PHOTON_VOICE && ENABLE_PHOTON
             if (!YourNetworkTools.Instance.IsLocalGame)
             {
                 PhotonController.Instance.StartVoiceStreaming(true);
@@ -1396,7 +1396,7 @@ namespace PartyCritical
             {
                 m_gameWithDirector = true;
             }
-#if ENABLE_PHOTON_VOICE
+#if ENABLE_PHOTON_VOICE && ENABLE_PHOTON
             if (_nameEvent == PhotonController.EVENT_PHOTONCONTROLLER_VOICE_NETWORK_ENABLED)
             {
                 bool enableVoice = bool.Parse((string)_list[0]);
