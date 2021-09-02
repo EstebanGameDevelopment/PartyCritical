@@ -136,6 +136,8 @@ namespace PartyCritical
                 BasicSystemEventController.Instance.DispatchBasicSystemEvent(OculusHandsManager.EVENT_OCULUSHANDMANAGER_LINK_WITH_NETWORK_GAMEHAND, m_isRightHand, this.gameObject);
 #elif ENABLE_PICONEO
                 BasicSystemEventController.Instance.DispatchBasicSystemEvent(PicoNeoHandController.EVENT_PICONEOHANDCONTROLLER_LINK_WITH_NETWORK_GAMEHAND, m_isRightHand, this.gameObject);
+#elif ENABLE_HTCVIVE
+                BasicSystemEventController.Instance.DispatchBasicSystemEvent(HTCHandController.EVENT_HTCHANDCONTROLLER_LINK_WITH_NETWORK_GAMEHAND, m_isRightHand, this.gameObject);
 #endif
             }
             InitializeCommon();

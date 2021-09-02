@@ -4,10 +4,6 @@ using GoogleARCore;
 #if ENABLE_OCULUS
 using OculusSampleFramework;
 #endif
-#if ENABLE_HTCVIVE
-using WaveVR_Log;
-using wvr;
-#endif
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -235,11 +231,7 @@ namespace PartyCritical
         {
             get
             {
-#if ENABLE_HTCVIVE && !UNITY_EDITOR
-                return 1.7f;
-#else
                 return -1.7f;
-#endif
             }
         }
         public virtual float CAMERA_SHIFT_HEIGHT_OCULUS  // NOT USED
@@ -2484,7 +2476,7 @@ namespace PartyCritical
             transform.position = centerLevel 
                                     + new Vector3(posRotatedWorld.x, 0, posRotatedWorld.y)
                                     + m_shiftCameraFromOrigin;
-            Vector3 shiftToRecenter = -new Vector3(CenterEyeAnchor.transform.localPosition.x, 0.25f + CAMERA_SHIFT_HEIGHT_WORLDSENSE - (posWorld.y * ScaleMovementY), CenterEyeAnchor.transform.localPosition.z);
+            Vector3 shiftToRecenter = -new Vector3(CenterEyeAnchor.transform.localPosition.x, CAMERA_SHIFT_HEIGHT_WORLDSENSE - (posWorld.y * ScaleMovementY), CenterEyeAnchor.transform.localPosition.z);
             CenterEyeAnchor.transform.parent.localPosition = shiftToRecenter;
 
             return true;
