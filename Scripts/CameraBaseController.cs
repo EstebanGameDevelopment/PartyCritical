@@ -1064,11 +1064,11 @@ namespace PartyCritical
 #if ENABLE_HTCVIVE
                 if (m_teleportEnabled)
                 {
-                    if (KeysEventInputController.Instance.GetMenuHTCViveController())
+                    if (KeysEventInputController.Instance.GetTeleportHTCViveController())
                     {
                         m_timeoutToTeleport += Time.deltaTime;
                     }
-                    if (!KeysEventInputController.Instance.GetMenuHTCViveController())
+                    if (!KeysEventInputController.Instance.GetTeleportHTCViveController())
                     {
                         m_timeoutToTeleport = 0;
                     }
@@ -1174,7 +1174,7 @@ namespace PartyCritical
                 }
 #endif
 #if ENABLE_HTCVIVE
-                if (!KeysEventInputController.Instance.GetMenuHTCViveController())
+                if (!KeysEventInputController.Instance.GetTeleportHTCViveController())
                 {
                     BasicSystemEventController.Instance.DispatchBasicSystemEvent(TeleportController.EVENT_TELEPORTCONTROLLER_KEY_RELEASED);
                 }
