@@ -2135,7 +2135,7 @@ namespace PartyCritical
                 if (GameBaseController.InstanceBase.IsSinglePlayer)
                 {
                     Debug.LogError("HANDS SHOULD NOT BE CREATED IN SINGLE PLAYER MODE");
-                    throw new Exception("HANDS SHOULD NOT BE CREATED IN SINGLE PLAYER MODE");
+                    // throw new Exception("HANDS SHOULD NOT BE CREATED IN SINGLE PLAYER MODE");
                 }
                 else
                 {
