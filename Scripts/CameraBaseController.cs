@@ -1005,6 +1005,33 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+         * GetInputAppMenuButtonVR
+         */
+        protected virtual void GetInputAppMenuButtonVR()
+        {
+            // OPEN INVENTORY
+#if ENABLE_QUEST && ENABLE_OCULUS
+            if (KeysEventInputController.Instance.GetAppButtonDownOculusController(null, true, false))
+            {
+                m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
+            }
+#endif
+#if ENABLE_HTCVIVE
+            if (KeysEventInputController.Instance.GetAppDownHTCViveController())
+            {
+                m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
+            }
+#endif
+#if ENABLE_PICONEO
+            if (KeysEventInputController.Instance.GetAppDownPicoNeoController())
+            {
+                m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
+            }
+#endif
+        }
+
+        // -------------------------------------------
+        /* 
          * UpdateLogicTeleportInventory
          */
         protected virtual void UpdateLogicTeleportInventory(bool _openInventory = true)
@@ -1056,10 +1083,6 @@ namespace PartyCritical
                         m_timeoutToTeleport = 0;
                     }
                 }
-                if (KeysEventInputController.Instance.GetAppButtonDownOculusController(null, true, false))
-                {
-                    m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
-                }
 #endif
 #if ENABLE_HTCVIVE
                 if (m_teleportEnabled)
@@ -1072,10 +1095,6 @@ namespace PartyCritical
                     {
                         m_timeoutToTeleport = 0;
                     }
-                }
-                if (KeysEventInputController.Instance.GetAppDownHTCViveController())
-                {
-                    m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
                 }
 #endif
 #if ENABLE_PICONEO
@@ -1090,10 +1109,6 @@ namespace PartyCritical
                         m_timeoutToTeleport = 0;
                     }
                 }
-                if (KeysEventInputController.Instance.GetAppDownPicoNeoController())
-                {
-                    m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
-                }
 #endif
 #if UNITY_EDITOR
                 if (Input.GetKeyDown(KeyCode.RightControl))
@@ -1103,8 +1118,10 @@ namespace PartyCritical
 #endif
             }
 
-            bool activateInventory = true;
+            // OPEN INVENTORY
+            GetInputAppMenuButtonVR();
 
+            bool activateInventory = true;
 
             bool keyEventUpToActivateInventory = false;
 #if UNITY_EDITOR
