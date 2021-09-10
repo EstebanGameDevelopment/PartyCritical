@@ -468,6 +468,7 @@ namespace PartyCritical
             if (_nameEvent == OculusHandsManager.EVENT_OCULUSHANDMANAGER_SET_UP_LASER_POINTER_INITIALIZE)
             {
                 m_isHandsMode = (bool)_list[0];
+#if ENABLE_ROTATE_LOCALCAMERA
                 if (m_isHandsMode)
                 {
                     if (LeftCameraRotationButton != null) LeftCameraRotationButton.SetActive(true);
@@ -478,6 +479,7 @@ namespace PartyCritical
                     if (LeftCameraRotationButton != null) LeftCameraRotationButton.SetActive(false);
                     if (RightCameraRotationButton != null) RightCameraRotationButton.SetActive(false);
                 }
+#endif
             }
             
         }
@@ -2038,16 +2040,20 @@ namespace PartyCritical
             }
             if (_nameEvent == TeleportController.EVENT_TELEPORTCONTROLLER_ACTIVATION)
             {
+#if ENABLE_ROTATE_LOCALCAMERA
                 if (LeftCameraRotationButton != null) LeftCameraRotationButton.SetActive(false);
                 if (RightCameraRotationButton != null) RightCameraRotationButton.SetActive(false);
+#endif
             }
             if (_nameEvent == TeleportController.EVENT_TELEPORTCONTROLLER_DEACTIVATION)
             {
+#if ENABLE_ROTATE_LOCALCAMERA
                 if (m_isHandsMode)
                 {
                     if (LeftCameraRotationButton != null) LeftCameraRotationButton.SetActive(true);
                     if (RightCameraRotationButton != null) RightCameraRotationButton.SetActive(true);
                 }
+#endif
             }
 
 
