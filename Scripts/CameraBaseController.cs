@@ -1091,7 +1091,7 @@ namespace PartyCritical
                 {
                     if (KeysEventInputController.Instance.GetTeleportHTCViveController())
                     {
-                        m_timeoutToTeleport += Time.deltaTime;
+                        m_timeoutToTeleport = TIMEOUT_TO_TELEPORT + 1;
                     }
                     if (!KeysEventInputController.Instance.GetTeleportHTCViveController())
                     {
@@ -1104,7 +1104,7 @@ namespace PartyCritical
                 {
                     if (KeysEventInputController.Instance.GetTeleportPicoNeoController())
                     {
-                        m_timeoutToTeleport += Time.deltaTime;
+                        m_timeoutToTeleport = TIMEOUT_TO_TELEPORT + 1;
                     }
                     if (!KeysEventInputController.Instance.GetTeleportPicoNeoController())
                     {
@@ -2358,15 +2358,19 @@ namespace PartyCritical
             }
             if (_nameEvent == BaseVRScreenView.EVENT_SCREEN_OPEN_VIEW)
             {
+#if ENABLE_ROTATE_LOCALCAMERA
                 if (LeftCameraRotationButton != null) LeftCameraRotationButton.SetActive(false);
                 if (RightCameraRotationButton != null) RightCameraRotationButton.SetActive(false);
+#endif
             }
             if (_nameEvent == BaseVRScreenView.EVENT_SCREEN_CLOSE_VIEW)
             {
                 if (m_isHandsMode)
                 {
+#if ENABLE_ROTATE_LOCALCAMERA
                     if (LeftCameraRotationButton != null) LeftCameraRotationButton.SetActive(true);
                     if (RightCameraRotationButton != null) RightCameraRotationButton.SetActive(true);
+#endif
                 }
             }
         }
