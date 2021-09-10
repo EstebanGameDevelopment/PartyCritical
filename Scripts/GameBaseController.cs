@@ -437,10 +437,10 @@ namespace PartyCritical
             Destroy(YourBitcoinController.BitcoinEventController.Instance.gameObject);
 #endif
 #if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE || ENABLE_PICONEO
-            EventSystemController.Instance.Destroy();
-            Destroy(EventSystemController.Instance.gameObject);
+            if (EventSystemController.Instance!=null) EventSystemController.Instance.Destroy();
+            if (EventSystemController.Instance!=null) Destroy(EventSystemController.Instance.gameObject);
 #endif
-            YourNetworkTools.Instance.Destroy();
+            if (YourNetworkTools.Instance!=null) YourNetworkTools.Instance.Destroy();
             NetworkEventController.Instance.Destroy();
 
 
@@ -2025,7 +2025,7 @@ namespace PartyCritical
                 // initialData = m_namePlayer + "," + NameModelPrefab[m_characterSelected] + "," + 0 + "," + initialPosition.y + "," + 0;
                 if (!IsSinglePlayer)
                 {
-                    YourNetworkTools.Instance.CreateLocalNetworkObject(PlayerNetworkPrefab[m_characterSelected], YourNetworkTools.Instance.CreatePathToPrefabInResources(PlayerNetworkPrefab[m_characterSelected], true), initialData, false);
+                    YourNetworkTools.Instance.CreateLocalNetworkObject(PlayerNetworkPrefab[m_characterSelected], YourNetworkTools.Instance.CreatePathToPrefabInResources(PlayerNetworkPrefab[m_characterSelected], true, IsSinglePlayer), initialData, false);
                     YourNetworkTools.Instance.ActivateTransformUpdate = true;
                 }
                 else

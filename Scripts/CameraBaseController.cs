@@ -286,6 +286,11 @@ namespace PartyCritical
         {
             get { return m_signalDirectorAllowsClient; }
         }
+        public bool TeleportEnabled
+        {
+            get { return m_teleportEnabled; }
+            set { m_teleportEnabled = value; }
+        }
 
         // -------------------------------------------
         /* 
