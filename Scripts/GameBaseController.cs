@@ -1371,7 +1371,7 @@ namespace PartyCritical
 #elif ENABLE_HTCVIVE
             SceneManager.LoadScene("HTCMenus6DOF");
 #elif ENABLE_PICONEO
-            SceneManager.LoadScene("PicoNeoMenus6DOF");
+            SceneManager.LoadScene("PicoMenus6DOF");
 #elif ENABLE_WORLDSENSE
             SceneManager.LoadScene("WorldMenus6DOF");
 #elif UNITY_STANDALONE
@@ -1502,6 +1502,7 @@ namespace PartyCritical
             }
         }
 
+
         // -------------------------------------------
         /* 
          * OnUIEvent
@@ -1531,6 +1532,22 @@ namespace PartyCritical
             if (_nameEvent == UIEventController.EVENT_SCREENMANAGER_DESTROY_SCREEN)
             {
                 EnableLaserVR(false);
+            }
+            if (_nameEvent == YourVRUIScreenController.EVENT_SCREENMANAGER_ASSIGNED_LASER)
+            {
+#if DISABLE_ONLY_ONE_HAND
+                GameObject laserPointer = (GameObject)_list[0];
+                bool isCurrentLaserActive = false;
+                if (LaserPointer != null)
+                {
+                    if (LaserPointer.GetComponentInChildren<LineRenderer>() != null)
+                    {
+                        isCurrentLaserActive = LaserPointer.GetComponentInChildren<LineRenderer>().enabled;
+                    }
+                }                
+                LaserPointer = laserPointer;
+                EnableLaserVR(isCurrentLaserActive);
+#endif
             }
         }
 

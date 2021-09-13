@@ -97,8 +97,8 @@ namespace PartyCritical
         protected bool m_enabledCameraInput = true;
 
 #if (ONLY_REMOTE_CONNECTION || TELEPORT_INDIVIDUAL) && (ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE || ENABLE_PICONEO)
-        protected bool m_teleportAvailable = true;
-        protected bool m_teleportEnabled = true;
+        protected bool m_teleportAvailable = false;
+        protected bool m_teleportEnabled = false;
 #else
         protected bool m_teleportAvailable = false;
         protected bool m_teleportEnabled = false;
@@ -297,7 +297,8 @@ namespace PartyCritical
 
             m_teleportAvailable = (GameObject.FindObjectOfType<TeleportController>() != null);
 
-#if ENABLE_OCULUS || ENABLE_HTCVIVE || ENABLE_PICONEO
+#if (ENABLE_OCULUS || ENABLE_HTCVIVE || ENABLE_PICONEO)
+#if !DISABLE_ONLY_ONE_HAND
             if (KeysEventInputController.Instance.IsRightHanded())
             {
                 if (ShotgunRightContainer != null)
@@ -330,6 +331,7 @@ namespace PartyCritical
                     }
                 }
             }
+#endif
 #else
             if (ShotgunLeftContainer != null) ShotgunLeftContainer.SetActive(false);
             if (ShotgunRightContainer != null)
@@ -1002,6 +1004,7 @@ namespace PartyCritical
         */
         protected virtual void UpdateTransformShotgun()
         {
+
 #if ENABLE_WORLDSENSE || ENABLE_OCULUS || ENABLE_HTCVIVE || ENABLE_PICONEO
             if ((m_armModel == null) && (m_laserPointer == null))
             {
@@ -1018,6 +1021,10 @@ namespace PartyCritical
                     m_laserPointer = deviceController.ControlledObject.gameObject;
                 }
 #elif ENABLE_HTCVIVE
+#if DISABLE_ONLY_ONE_HAND
+                m_armModel = YourVRUIScreenController.Instance.ContainerLaser;
+                m_laserPointer = YourVRUIScreenController.Instance.ContainerLaser;
+#else
                 HTCHandController deviceController = GameObject.FindObjectOfType<HTCHandController>();
                 if (deviceController != null)
                 {
@@ -1029,7 +1036,12 @@ namespace PartyCritical
                     m_laserPointer = deviceController.ControlledObject.gameObject;
 #endif
                 }
+#endif
 #elif ENABLE_PICONEO
+#if DISABLE_ONLY_ONE_HAND
+                m_armModel = YourVRUIScreenController.Instance.ContainerLaser;
+                m_laserPointer = YourVRUIScreenController.Instance.ContainerLaser;
+#else
                 PicoNeoHandController deviceController = GameObject.FindObjectOfType<PicoNeoHandController>();
                 if (deviceController != null)
                 {
@@ -1041,6 +1053,7 @@ namespace PartyCritical
                     m_laserPointer = deviceController.ControlledObject.gameObject;
 #endif
                 }
+#endif
 #elif ENABLE_OCULUS
                 bool lookForLaser = true;
                 if (ScreenOculusControlSelectionView.ControOculusWithHands() &&
@@ -1058,6 +1071,24 @@ namespace PartyCritical
                         }
                     }
                 }
+#if DISABLE_ONLY_ONE_HAND
+                if (lookForLaser)
+                {
+                    m_armModel = new GameObject();
+                    m_laserPointer = YourVRUIScreenController.Instance.ContainerLaser;
+                    if (m_laserPointer != null)
+                    {
+                        if (GameObject.FindObjectOfType<InteractableOculusHandsCreator>() != null)
+                        {
+                            GameObject.FindObjectOfType<InteractableOculusHandsCreator>().gameObject.SetActive(false);
+                        }
+                    }
+                }
+                else
+                {
+                    YourVRUIScreenController.Instance.ContainerLaser.SetActive(false);
+                }
+#else
                 if (GameObject.FindObjectOfType<OVRControllerHelper>() != null)
                 {
                     if (lookForLaser)
@@ -1077,6 +1108,7 @@ namespace PartyCritical
                         GameObject.FindObjectOfType<OVRControllerHelper>().gameObject.SetActive(false);
                     }
                 }
+#endif
 #endif
             }
             if ((m_armModel != null) && (m_laserPointer != null))
@@ -1159,15 +1191,11 @@ namespace PartyCritical
         {
             return _keyEventUpToActivateInventory
 #if ENABLE_OCULUS
-#if ENABLE_QUEST
-                || KeysEventInputController.Instance.GetAppButtonDownOculusController();
-#else
-                || KeysEventInputController.Instance.GetActionCurrentStateOculusController();
-#endif
+                || KeysEventInputController.Instance.GetMenuButtonDownOculusController();
 #elif ENABLE_HTCVIVE
-                || KeysEventInputController.Instance.GetAppDownHTCViveController();
+                || KeysEventInputController.Instance.GetMenuDownHTCViveController();
 #elif ENABLE_PICONEO
-                || KeysEventInputController.Instance.GetAppDownPicoNeoController();
+                || KeysEventInputController.Instance.GetMenuDownPicoNeoController();
 #elif ENABLE_WORLDSENSE
                 || KeysEventInputController.Instance.GetActionCurrentStateDaydreamController();
 #else
@@ -1183,16 +1211,43 @@ namespace PartyCritical
         {
             return
 #if ENABLE_OCULUS
-                    KeysEventInputController.Instance.GetAppButtonDownOculusController(null, false) || KeysEventInputController.Instance.GetActionCurrentStateOculusController();
+                    KeysEventInputController.Instance.GetAppButtonDownOculusController(null, false) || KeysEventInputController.Instance.GetAppButtonOculusController();
 #elif ENABLE_HTCVIVE
-                    KeysEventInputController.Instance.GetAppDownHTCViveController(null, false) || KeysEventInputController.Instance.GetActionCurrentStateHTCViveController();
+                    KeysEventInputController.Instance.GetAppDownHTCViveController(null, false) || KeysEventInputController.Instance.GetAppHTCViveController();
 #elif ENABLE_PICONEO
-                    KeysEventInputController.Instance.GetAppDownPicoNeoController(null, false) || KeysEventInputController.Instance.GetActionCurrentStatePicoNeoController();
+                    KeysEventInputController.Instance.GetAppDownPicoNeoController(null, false) || KeysEventInputController.Instance.GetAppPicoNeoController();
 #elif ENABLE_WORLDSENSE
                     KeysEventInputController.Instance.GetAppButtonDowDaydreamController(false, false);
 #else
                     KeysEventInputController.Instance.GetActionCurrentStateDefaultController();
 
+#endif
+        }
+
+        // -------------------------------------------
+        /* 
+         * CheckToOpenInventory
+         */
+        protected virtual void CheckToOpenInventory()
+        {
+            // APP BUTTON PRESSED
+#if ENABLE_QUEST && ENABLE_OCULUS
+            if (KeysEventInputController.Instance.GetMenuButtonDownOculusController())
+            {
+                m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
+            }
+#endif
+#if ENABLE_HTCVIVE
+            if (KeysEventInputController.Instance.GetMenuDownHTCViveController())
+            {
+                m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
+            }
+#endif
+#if ENABLE_PICONEO
+            if (KeysEventInputController.Instance.GetMenuDownPicoNeoController())
+            {
+                m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
+            }
 #endif
         }
 
@@ -1248,17 +1303,6 @@ namespace PartyCritical
                         m_timeoutToTeleport = 0;
                     }
                 }
-#if ENABLE_QUEST
-                if (KeysEventInputController.Instance.GetAppButtonDownOculusController())
-                {
-                    m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
-                }
-#else
-                if (KeysEventInputController.Instance.GetActionCurrentStateOculusController())
-                {
-                    m_timeoutPressed += Time.deltaTime;
-                }
-#endif
 #endif
 #if ENABLE_HTCVIVE
                 if (m_teleportEnabled)
@@ -1271,10 +1315,6 @@ namespace PartyCritical
                     {
                         m_timeoutToTeleport = 0;
                     }
-                }
-                if (KeysEventInputController.Instance.GetAppDownHTCViveController())
-                {
-                    m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
                 }
 #endif
 #if ENABLE_PICONEO
@@ -1289,10 +1329,6 @@ namespace PartyCritical
                         m_timeoutToTeleport = 0;
                     }
                 }
-                if (KeysEventInputController.Instance.GetAppDownPicoNeoController())
-                {
-                    m_timeoutPressed = TIMEOUT_TO_INVENTORY + 1;
-                }
 #endif
 #if UNITY_EDITOR
                 if (Input.GetKeyDown(KeyCode.RightControl))
@@ -1301,6 +1337,9 @@ namespace PartyCritical
                 }
 #endif
             }
+
+            // OPEN INVENTORY
+            CheckToOpenInventory();
 
             bool activateInventory = true;
 
@@ -2339,6 +2378,14 @@ namespace PartyCritical
                 }
 #endif
             }
+
+            if (_nameEvent == YourVRUIScreenController.EVENT_SCREENMANAGER_ASSIGNED_LASER)
+            {
+#if (ENABLE_WORLDSENSE || ENABLE_OCULUS || ENABLE_HTCVIVE || ENABLE_PICONEO) && DISABLE_ONLY_ONE_HAND
+                m_armModel = null;
+                m_laserPointer = null;
+#endif
+            }
         }
 
         protected GameObject m_playerCameraActivated = null;
@@ -2568,10 +2615,6 @@ namespace PartyCritical
 #if ENABLE_WORLDSENSE || ENABLE_OCULUS || ENABLE_HTCVIVE || ENABLE_PICONEO
             bool considerPressedThumbstick = false;
             float detectionDistance = 0.8f;
-#if ENABLE_HTCVIVE || ENABLE_WORLDSENSE || (ENABLE_OCULUS && !ENABLE_QUEST) || ENABLE_PICONEO
-            considerPressedThumbstick = true;
-            detectionDistance = 0.6f;
-#endif
             Vector2 pressedVector = KeysEventInputController.Instance.GetVectorThumbstick(considerPressedThumbstick);
             if (!m_hasBeenRotated)
             {
@@ -2592,7 +2635,7 @@ namespace PartyCritical
             }
             else
             {
-#if ENABLE_WORLDSENSE || ENABLE_HTCVIVE || (ENABLE_OCULUS && !ENABLE_QUEST) || ENABLE_PICONEO
+#if ENABLE_WORLDSENSE || (ENABLE_OCULUS && !ENABLE_QUEST)
                 if (pressedVector.x == 0)
                 {
                     m_hasBeenRotated = false;
