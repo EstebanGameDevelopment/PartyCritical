@@ -2604,6 +2604,7 @@ namespace PartyCritical
         }
 
         protected bool m_hasBeenRotated = false;
+        protected bool m_touchPadHTCDetected = false;
         protected float m_currentLocalCamRotation = 0;
 
         // -------------------------------------------
@@ -2614,13 +2615,32 @@ namespace PartyCritical
         {
 #if ENABLE_WORLDSENSE || ENABLE_OCULUS || ENABLE_HTCVIVE || ENABLE_PICONEO
             bool considerPressedThumbstick = false;
-            float detectionDistance = 0.8f;
-            Vector2 pressedVector = KeysEventInputController.Instance.GetVectorThumbstick(considerPressedThumbstick);
+            Vector2 pressedVector = Vector2.zero;
+            float detectionDistance = 0.6f;
+#if ENABLE_HTCVIVE
+            m_touchPadHTCDetected = false;
+            pressedVector = KeysEventInputController.Instance.GetVectorTouchpadHTC(true);
+            if (pressedVector.magnitude == 0)
+            {
+                pressedVector = KeysEventInputController.Instance.GetVectorThumbstick(considerPressedThumbstick);
+            }
+            else
+            {
+                m_touchPadHTCDetected = true;
+            }
+#else
+            pressedVector = KeysEventInputController.Instance.GetVectorThumbstick(considerPressedThumbstick);
+#endif
             if (!m_hasBeenRotated)
             {
                 if (Mathf.Abs(pressedVector.x) > detectionDistance)
                 {
                     m_hasBeenRotated = true;
+                    if (m_touchPadHTCDetected)
+                    {
+                        m_touchPadHTCDetected = false;
+                        Invoke("ResetTouchDetected", 0.3f);
+                    }
                     if (pressedVector.x > 0)
                     {
                         m_currentLocalCamRotation += ROTATE_LOCALCAMERA_VALUE;
@@ -2635,19 +2655,17 @@ namespace PartyCritical
             }
             else
             {
-#if ENABLE_WORLDSENSE || (ENABLE_OCULUS && !ENABLE_QUEST)
-                if (pressedVector.x == 0)
+                if (Mathf.Abs(pressedVector.x) < 0.2f)
                 {
                     m_hasBeenRotated = false;
                 }
-#else
-            if (Mathf.Abs(pressedVector.x) < 0.2f)
-            {
-                m_hasBeenRotated = false;
             }
 #endif
-            }
-#endif
+        }
+
+        private void ResetTouchDetected()
+        {
+            m_hasBeenRotated = false;
         }
 
         // -------------------------------------------

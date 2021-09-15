@@ -1540,11 +1540,16 @@ namespace PartyCritical
                 bool isCurrentLaserActive = false;
                 if (LaserPointer != null)
                 {
+                    if (LaserPointer.GetComponent<LinkedGameObject>() != null)
+                    {
+                        isCurrentLaserActive = LaserPointer.GetComponent<LinkedGameObject>().LinkedGO.GetComponent<LineRenderer>().enabled;
+                    }
+                    else
                     if (LaserPointer.GetComponentInChildren<LineRenderer>() != null)
                     {
                         isCurrentLaserActive = LaserPointer.GetComponentInChildren<LineRenderer>().enabled;
                     }
-                }                
+                }
                 LaserPointer = laserPointer;
                 EnableLaserVR(isCurrentLaserActive);
 #endif
