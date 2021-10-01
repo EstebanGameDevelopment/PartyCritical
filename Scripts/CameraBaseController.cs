@@ -1307,11 +1307,11 @@ namespace PartyCritical
 #if ENABLE_HTCVIVE
                 if (m_teleportEnabled)
                 {
-                    if (KeysEventInputController.Instance.GetMenuHTCViveController())
+                    if (KeysEventInputController.Instance.GetTeleportHTCViveController())
                     {
-                        m_timeoutToTeleport += Time.deltaTime;
+                        m_timeoutToTeleport = TIMEOUT_TO_TELEPORT + 1;
                     }
-                    if (!KeysEventInputController.Instance.GetMenuHTCViveController())
+                    if (!KeysEventInputController.Instance.GetTeleportHTCViveController())
                     {
                         m_timeoutToTeleport = 0;
                     }
@@ -1320,11 +1320,11 @@ namespace PartyCritical
 #if ENABLE_PICONEO
                 if (m_teleportEnabled)
                 {
-                    if (KeysEventInputController.Instance.GetMenuPicoNeoController())
+                    if (KeysEventInputController.Instance.GetTeleportPicoNeoController())
                     {
-                        m_timeoutToTeleport += Time.deltaTime;
+                        m_timeoutToTeleport = TIMEOUT_TO_TELEPORT + 1;
                     }
-                    if (!KeysEventInputController.Instance.GetMenuPicoNeoController())
+                    if (!KeysEventInputController.Instance.GetTeleportPicoNeoController())
                     {
                         m_timeoutToTeleport = 0;
                     }
@@ -1412,13 +1412,13 @@ namespace PartyCritical
                 }
 #endif
 #if ENABLE_HTCVIVE
-                if (!KeysEventInputController.Instance.GetMenuHTCViveController())
+                if (!KeysEventInputController.Instance.GetTeleportHTCViveController())
                 {
                     BasicSystemEventController.Instance.DispatchBasicSystemEvent(TeleportController.EVENT_TELEPORTCONTROLLER_KEY_RELEASED);
                 }
 #endif
 #if ENABLE_PICONEO
-                if (!KeysEventInputController.Instance.GetMenuPicoNeoController())
+                if (!KeysEventInputController.Instance.GetTeleportPicoNeoController())
                 {
                     BasicSystemEventController.Instance.DispatchBasicSystemEvent(TeleportController.EVENT_TELEPORTCONTROLLER_KEY_RELEASED);
                 }
