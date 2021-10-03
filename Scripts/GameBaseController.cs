@@ -2188,6 +2188,12 @@ namespace PartyCritical
                     }
 #endif
                 }
+
+                LoadingBlackOverlay overlay = GameObject.FindObjectOfType<LoadingBlackOverlay>();
+                if (overlay != null)
+                {
+                    overlay.FadeOut();
+                }
                 return previousStateIsFirstTimeRun;
             }
             else
