@@ -1299,11 +1299,7 @@ namespace PartyCritical
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_PARTY_OVER)
             {
-                SoundsController.Instance.StopAllSounds();
-                if (YourVRUIScreenController.Instance != null) YourVRUIScreenController.Instance.DestroyScreens();
-                KeysEventInputController.Instance.EnableInteractions = false;
-                UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN, ScreenPartyOver.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false, null);
-                DestroyAllResources(true, false, 10);
+                RunPartyOver();
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_GAME_WITH_DIRECTOR)
             {
@@ -1311,6 +1307,19 @@ namespace PartyCritical
             }
 
             OnNetworkEventEnemy(_nameEvent, _isLocalEvent, _networkOriginID, _networkTargetID, _list);
+        }
+
+        // -------------------------------------------
+        /* 
+		 * RunPartyOver
+		 */
+        protected virtual void RunPartyOver()
+        {
+            SoundsController.Instance.StopAllSounds();
+            if (YourVRUIScreenController.Instance != null) YourVRUIScreenController.Instance.DestroyScreens();
+            KeysEventInputController.Instance.EnableInteractions = false;
+            UIEventController.Instance.DispatchUIEvent(UIEventController.EVENT_SCREENMANAGER_OPEN_GENERIC_SCREEN, ScreenPartyOver.SCREEN_NAME, UIScreenTypePreviousAction.DESTROY_ALL_SCREENS, false, null);
+            DestroyAllResources(true, false, 10);
         }
 
         // -------------------------------------------
