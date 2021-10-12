@@ -947,7 +947,10 @@ namespace PartyCritical
                 }
             }
 #else
-            m_currentLevel = m_currentLevel % LevelsPrefab.Length;
+            if (LevelsPrefab.Length > 0)
+            {
+                m_currentLevel = m_currentLevel % LevelsPrefab.Length;
+            }            
 #endif
             m_onNetworkRemoteConnection = true;
             if (m_isInitialConnectionEstablished)
