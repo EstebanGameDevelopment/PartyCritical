@@ -21,6 +21,8 @@ namespace PartyCritical
      */
     public class InstructionsBaseController : MonoBehaviour
     {
+        public const bool DEBUG = true;
+
         // ----------------------------------------------
         // EVENTS
         // ----------------------------------------------	
@@ -544,6 +546,7 @@ namespace PartyCritical
                 {
                     m_namesPlayers.Add(nameNewPlayer);
                 }
+                if (DEBUG) Debug.LogError("EVENT_GAMEPLAYER_HUMAN_PLAYER_NAME::nameNewPlayer[" + nameNewPlayer + "]::m_namesPlayers[" + m_namesPlayers.Count + "]");
 
                 // CLASS MEMBER
                 List<string> memberOfClass;
