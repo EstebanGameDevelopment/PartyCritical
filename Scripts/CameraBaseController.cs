@@ -1952,7 +1952,7 @@ namespace PartyCritical
         /* 
 		 * We rotate with the gyroscope
 		 */
-        protected void GyroModifyCamera()
+        protected virtual void GyroModifyCamera()
         {
             if (m_enableGyroscope)
             {
