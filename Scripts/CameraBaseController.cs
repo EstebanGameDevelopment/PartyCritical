@@ -2299,6 +2299,21 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		 * OpenInventoryByButton
+		 */
+        protected virtual void OpenInventoryByButton()
+        {
+#if ENABLE_MULTIPLAYER_TIMELINE
+            m_timeoutPressed = 0;
+            if (GameObject.FindObjectOfType<ScreenInventoryView>() == null)
+            {
+                UIEventController.Instance.DispatchUIEvent(GameLevelData.EVENT_GAMELEVELDATA_OPEN_INVENTORY);
+            }
+#endif
+        }
+
+        // -------------------------------------------
+        /* 
 		 * OnUIEvent
 		 */
         protected virtual void OnUIEvent(string _nameEvent, object[] _list)
@@ -2340,13 +2355,7 @@ namespace PartyCritical
             }
             if (_nameEvent == ScreenBasePlayerView.EVENT_SCREENPLAYER_OPEN_INVENTORY)
             {
-#if ENABLE_MULTIPLAYER_TIMELINE
-                m_timeoutPressed = 0;
-                if (GameObject.FindObjectOfType<ScreenInventoryView>() == null)
-                {
-                    UIEventController.Instance.DispatchUIEvent(GameLevelData.EVENT_GAMELEVELDATA_OPEN_INVENTORY);
-                }
-#endif
+                OpenInventoryByButton();
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_ENABLE_CONTROL_CAMERA)
             {
