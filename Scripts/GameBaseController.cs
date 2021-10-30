@@ -1557,6 +1557,11 @@ namespace PartyCritical
             {
                 GameHasLoadedLevel(_list);
                 InitializeNetworkedObject();
+                LoadingBlackOverlay overlay = GameObject.FindObjectOfType<LoadingBlackOverlay>();
+                if (overlay != null)
+                {
+                    overlay.FadeOut();
+                }
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_REQUEST_IS_GAME_RUNNING)
             {
@@ -2189,11 +2194,6 @@ namespace PartyCritical
 #endif
                 }
 
-                LoadingBlackOverlay overlay = GameObject.FindObjectOfType<LoadingBlackOverlay>();
-                if (overlay != null)
-                {
-                    overlay.FadeOut();
-                }
                 return previousStateIsFirstTimeRun;
             }
             else
