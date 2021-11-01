@@ -2245,16 +2245,13 @@ namespace PartyCritical
             if (applyTeleport)
             {
                 Vector3 shiftTeleport = Utilities.StringToVector3(_shift);
-#if ENABLE_WORLDSENSE
-                Vector3 posWorld = Utilities.Clone(CameraLocal.transform.localPosition);
-#else
+#if ENABLE_WORLDSENSE || ENABLE_OCULUS || ENABLE_HTCVIVE || ENABLE_PICONEO
                 Vector3 posWorld = Utilities.Clone(CenterEyeAnchor.transform.localPosition);
-#endif
                 m_shiftCameraFromOrigin += new Vector3(shiftTeleport.x, 0, shiftTeleport.z) + new Vector3(posWorld.x * ScaleMovementXZ, 0, posWorld.z * ScaleMovementXZ);
-#if ENABLE_WORLDSENSE
-                CameraLocal.transform.localPosition = new Vector3(0, CameraLocal.transform.localPosition.y, 0);
-#else
                 CenterEyeAnchor.transform.localPosition = new Vector3(0, CenterEyeAnchor.transform.localPosition.y, 0);
+#else
+                m_shiftCameraFromOrigin = shiftTeleport;
+                this.transform.position += new Vector3(m_shiftCameraFromOrigin.x, 0, m_shiftCameraFromOrigin.z);
 #endif
                 BasicSystemEventController.Instance.DispatchBasicSystemEvent(TeleportController.EVENT_TELEPORTCONTROLLER_COMPLETED);
                 // Debug.LogError("CameraBaseController::EVENT_TELEPORTCONTROLLER_TELEPORT::m_shiftCameraFromOrigin=" + m_shiftCameraFromOrigin.ToString());

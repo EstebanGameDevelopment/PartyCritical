@@ -116,7 +116,7 @@ namespace PartyCritical
         /* 
 		 * OnActionButton
 		 */
-        private void OnActionButton()
+        protected void OnActionButton()
         {
             UIEventController.Instance.DispatchUIEvent(CameraBaseController.EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN);
         }
@@ -125,7 +125,7 @@ namespace PartyCritical
         /* 
          * OnRotateRight
          */
-        private void OnRotateRight()
+        protected void OnRotateRight()
         {
             BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA, true);
         }
@@ -134,7 +134,7 @@ namespace PartyCritical
         /* 
          * OnRotateLeft
          */
-        private void OnRotateLeft()
+        protected void OnRotateLeft()
         {
             BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA, false);
         }
@@ -144,7 +144,7 @@ namespace PartyCritical
         /* 
          * OnUIEvent
          */
-        private void OnUIEvent(string _nameEvent, params object[] _list)
+        protected void OnUIEvent(string _nameEvent, params object[] _list)
         {
             if (_nameEvent == EVENT_SCREENPLAYER_IGNORE_ONE_DESTRUCTION)
             {
