@@ -2103,7 +2103,8 @@ namespace PartyCritical
                     {
                         m_playerCameraActivated.GetComponent<Actor>().GetModel().gameObject.SetActive(true);
                     }
-                    m_playerCameraActivated = Players[(int)_list[0]];
+                    m_indexPlayerDirectorSelected = (int)_list[0];
+                    m_playerCameraActivated = Players[m_indexPlayerDirectorSelected];
                     if (m_playerCameraActivated != null)
                     {
                         if (m_playerCameraActivated.GetComponent<Actor>() != null)
@@ -2123,6 +2124,7 @@ namespace PartyCritical
                         m_playerCameraActivated.GetComponent<Actor>().GetModel().gameObject.SetActive(true);
                     }
                     m_playerCameraActivated = null;
+                    m_indexPlayerDirectorSelected = -1;
                     transform.position = m_backupCameraPosition;
                     CameraLocal.forward = m_backupCameraForward;
                     if (YourVRUIScreenController.Instance != null)
@@ -2389,8 +2391,14 @@ namespace PartyCritical
         }
 
         protected GameObject m_playerCameraActivated = null;
+        protected int m_indexPlayerDirectorSelected = -1;
         protected Vector3 m_backupCameraPosition = new Vector3();
         protected Vector3 m_backupCameraForward = new Vector3();
+
+        public int IndexPlayerDirectorSelected
+        {
+            get { return m_indexPlayerDirectorSelected; }
+        }
 
         // -------------------------------------------
         /* 
