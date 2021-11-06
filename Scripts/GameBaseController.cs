@@ -1496,6 +1496,21 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+        * OnLoadLevelCompleted
+        */
+        protected virtual void OnLoadLevelCompleted(object[] _list)
+        {
+            GameHasLoadedLevel(_list);
+            InitializeNetworkedObject();
+            LoadingBlackOverlay overlay = GameObject.FindObjectOfType<LoadingBlackOverlay>();
+            if (overlay != null)
+            {
+                overlay.FadeOut();
+            }
+        }
+
+        // -------------------------------------------
+        /* 
         * OnBasicSystemEvent
         */
         protected virtual void OnBasicSystemEvent(string _nameEvent, object[] _list)
@@ -1555,13 +1570,7 @@ namespace PartyCritical
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_LEVEL_LOAD_COMPLETED)
             {
-                GameHasLoadedLevel(_list);
-                InitializeNetworkedObject();
-                LoadingBlackOverlay overlay = GameObject.FindObjectOfType<LoadingBlackOverlay>();
-                if (overlay != null)
-                {
-                    overlay.FadeOut();
-                }
+                OnLoadLevelCompleted(_list);
             }
             if (_nameEvent == EVENT_GAMECONTROLLER_REQUEST_IS_GAME_RUNNING)
             {
