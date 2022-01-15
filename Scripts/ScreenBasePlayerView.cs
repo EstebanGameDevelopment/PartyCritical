@@ -27,6 +27,7 @@ namespace PartyCritical
         // ----------------------------------------------	
         public const string EVENT_SCREENPLAYER_OPEN_INVENTORY = "EVENT_SCREENPLAYER_OPEN_INVENTORY";
         public const string EVENT_SCREENPLAYER_IGNORE_ONE_DESTRUCTION = "EVENT_SCREENPLAYER_IGNORE_ONE_DESTRUCTION";
+        public const string EVENT_SCREENPLAYER_SET_VISIBILITY = "EVENT_SCREENPLAYER_SET_VISIBILITY";
 
         // ----------------------------------------------
         // PRIVATE MEMBERS
@@ -37,6 +38,7 @@ namespace PartyCritical
         protected GameObject m_buttonMove;
         protected GameObject m_buttonRotateLeft;
         protected GameObject m_buttonRotateRight;
+        protected GameObject m_openInventoryScreen;
 
         protected bool m_ignoreOneDestruction = false;
 
@@ -51,10 +53,10 @@ namespace PartyCritical
 
             if (m_container.Find("Inventory") != null)
             {
-                GameObject openInventoryScreen = m_container.Find("Inventory").gameObject;
-                openInventoryScreen.GetComponent<Button>().onClick.AddListener(OpenInventory);
+                m_openInventoryScreen = m_container.Find("Inventory").gameObject;
+                m_openInventoryScreen.GetComponent<Button>().onClick.AddListener(OpenInventory);
 #if !ENABLE_MULTIPLAYER_TIMELINE
-                openInventoryScreen.SetActive(false);
+                m_openInventoryScreen.SetActive(false);
 #endif
             }
 
@@ -146,6 +148,11 @@ namespace PartyCritical
          */
         protected void OnUIEvent(string _nameEvent, params object[] _list)
         {
+            if (_nameEvent == EVENT_SCREENPLAYER_SET_VISIBILITY)
+            {
+                bool activation = (bool)_list[0];
+                m_container.gameObject.SetActive(activation);
+            }
             if (_nameEvent == EVENT_SCREENPLAYER_IGNORE_ONE_DESTRUCTION)
             {
                 m_ignoreOneDestruction = true;

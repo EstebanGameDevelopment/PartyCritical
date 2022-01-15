@@ -32,6 +32,11 @@ namespace PartyCritical
         public const string EVENT_DIRECTOR_HIDE_PANEL               = "EVENT_DIRECTOR_HIDE_PANEL";
 
         // ----------------------------------------------
+        // PUBLIC MEMBERS
+        // ----------------------------------------------	
+        public GameObject ScaleMovement;
+
+        // ----------------------------------------------
         // PRIVATE MEMBERS
         // ----------------------------------------------	
         protected GameObject m_root;
@@ -58,6 +63,13 @@ namespace PartyCritical
         protected bool m_enabledSignalPlayers = false;
 
         protected GameObject m_voiceActivationButton;
+
+        protected GameObject m_signalsActivationButton;
+        protected GameObject m_changeToPlayerCameraGame;
+        protected GameObject m_hideThisScreen;
+        protected GameObject m_killPartyButton;
+        protected GameObject m_teleportButton;
+        protected GameObject m_fixCameraButton;
 
         protected bool TeleportEnabled
         {
@@ -93,35 +105,35 @@ namespace PartyCritical
 			m_root = this.gameObject;
 			m_container = m_root.transform.Find("Content");
 
-			GameObject changeToPlayerCameraGame = m_container.Find("Change").gameObject;
-            m_iconPlayer = changeToPlayerCameraGame.transform.transform.Find("IconPlayer").gameObject;
-            m_iconDirector = changeToPlayerCameraGame.transform.transform.Find("IconDirector").gameObject;
-            m_textCamera = changeToPlayerCameraGame.transform.Find("Text").GetComponent<Text>();
+            m_changeToPlayerCameraGame = m_container.Find("Change").gameObject;
+            m_iconPlayer = m_changeToPlayerCameraGame.transform.transform.Find("IconPlayer").gameObject;
+            m_iconDirector = m_changeToPlayerCameraGame.transform.transform.Find("IconDirector").gameObject;
+            m_textCamera = m_changeToPlayerCameraGame.transform.Find("Text").GetComponent<Text>();
             m_iconPlayer.SetActive(false);
             m_iconDirector.SetActive(true);
             m_textCamera.text = "DIRECTOR";
-            changeToPlayerCameraGame.GetComponent<Button>().onClick.AddListener(ChangeToPlayerCamera);
+            m_changeToPlayerCameraGame.GetComponent<Button>().onClick.AddListener(ChangeToPlayerCamera);
 
-			GameObject hideThisScreen = m_container.Find("Hide").gameObject;
-			hideThisScreen.GetComponent<Button>().onClick.AddListener(HidePanel);
+            m_hideThisScreen = m_container.Find("Hide").gameObject;
+            m_hideThisScreen.GetComponent<Button>().onClick.AddListener(HidePanel);
 
             if (m_container.Find("KillParty") != null)
             {
-                GameObject killPartyButton = m_container.Find("KillParty").gameObject;
-                killPartyButton.GetComponent<Button>().onClick.AddListener(KillThisParty);
+                m_killPartyButton = m_container.Find("KillParty").gameObject;
+                m_killPartyButton.GetComponent<Button>().onClick.AddListener(KillThisParty);
             }
 
             if (m_container.Find("Teleport") != null)
             {
-                GameObject teleportButton = m_container.Find("Teleport").gameObject;
-                teleportButton.GetComponent<Button>().onClick.AddListener(TeleportChanged);
+                m_teleportButton = m_container.Find("Teleport").gameObject;
+                m_teleportButton.GetComponent<Button>().onClick.AddListener(TeleportChanged);
                 m_stopTeleport = m_container.Find("Teleport/Stop").gameObject;
             }
 
             if (m_container.Find("FixCamera") != null)
             {
-                GameObject fixCameraButton = m_container.Find("FixCamera").gameObject;
-                fixCameraButton.GetComponent<Button>().onClick.AddListener(FixCameraChanged);
+                m_fixCameraButton = m_container.Find("FixCamera").gameObject;
+                m_fixCameraButton.GetComponent<Button>().onClick.AddListener(FixCameraChanged);
                 m_stopFixCamera = m_container.Find("FixCamera/Stop").gameObject;
                 if (m_container.Find("FixCamera/Tip") != null)
                 {
@@ -157,8 +169,8 @@ namespace PartyCritical
 
             if (m_container.Find("Signals") != null)
             {
-                GameObject signalsActivationButton = m_container.Find("Signals").gameObject;
-                signalsActivationButton.GetComponent<Button>().onClick.AddListener(SignalsActivationChanged);
+                m_signalsActivationButton = m_container.Find("Signals").gameObject;
+                m_signalsActivationButton.GetComponent<Button>().onClick.AddListener(SignalsActivationChanged);
                 m_stopSignalsEnabled = m_container.Find("Signals/Stop").gameObject;
             }
 
