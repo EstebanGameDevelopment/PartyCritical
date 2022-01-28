@@ -141,6 +141,33 @@ namespace PartyCritical
             BasicSystemEventController.Instance.DispatchBasicSystemEvent(CameraBaseController.EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA, false);
         }
 
+        // -------------------------------------------
+        /* 
+         * OnOpenedScreen
+         */
+        protected virtual void OnOpenedScreen()
+        {
+            UIEventController.Instance.DispatchUIEvent(CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_CONTROL_CAMERA, false, false);
+            UIEventController.Instance.DispatchUIEvent(CameraBaseController.EVENT_CAMERACONTROLLER_STOP_MOVING);
+            m_container.gameObject.SetActive(false);
+        }
+
+        // -------------------------------------------
+        /* 
+         * OnClosedScreen
+         */
+        protected virtual void OnClosedScreen()
+        {
+            UIEventController.Instance.DispatchUIEvent(CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_CONTROL_CAMERA, true, true);
+            if (m_ignoreOneDestruction)
+            {
+                m_ignoreOneDestruction = false;
+            }
+            else
+            {
+                m_container.gameObject.SetActive(true);
+            }
+        }
 
         // -------------------------------------------
         /* 
@@ -163,21 +190,11 @@ namespace PartyCritical
                 || (_nameEvent == UIEventController.EVENT_SCREENMANAGER_VR_OPEN_INFORMATION_SCREEN))
 
             {
-                UIEventController.Instance.DispatchUIEvent(CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_CONTROL_CAMERA, false, false);
-                UIEventController.Instance.DispatchUIEvent(CameraBaseController.EVENT_CAMERACONTROLLER_STOP_MOVING);
-                m_container.gameObject.SetActive(false);
+                OnOpenedScreen();
             }
             if (_nameEvent == UIEventController.EVENT_SCREENMANAGER_DESTROY_SCREEN)
             {
-                UIEventController.Instance.DispatchUIEvent(CameraBaseController.EVENT_CAMERACONTROLLER_ENABLE_CONTROL_CAMERA, true, true);
-                if (m_ignoreOneDestruction)
-                {
-                    m_ignoreOneDestruction = false;
-                }
-                else
-                {
-                    m_container.gameObject.SetActive(true);
-                }                
+                OnClosedScreen();
             }
             if (_nameEvent == CustomButton.BUTTON_PRESSED_DOWN)
             {
