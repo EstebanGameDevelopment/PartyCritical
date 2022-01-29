@@ -173,7 +173,7 @@ namespace PartyCritical
         /* 
          * OnUIEvent
          */
-        protected void OnUIEvent(string _nameEvent, params object[] _list)
+        protected virtual void OnUIEvent(string _nameEvent, params object[] _list)
         {
             if (_nameEvent == EVENT_SCREENPLAYER_SET_VISIBILITY)
             {
