@@ -146,6 +146,7 @@ namespace PartyCritical
         protected GameObject m_laserPointer;
         protected Vector3 m_incrementJoystickTranslation = Vector3.zero;
 #endif
+        protected Vector3 m_backUpInitialPosition = Vector3.zero;
 
         // ----------------------------------------------
         // GETTERS/SETTERS
@@ -156,7 +157,8 @@ namespace PartyCritical
             set
             {
                 m_avatar = value;
-                this.transform.position = new Vector3(m_avatar.transform.position.x, m_avatar.transform.position.y + 1, m_avatar.transform.position.z);
+                m_backUpInitialPosition = new Vector3(m_avatar.transform.position.x, m_avatar.transform.position.y + 1, m_avatar.transform.position.z);
+                this.transform.position = m_backUpInitialPosition;
             }
         }
 
@@ -505,6 +507,15 @@ namespace PartyCritical
             if (BasicSystemEventController.Instance != null) BasicSystemEventController.Instance.BasicSystemEvent -= OnBasicSystemEvent;
             if (NetworkEventController.Instance != null) NetworkEventController.Instance.NetworkEvent -= OnNetworkEvent;
             if (UIEventController.Instance != null) UIEventController.Instance.UIEvent -= OnUIEvent;
+        }
+
+        // -------------------------------------------
+        /* 
+		 * ResetToInitialPosition
+		 */
+        public virtual void ResetToInitialPosition()
+        {
+            this.transform.position = m_backUpInitialPosition;
         }
 
         // -------------------------------------------
