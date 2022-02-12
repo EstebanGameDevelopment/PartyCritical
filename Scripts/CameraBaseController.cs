@@ -331,9 +331,9 @@ namespace PartyCritical
             if (RightCameraRotationButton != null) RightCameraRotationButton.SetActive(false);
 
 #if ENABLE_OCULUS
-        m_enableVR = true;
+            m_enableVR = true;
             AreOculusHandsEnabled = false;
-            CameraLocal.gameObject.SetActive(false);
+            if (CameraLocal != null) CameraLocal.gameObject.SetActive(false);
             if (OVRPlayer!=null) OVRPlayer.SetActive(true);
             this.GetComponent<Rigidbody>().useGravity = false;
             this.GetComponent<Rigidbody>().isKinematic = true;
@@ -462,7 +462,7 @@ namespace PartyCritical
         // -------------------------------------------
         /* OnOculusEvent
 		 */
-        private void OnOculusEvent(string _nameEvent, object[] _list)
+        protected virtual void OnOculusEvent(string _nameEvent, object[] _list)
         {
             if (_nameEvent == OculusControllerInputs.EVENT_OCULUSINPUTCONTROLLER_INDEX_TRIGGER_DOWN)
             {
@@ -497,6 +497,15 @@ namespace PartyCritical
 		 * OnDestroy
 		 */
         void OnDestroy()
+        {
+            Destroy();
+        }
+
+        // -------------------------------------------
+        /* 
+		 * Destroy
+		 */
+        protected virtual void Destroy()
         {
             m_avatar = null;
 
@@ -1861,6 +1870,24 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		 * SetUpAvatarPlayer
+		 */
+        protected virtual void SetUpAvatarPlayer(GameObject _avatar)
+        {
+            if (!DirectorMode)
+            {
+                if (Avatar == null)
+                {
+                    Avatar = _avatar;
+#if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE || ENABLE_PICONEO
+                    Invoke("InitNetworkRightHand", 0.2f);
+#endif
+                }
+            }
+        }
+
+        // -------------------------------------------
+        /* 
 		 * OnBasicSystemEvent
 		 */
         protected virtual void OnBasicSystemEvent(string _nameEvent, object[] _list)
@@ -1914,16 +1941,7 @@ namespace PartyCritical
             }
             if (_nameEvent == ActorTimeline.EVENT_GAMEPLAYER_SETUP_AVATAR)
             {
-                if (!DirectorMode)
-                {
-                    if (Avatar == null)
-                    {
-                        Avatar = (GameObject)_list[0];
-#if ENABLE_OCULUS || ENABLE_WORLDSENSE || ENABLE_HTCVIVE || ENABLE_PICONEO
-                        Invoke("InitNetworkRightHand", 0.2f);
-#endif
-                    }
-                }
+                SetUpAvatarPlayer((GameObject)_list[0]);
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_REQUEST_SELECTOR_DATA)
             {
