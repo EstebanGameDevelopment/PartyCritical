@@ -866,7 +866,7 @@ namespace PartyCritical
             m_runActionLoadMenuScene = true;
 #if ENABLE_USER_SERVER
             BasicSystemEventController.Instance.DelayBasicSystemEvent(EVENT_SPLASHBASE_CONNECTION_SCREEN_TIMEOUT, 5);
-            CommsHTTPConstants.Instance.GetServerConfigurationParameters();
+            UserManagement.CommsHTTPConstants.Instance.GetServerConfigurationParameters();
 #else
             OpenMainMenuScreen();
 #endif
@@ -1007,7 +1007,7 @@ namespace PartyCritical
                 BasicSystemEventController.Instance.ClearBasicSystemEvents();
                 if ((bool)_list[0])
                 {
-                    CommsHTTPConstants.Instance.ThereIsConnection = true;
+                    UserManagement.CommsHTTPConstants.Instance.ThereIsConnection = true;
                     if (!UserModel.LoginWithStoredLogin())
                     {
                         OpenMainMenuScreen();
@@ -1015,18 +1015,18 @@ namespace PartyCritical
                 }
                 else
                 {
-                    CommsHTTPConstants.Instance.ThereIsConnection = false;
+                    UserManagement.CommsHTTPConstants.Instance.ThereIsConnection = false;
                     OpenMainMenuScreen();
                 }
             }
             if (_nameEvent == EVENT_SPLASHBASE_CONNECTION_SCREEN_TIMEOUT)
             {
-                CommsHTTPConstants.Instance.ThereIsConnection = false;
+                UserManagement.CommsHTTPConstants.Instance.ThereIsConnection = false;
                 OpenMainMenuScreen();
             }
             if (_nameEvent == UsersController.EVENT_USER_LOGIN_FORMATTED)
             {
-                CommsHTTPConstants.Instance.ThereIsConnection = true;
+                UserManagement.CommsHTTPConstants.Instance.ThereIsConnection = true;
                 OpenMainMenuScreen();
             }
 #endif
