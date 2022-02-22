@@ -367,6 +367,8 @@ namespace PartyCritical
             float delayShortcutSplash = 1;
 #if UNITY_EDITOR
             delayShortcutSplash = 0.1f;
+#elif ENABLE_LOCAL_VERIFICATION
+            delayShortcutSplash = 1.2f;
 #else
             delayShortcutSplash = 0.4f;
 #endif
@@ -514,7 +516,7 @@ namespace PartyCritical
         /* 
 		 * JoinAsOtherPlayerGame_ARCore
 		 */
-        public void JoinAsOtherPlayerGame_ARCore()
+        public virtual void JoinAsOtherPlayerGame_ARCore()
         {
             PlayerPrefs.DeleteAll();
             if (m_enableSocket)
@@ -563,7 +565,7 @@ namespace PartyCritical
         /* 
 		 * JoinAsOtherPlayerGame_Gyro
 		 */
-        public void JoinAsOtherPlayerGame_Gyro()
+        public virtual void JoinAsOtherPlayerGame_Gyro()
         {
             PlayerPrefs.DeleteAll();
             if (m_enableSocket)
@@ -612,7 +614,7 @@ namespace PartyCritical
         /* 
 		 * JoinAsOtherPlayerGame_NoARCore
 		 */
-        public void JoinAsOtherPlayerGame_NoARCore()
+        public virtual void JoinAsOtherPlayerGame_NoARCore()
         {
             PlayerPrefs.DeleteAll();
             if (m_enableSocket)
@@ -661,7 +663,7 @@ namespace PartyCritical
         /* 
          * JoinAsDirectorGame
          */
-        public void JoinAsDirectorGame()
+        public virtual void JoinAsDirectorGame()
         {
             PlayerPrefs.DeleteAll();
             if (m_enableSocket)
@@ -997,6 +999,15 @@ namespace PartyCritical
                     if ((long)_list[1] > 0)
                     {
                         CustomInitializeWithShortCut((string)_list[2]);
+#if ENABLE_LOCAL_VERIFICATION
+                        if (_list.Length > 3)
+                        {
+                            if (m_container.Find("Text") != null)
+                            {
+                                m_container.Find("Text").GetComponent<Text>().text = LanguageController.Instance.GetText("screen.splash.valid.license.for.days", (int)_list[3]);
+                            }
+                        }
+#endif
                     }
                 }
             }
