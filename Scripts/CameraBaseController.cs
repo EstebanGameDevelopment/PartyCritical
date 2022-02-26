@@ -2340,6 +2340,24 @@ namespace PartyCritical
 
         // -------------------------------------------
         /* 
+		 * StartMoving
+		 */
+        protected virtual void StartMoving()
+        {
+            m_timeoutToMove = TIMEOUT_TO_MOVE + 1;
+        }
+
+        // -------------------------------------------
+        /* 
+		 * StopMoving
+		 */
+        protected virtual void StopMoving()
+        {
+            m_timeoutToMove = 0;
+        }
+
+        // -------------------------------------------
+        /* 
 		 * OnUIEvent
 		 */
         protected virtual void OnUIEvent(string _nameEvent, object[] _list)
@@ -2363,7 +2381,7 @@ namespace PartyCritical
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_START_MOVING)
             {
-                m_timeoutToMove = TIMEOUT_TO_MOVE + 1;
+                StartMoving();
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_GENERIC_ACTION_DOWN)
             {
@@ -2377,7 +2395,7 @@ namespace PartyCritical
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_STOP_MOVING)
             {
-                m_timeoutToMove = 0;
+                StopMoving();
             }
             if (_nameEvent == ScreenBasePlayerView.EVENT_SCREENPLAYER_OPEN_INVENTORY)
             {

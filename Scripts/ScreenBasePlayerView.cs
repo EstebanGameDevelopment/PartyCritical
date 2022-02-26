@@ -100,7 +100,7 @@ namespace PartyCritical
         /* 
 		 * Remove all the references
 		 */
-        void OnDestroy()
+        protected virtual void OnDestroy()
         {
             UIEventController.Instance.UIEvent -= OnUIEvent;
         }
