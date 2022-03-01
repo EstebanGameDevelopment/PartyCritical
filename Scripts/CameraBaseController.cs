@@ -32,6 +32,7 @@ namespace PartyCritical
         public const string EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER = "EVENT_CAMERACONTROLLER_ENABLE_LASER_POINTER";
         public const string EVENT_CAMERACONTROLLER_ACTIVATE_SKYBOX = "EVENT_CAMERACONTROLLER_ACTIVATE_SKYBOX";
         public const string EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA = "EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA";
+        public const string EVENT_CAMERACONTROLLER_APPLY_INITIAL_ROTATION_CAMERA = "EVENT_CAMERACONTROLLER_APPLY_INITIAL_ROTATION_CAMERA";
         public const string EVENT_CAMERACONTROLLER_APPLY_LEFT_ROTATION_CAMERA = "EVENT_CAMERACONTROLLER_APPLY_LEFT_ROTATION_CAMERA";
         public const string EVENT_CAMERACONTROLLER_APPLY_RIGTH_ROTATION_CAMERA = "EVENT_CAMERACONTROLLER_APPLY_RIGTH_ROTATION_CAMERA";
         public const string EVENT_CAMERACONTROLLER_ENABLE_CONTROL_CAMERA = "EVENT_CAMERACONTROLLER_ENABLE_CONTROL_CAMERA";
@@ -2044,6 +2045,12 @@ namespace PartyCritical
                     m_fixedCameraForward = CameraLocal.forward;
                 }
                 m_enableFreeMovementCamera = (bool)_list[0];
+            }
+            if (_nameEvent == EVENT_CAMERACONTROLLER_APPLY_INITIAL_ROTATION_CAMERA)
+            {
+                m_currentLocalCamRotation += (((int)_list[0]) * ROTATE_LOCALCAMERA_VALUE);
+                Vector3 rotationFinalApplied = new Vector3(0, ((int)_list[0]) * ROTATE_LOCALCAMERA_VALUE, 0);
+                this.transform.Rotate(rotationFinalApplied);
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA)
             {
