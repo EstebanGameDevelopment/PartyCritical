@@ -422,9 +422,6 @@ namespace PartyCritical
 
             base.Destroy();
 
-            NetworkEventController.Instance?.Destroy();
-            KeysEventInputController.Instance?.Destroy();
-
             if (NetworkEventController.Instance!=null) NetworkEventController.Instance.NetworkEvent -= OnNetworkEvent;
             if (BasicSystemEventController.Instance != null) BasicSystemEventController.Instance.BasicSystemEvent -= OnBasicSystemEvent;
             if (UIEventController.Instance != null) UIEventController.Instance.UIEvent -= OnUIEvent;
@@ -440,9 +437,9 @@ namespace PartyCritical
             if (EventSystemController.Instance!=null) EventSystemController.Instance.Destroy();
             if (EventSystemController.Instance!=null) Destroy(EventSystemController.Instance.gameObject);
 #endif
-            if (YourNetworkTools.Instance!=null) YourNetworkTools.Instance.Destroy();
-            NetworkEventController.Instance.Destroy();
-
+            YourNetworkTools.Instance?.Destroy();
+            NetworkEventController.Instance?.Destroy();
+            KeysEventInputController.Instance?.Destroy();
 
             if (!m_isLocalGame)
             {
