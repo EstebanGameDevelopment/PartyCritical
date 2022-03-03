@@ -47,7 +47,8 @@ namespace PartyCritical
         
         public const string EVENT_CAMERACONTROLLER_COLLISION_ENTER_TRIGGERED_WITH_PLAYER = "EVENT_CAMERACONTROLLER_COLLISION_ENTER_TRIGGERED_WITH_PLAYER";
         public const string EVENT_CAMERACONTROLLER_COLLISION_EXIT_TRIGGERED_WITH_PLAYER = "EVENT_CAMERACONTROLLER_COLLISION_EXIT_TRIGGERED_WITH_PLAYER";
-
+        
+        public const string EVENT_CAMERACONTROLLER_GYROSCOPE_INITED = "EVENT_CAMERACONTROLLER_GYROSCOPE_INITED";
 
         public const string MARKER_NAME = "MARKER";
 
@@ -1745,9 +1746,11 @@ namespace PartyCritical
                 }
                 else
                 {
+                    bool reportForward = false;
                     if (!m_rotatedTo90)
                     {
                         m_rotatedTo90 = true;
+                        reportForward = true;
                         if (DirectorMode || (SubContainerCamera == null))
                         {
                             transform.Rotate(Vector3.right, 90);
@@ -1760,6 +1763,11 @@ namespace PartyCritical
 
                     Quaternion rotFix = new Quaternion(Input.gyro.attitude.x, Input.gyro.attitude.y, -Input.gyro.attitude.z, -Input.gyro.attitude.w);
                     CameraLocal.localRotation = rotFix;
+
+                    if (reportForward)
+                    {
+                        BasicSystemEventController.Instance.DelayBasicSystemEvent(EVENT_CAMERACONTROLLER_GYROSCOPE_INITED, 0.1f, CameraLocal.rotation.eulerAngles);
+                    }                    
                 }
             }
         }
@@ -2048,8 +2056,8 @@ namespace PartyCritical
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_APPLY_INITIAL_ROTATION_CAMERA)
             {
-                m_currentLocalCamRotation += (((int)_list[0]) * ROTATE_LOCALCAMERA_VALUE);
-                Vector3 rotationFinalApplied = new Vector3(0, ((int)_list[0]) * ROTATE_LOCALCAMERA_VALUE, 0);
+                m_currentLocalCamRotation += ((int)_list[0]);
+                Vector3 rotationFinalApplied = new Vector3(0, ((int)_list[0]), 0);
                 this.transform.Rotate(rotationFinalApplied);
             }
             if (_nameEvent == EVENT_CAMERACONTROLLER_APPLY_ROTATION_CAMERA)
