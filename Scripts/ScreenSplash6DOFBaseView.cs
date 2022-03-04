@@ -68,7 +68,7 @@ namespace PartyCritical
         protected Transform m_container;
         protected Transform m_poweredBy;
 
-        protected float m_timerToVRMenus = 5.9f;
+        protected float m_timerToVRMenus = 0.5f;
 
         protected bool m_runUpdate = false;
         protected bool m_isThereButtons = false;
@@ -121,7 +121,7 @@ namespace PartyCritical
 #if UNITY_EDITOR
                 return 0.2f;
 #else
-                return 2;
+                return 0.5f;
 #endif
             }
         }
